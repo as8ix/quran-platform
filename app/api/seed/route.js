@@ -8,11 +8,11 @@ export async function GET() {
         // 1. Create Supervisor
         const supervisor = await prisma.user.upsert({
             where: { username: 'supervisor' },
-            update: {},
+            update: { name: 'عبدالله' },
             create: {
                 username: 'supervisor',
                 password: '123',
-                name: 'المشرف العام',
+                name: 'عبدالله',
                 role: 'SUPERVISOR',
             },
         });
