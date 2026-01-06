@@ -1,0 +1,90 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider   = "prisma-client-js"
+  engineType = "binary"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  password  String
+  name      String
+  role      String   // SUPERVISOR, TEACHER, STUDENT
+  createdAt DateTime @default(now())
+  
+  // Relations
+  teacherHalaqas Halaqa[] @relation("TeacherHalaqas")
+  assistantHalaqas Halaqa[] @relation("AssistantTeachers")
+}
+
+model Halaqa {
+  id        Int      @id @default(autoincrement())
+  name      String
+  teacherId Int?
+  teacher   User?    @relation("TeacherHalaqas", fields: [teacherId], references: [id])
+  assistants User[]  @relation("AssistantTeachers")
+  students  Student[]
+  createdAt DateTime @default(now())
+}
+
+model Student {
+  id           Int      @id @default(autoincrement())
+  name         String
+  username     String   @unique
+  password     String
+  hifzProgress String?   // Current surah name
+  currentHifzSurahId Int? @default(114) // 1-114
+  juzCount     Int      @default(0)
+  reviewPlan   String?
+  createdAt    DateTime @default(now())
+  
+  halaqaId     Int?
+  halaqa       Halaqa?  @relation(fields: [halaqaId], references: [id])
+  
+  attendance   Attendance[]
+  sessions     Session[]
+}
+
+model Attendance {
+  id        Int      @id @default(autoincrement())
+  studentId Int
+  student   Student  @relation(fields: [studentId], references: [id])
+  date      DateTime @default(now())
+  status    String   // PRESENT, ABSENT_EXCUSED, ABSENT_UNEXCUSED
+}
+
+model Session {
+  id           Int      @id @default(autoincrement())
+  studentId    Int
+  student      Student  @relation(fields: [studentId], references: [id])
+  date         DateTime @default(now())
+  
+  // Hifz
+  hifzSurah    String?
+  hifzFromPage Int?
+  hifzToPage   Int?
+  hifzFromAyah Int?
+  hifzToAyah   Int?
+  
+  // Murajaah
+  murajaahFromSurah String?
+  murajaahFromAyah  Int?
+  murajaahToSurah   String?
+  murajaahToAyah    Int?
+  
+  pagesCount   Float?   // Total pages calculated
+  resultString String?  // e.g. "جزء و 5 صفحات و 10 آيات"
+  notes        String?
+  
+  // Quality Metrics
+  errorsCount      Int @default(0)  // عدد الأخطاء
+  alertsCount      Int @default(0)  // عدد التنبيهات
+  cleanPagesCount  Int @default(0)  // الصفحات النقية
+}
