@@ -15,8 +15,8 @@ export const metadata = {
     maximumScale: 1,
   },
   icons: {
-    icon: "/favicon.ico",
-    apple: "/apple-icon.png",
+    icon: "/logo.svg",
+    apple: "/logo.svg",
   },
   openGraph: {
     title: "منصة تحفيظ القرآن الكريم",
