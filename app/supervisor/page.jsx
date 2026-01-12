@@ -343,7 +343,7 @@ export default function SupervisorDashboard() {
                                     <div className="flex justify-between items-center">
                                         <div className="flex items-center gap-4">
                                             <div className="w-14 h-14 bg-white border-2 border-slate-100 rounded-2xl flex items-center justify-center text-2xl font-black text-slate-700 shadow-sm group-hover:border-emerald-200 group-hover:text-emerald-600 transition-colors">
-                                                {teacher.name.charAt(0)}
+                                                {teacher.name?.charAt(0)}
                                             </div>
                                             <div>
                                                 <div className="font-bold text-lg text-slate-800 group-hover:text-emerald-700 transition-colors">{teacher.name}</div>
@@ -593,7 +593,7 @@ export default function SupervisorDashboard() {
                                     {selectedHalaqaStudents.map((student) => (
                                         <div key={student.id} className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center gap-4 hover:bg-white hover:shadow-md transition-all group">
                                             <div className="w-12 h-12 bg-white border-2 border-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center text-xl font-black group-hover:border-indigo-100">
-                                                {student.name.charAt(0)}
+                                                {student.name?.charAt(0)}
                                             </div>
                                             <div>
                                                 <div className="font-bold text-slate-800">{student.name}</div>

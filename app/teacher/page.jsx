@@ -205,7 +205,7 @@ export default function TeacherDashboard() {
                             >
                                 <div className="flex items-start justify-between mb-4">
                                     <div className="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center text-2xl font-black">
-                                        {student.name.charAt(0)}
+                                        {student.name?.charAt(0)}
                                     </div>
                                     <div className="bg-slate-50 px-3 py-1 rounded-full text-xs font-bold text-slate-400">
                                         ID: #{student.id}
