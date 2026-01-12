@@ -85,9 +85,14 @@ export default function NotificationDetails() {
             <main className="max-w-2xl mx-auto px-4 md:px-6 py-6 md:py-10">
                 <button
                     onClick={() => router.back()}
-                    className="mb-6 flex items-center gap-2 text-slate-500 hover:text-slate-800 transition-colors text-sm md:text-base font-bold"
+                    className="mb-8 flex items-center gap-3 text-slate-600 hover:text-indigo-600 transition-all group"
                 >
-                    ➡️ عودة
+                    <span className="font-bold text-sm md:text-base">عودة للقائمة الرئيسية</span>
+                    <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-white shadow-md flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 md:h-5 md:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                        </svg>
+                    </div>
                 </button>
 
                 <div className={`bg-white rounded-2xl md:rounded-3xl shadow-xl overflow-hidden border-t-8 ${notification.type === 'WARNING' ? 'border-red-500' : notification.type === 'PROPOSAL' ? 'border-green-500' : 'border-blue-500'}`}>
