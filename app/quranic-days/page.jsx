@@ -152,19 +152,19 @@ export default function QuranicDaysDashboard() {
                 )}
 
                 {/* Dashboard Header */}
-                <div className={`flex flex-col md:flex-row justify-between items-center gap-6 ${isFullscreen ? 'mb-1 h-[8%]' : 'mb-12'}`}>
+                <div className={`flex flex-col md:flex-row justify-between items-center gap-6 ${isFullscreen ? 'mb-2 h-[8%]' : 'mb-12'}`}>
                     <div className="flex items-center gap-6">
-                        <div className={`${isFullscreen ? 'w-10 h-10 text-xl rounded-xl' : 'w-20 h-20 text-3xl rounded-[2rem]'} ${isFullscreen ? 'bg-amber-500' : 'bg-amber-600'} text-white flex items-center justify-center font-black shadow-xl shadow-amber-200 animate-bounce-slow`}>
+                        <div className={`${isFullscreen ? 'w-12 h-12 text-2xl rounded-xl' : 'w-20 h-20 text-3xl rounded-[2rem]'} ${isFullscreen ? 'bg-amber-500' : 'bg-amber-600'} text-white flex items-center justify-center font-black shadow-xl shadow-amber-200 animate-bounce-slow`}>
                             🏆
                         </div>
                         <div>
-                            <h1 className={`${isFullscreen ? 'text-xl' : 'text-4xl md:text-5xl'} font-black ${isFullscreen ? 'text-white' : 'text-slate-900'} tracking-tight`}>
+                            <h1 className={`${isFullscreen ? 'text-2xl' : 'text-4xl md:text-5xl'} font-black ${isFullscreen ? 'text-white' : 'text-slate-900'} tracking-tight`}>
                                 إحصائيات: <span className="text-amber-600">{stats.eventName}</span>
                             </h1>
                             <p className="text-slate-400 font-bold flex items-center gap-2">
                                 <span className={`w-2 h-2 bg-emerald-500 rounded-full animate-ping ${isFullscreen ? 'inline-block' : ''}`}></span>
                                 <span className="text-[10px] tracking-tighter text-emerald-500">مباشر • </span>
-                                <span className={`${isFullscreen ? 'text-[10px]' : ''}`}>{isFullscreen ? 'بث مباشر للنتائج الاحترافية' : 'جاري عرض النتائج المباشرة للدورة الحالية'}</span>
+                                <span className={`${isFullscreen ? 'text-xs' : ''}`}>{isFullscreen ? 'بث مباشر للنتائج الاحترافية' : 'جاري عرض النتائج المباشرة للدورة الحالية'}</span>
                             </p>
                         </div>
                     </div>
@@ -214,14 +214,14 @@ export default function QuranicDaysDashboard() {
                 {/* Middle Row: Achievements & Charts */}
                 <div className={`grid grid-cols-1 lg:grid-cols-3 gap-8 ${isFullscreen ? 'mb-2 h-[35%]' : 'mb-12'}`}>
                     {/* Achievements Box */}
-                    <div className={`${isFullscreen ? 'rounded-[1.5rem] p-4' : 'rounded-[3rem] p-10'} bg-white shadow-xl shadow-slate-200/50 border border-slate-50 flex flex-col justify-between overflow-hidden relative group`}>
+                    <div className={`${isFullscreen ? 'rounded-[1.5rem] p-6' : 'rounded-[3rem] p-10'} bg-white shadow-xl shadow-slate-200/50 border border-slate-50 flex flex-col justify-center overflow-hidden relative group`}>
                         <div className="absolute top-0 right-0 w-32 h-32 bg-amber-50 rounded-full -translate-x-10 -translate-y-10 opacity-50 group-hover:scale-150 transition-all duration-700"></div>
 
-                        <h3 className={`${isFullscreen ? 'text-sm mb-2' : 'text-2xl mb-8'} font-black text-slate-800 relative z-10 flex items-center gap-3`}>
+                        <h3 className={`${isFullscreen ? 'text-lg mb-4' : 'text-2xl mb-8'} font-black text-slate-800 relative z-10 flex items-center gap-3`}>
                             🎯 المنجزات
                         </h3>
 
-                        <div className={`${isFullscreen ? 'space-y-2' : 'space-y-8'} relative z-10`}>
+                        <div className={`${isFullscreen ? 'space-y-4' : 'space-y-8'} relative z-10`}>
                             <AchievementItem label="المستهدف بالصفحات" value={stats.achievements.target} unit="صفحة" color="text-slate-400" isFullscreen={isFullscreen} />
                             <AchievementItem label="الصفحات المنجزة" value={stats.achievements.accomplished} unit="صفحة" color="text-amber-600" isMain isFullscreen={isFullscreen} />
                             <AchievementItem label="صفحات بجودة عالية" value={stats.achievements.purity} unit="صفحة" color="text-emerald-500" isFullscreen={isFullscreen} />
@@ -296,13 +296,13 @@ export default function QuranicDaysDashboard() {
 
 function StatCard({ label, value, icon, color, isFullscreen }) {
     return (
-        <div className={`${isFullscreen ? 'p-3 rounded-[1rem]' : 'p-8 rounded-[2.5rem]'} bg-white shadow-xl shadow-slate-100/80 border border-slate-50 flex items-center justify-between group hover:scale-[1.02] transition-all duration-300`}>
-            <div className={`${isFullscreen ? 'w-8 h-8 text-lg rounded-lg' : 'w-16 h-16 text-3xl rounded-[1.5rem]'} ${color} text-white flex items-center justify-center shadow-lg ring-4 ring-slate-50`}>
+        <div className={`${isFullscreen ? 'p-4 rounded-[1.2rem]' : 'p-8 rounded-[2.5rem]'} bg-white shadow-xl shadow-slate-100/80 border border-slate-50 flex items-center justify-between group hover:scale-[1.02] transition-all duration-300`}>
+            <div className={`${isFullscreen ? 'w-10 h-10 text-xl rounded-xl' : 'w-16 h-16 text-3xl rounded-[1.5rem]'} ${color} text-white flex items-center justify-center shadow-lg ring-4 ring-slate-50`}>
                 {icon}
             </div>
             <div className="text-left">
-                <span className={`${isFullscreen ? 'text-[8px]' : 'text-sm'} block font-black text-slate-400 mb-0.5 uppercase tracking-widest`}>{label}</span>
-                <span className={`${isFullscreen ? 'text-xl' : 'text-4xl'} font-black text-slate-800 tabular-nums`}>
+                <span className={`${isFullscreen ? 'text-[10px]' : 'text-sm'} block font-black text-slate-400 mb-1 uppercase tracking-widest`}>{label}</span>
+                <span className={`${isFullscreen ? 'text-2xl' : 'text-4xl'} font-black text-slate-800 tabular-nums`}>
                     {value}
                 </span>
             </div>
@@ -312,10 +312,10 @@ function StatCard({ label, value, icon, color, isFullscreen }) {
 
 function AchievementItem({ label, value, unit, color, isMain, isFullscreen }) {
     return (
-        <div className={`flex justify-between items-end border-b border-slate-50 ${isFullscreen ? 'pb-1' : 'pb-4'}`}>
-            <span className={`${isFullscreen ? 'text-[10px]' : 'text-sm'} font-bold text-slate-400`}>{label}</span>
+        <div className={`flex justify-between items-end border-b border-slate-50 ${isFullscreen ? 'pb-2' : 'pb-4'}`}>
+            <span className={`${isFullscreen ? 'text-xs' : 'text-sm'} font-bold text-slate-400`}>{label}</span>
             <div className={`flex items-baseline gap-1 ${color}`}>
-                <span className={`${isMain ? (isFullscreen ? 'text-xl' : 'text-4xl') : (isFullscreen ? 'text-base' : 'text-2xl')} font-black tabular-nums`}>{value}</span>
+                <span className={`${isMain ? (isFullscreen ? 'text-2xl' : 'text-4xl') : (isFullscreen ? 'text-lg' : 'text-2xl')} font-black tabular-nums`}>{value}</span>
                 <span className="text-[10px] font-black opacity-60">{unit}</span>
             </div>
         </div>
@@ -323,66 +323,66 @@ function AchievementItem({ label, value, unit, color, isMain, isFullscreen }) {
 }
 
 function RadialProgress({ percentage, label, color, isFullscreen }) {
-    const radius = isFullscreen ? 30 : 45;
+    const radius = isFullscreen ? 35 : 45;
     const circumference = 2 * Math.PI * radius;
     const offset = circumference - (percentage / 100) * circumference;
-    const boxSize = isFullscreen ? 24 : 36;
-    const viewBoxSize = isFullscreen ? 80 : 144;
+    const boxSize = isFullscreen ? 28 : 36;
+    const viewBoxSize = isFullscreen ? 100 : 144;
     const center = viewBoxSize / 2;
 
     return (
-        <div className="flex flex-col items-center gap-1 group">
-            <div className={`${isFullscreen ? 'w-20 h-20' : 'w-36 h-36'} relative flex items-center justify-center`}>
+        <div className="flex flex-col items-center gap-2 group">
+            <div className={`${isFullscreen ? 'w-28 h-28' : 'w-36 h-36'} relative flex items-center justify-center`}>
                 {/* Background Circle */}
                 <svg className="w-full h-full -rotate-90" viewBox={`0 0 ${viewBoxSize} ${viewBoxSize}`}>
                     <circle
                         cx={center} cy={center} r={radius}
                         className="stroke-slate-800"
-                        strokeWidth={isFullscreen ? "5" : "8"} fill="transparent"
+                        strokeWidth={isFullscreen ? "6" : "8"} fill="transparent"
                     />
                     {/* Progress Circle with Glow */}
                     <circle
                         cx={center} cy={center} r={radius}
                         stroke={color}
-                        strokeWidth={isFullscreen ? "5" : "8"}
+                        strokeWidth={isFullscreen ? "6" : "8"}
                         fill="transparent"
                         strokeDasharray={circumference}
                         strokeDashoffset={offset}
                         strokeLinecap="round"
                         className="transition-all duration-1000 ease-out"
-                        style={{ filter: `drop-shadow(0 0 ${isFullscreen ? '4px' : '8px'} ${color})` }}
+                        style={{ filter: `drop-shadow(0 0 ${isFullscreen ? '6px' : '8px'} ${color})` }}
                     />
                 </svg>
                 {/* Center Value */}
                 <div className="absolute flex flex-col items-center">
-                    <span className={`${isFullscreen ? 'text-lg' : 'text-2xl'} font-black text-white tabular-nums group-hover:scale-110 transition-transform`}>{percentage}%</span>
+                    <span className={`${isFullscreen ? 'text-xl' : 'text-2xl'} font-black text-white tabular-nums group-hover:scale-110 transition-transform`}>{percentage}%</span>
                 </div>
             </div>
-            <div className={`${isFullscreen ? 'text-[8px]' : 'text-sm'} font-black text-slate-400 text-center uppercase tracking-widest`}>{label}</div>
+            <div className={`${isFullscreen ? 'text-[10px]' : 'text-sm'} font-black text-slate-400 text-center uppercase tracking-widest`}>{label}</div>
         </div>
     );
 }
 
 function Leaderboard({ title, icon, data, unit, dataKey, colorClass, isFullscreen }) {
     return (
-        <div className={`bg-white ${isFullscreen ? 'p-3 rounded-[1.5rem]' : 'p-10 rounded-[3rem]'} shadow-xl shadow-slate-200/50 border border-slate-50 flex flex-col h-full overflow-hidden`}>
-            <h3 className={`${isFullscreen ? 'text-sm mb-3' : 'text-2xl mb-8'} font-black text-slate-800 flex items-center gap-3`}>
-                <span className={`${isFullscreen ? 'w-6 h-6 text-xs' : 'w-12 h-12 text-xl'} ${colorClass.replace('bg-', 'text-')} bg-slate-50 rounded-xl flex items-center justify-center`}>{icon}</span>
+        <div className={`bg-white ${isFullscreen ? 'p-4 rounded-[2rem]' : 'p-10 rounded-[3rem]'} shadow-xl shadow-slate-200/50 border border-slate-50 flex flex-col h-full overflow-hidden`}>
+            <h3 className={`${isFullscreen ? 'text-lg mb-4' : 'text-2xl mb-8'} font-black text-slate-800 flex items-center gap-4`}>
+                <span className={`${isFullscreen ? 'w-8 h-8 text-sm' : 'w-12 h-12 text-xl'} ${colorClass.replace('bg-', 'text-')} bg-slate-50 rounded-2xl flex items-center justify-center`}>{icon}</span>
                 لوحة الشرف: {title}
             </h3>
 
-            <div className={`${isFullscreen ? 'space-y-1' : 'space-y-4'} overflow-y-auto pr-2 custom-scrollbar`}>
+            <div className={`${isFullscreen ? 'space-y-2' : 'space-y-4'} overflow-y-auto pr-2 custom-scrollbar`}>
                 {data.length > 0 ? data.map((item, idx) => (
-                    <div key={idx} className={`flex items-center justify-between ${isFullscreen ? 'p-2' : 'p-5'} bg-slate-50 rounded-[1.2rem] group hover:bg-white hover:shadow-lg transition-all duration-300`}>
-                        <div className="flex items-center gap-3">
-                            <span className={`${isFullscreen ? 'w-5 h-5 text-[8px]' : 'w-10 h-10 text-sm'} ${idx === 0 ? 'bg-amber-500' : idx === 1 ? 'bg-slate-400' : idx === 2 ? 'bg-amber-700' : 'bg-slate-200'} text-white rounded-lg flex items-center justify-center font-black shadow-sm`}>
+                    <div key={idx} className={`flex items-center justify-between ${isFullscreen ? 'p-3' : 'p-5'} bg-slate-50 rounded-[1.5rem] group hover:bg-white hover:shadow-lg transition-all duration-300`}>
+                        <div className="flex items-center gap-5">
+                            <span className={`${isFullscreen ? 'w-6 h-6 text-[10px]' : 'w-10 h-10 text-sm'} ${idx === 0 ? 'bg-amber-500' : idx === 1 ? 'bg-slate-400' : idx === 2 ? 'bg-amber-700' : 'bg-slate-200'} text-white rounded-xl flex items-center justify-center font-black shadow-sm`}>
                                 {idx + 1}
                             </span>
-                            <span className={`${isFullscreen ? 'text-xs' : 'text-lg'} font-black text-slate-700 group-hover:text-amber-950 truncate max-w-[120px]`}>{item.name}</span>
+                            <span className={`${isFullscreen ? 'text-sm' : 'text-lg'} font-black text-slate-700 group-hover:text-amber-950 truncate max-w-[120px]`}>{item.name}</span>
                         </div>
                         <div className="flex items-baseline gap-1">
-                            <span className={`${isFullscreen ? 'text-base' : 'text-xl'} font-black text-slate-800 tabular-nums`}>{item[dataKey]}</span>
-                            <span className="text-[8px] font-bold text-slate-400">{unit}</span>
+                            <span className={`${isFullscreen ? 'text-lg' : 'text-xl'} font-black text-slate-800 tabular-nums`}>{item[dataKey]}</span>
+                            <span className="text-[10px] font-bold text-slate-400">{unit}</span>
                         </div>
                     </div>
                 )) : (
