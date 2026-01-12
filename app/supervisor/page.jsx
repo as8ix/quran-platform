@@ -262,7 +262,7 @@ export default function SupervisorDashboard() {
     };
 
     // Calculate dynamic stats
-    const totalStudents = students.length;
+    const totalStudents = students.filter(s => s.halaqaId !== null).length; // Only count students assigned to halaqas
     const activeTeachers = teachers.filter(t => (t._count?.teacherHalaqas || 0) + (t._count?.assistantHalaqas || 0) > 0).length;
 
     const stats = [
@@ -281,7 +281,7 @@ export default function SupervisorDashboard() {
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
                     <div>
                         <h1 className="text-4xl font-black text-slate-800 tracking-tight">
-                            لوحة تحكم <span className="text-emerald-600">المشرف</span>
+                            مرحباً <span className="text-emerald-600">{user ? user.name : 'المشرف'}</span> 👋
                         </h1>
                         <p className="text-slate-500 mt-2 text-lg">إدارة المعلمين والحلقات ومتابعة الإنجاز العام</p>
                     </div>
