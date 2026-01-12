@@ -16,10 +16,17 @@ export default function QuranicDaysDashboard() {
         const storedUser = localStorage.getItem('user');
         if (storedUser) setUser(JSON.parse(storedUser));
         fetchStats();
+
+        // Auto-refresh every 5 seconds
+        const interval = setInterval(() => {
+            fetchStats(true); // Silent update
+        }, 5000);
+
+        return () => clearInterval(interval);
     }, []);
 
-    const fetchStats = async () => {
-        setLoading(true);
+    const fetchStats = async (silent = false) => {
+        if (!silent) setLoading(true);
         try {
             const res = await fetch('/api/quranic-days/stats');
             if (res.ok) {
@@ -155,7 +162,8 @@ export default function QuranicDaysDashboard() {
                                 إحصائيات: <span className="text-amber-600">{stats.eventName}</span>
                             </h1>
                             <p className="text-slate-400 font-bold flex items-center gap-2">
-                                <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+                                <span className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-ping"></span>
+                                <span className="text-xs tracking-tighter text-emerald-500">مباشر • </span>
                                 {isFullscreen ? 'بث مباشر للنتائج الاحترافية' : 'جاري عرض النتائج المباشرة للدورة الحالية'}
                             </p>
                         </div>
