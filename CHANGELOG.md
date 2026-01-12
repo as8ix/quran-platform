@@ -2,17 +2,31 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.1.0-beta] - Work in Progress
+## [1.2.0] - 2026-01-13
 ### Added
-- **Goal Tracking System (متابعة الهدف اليومي):**
-    - Database: Added `dailyTargetPages` to Student and `isGoalAchieved` to Session models.
-    - UI: Added "Hifz Goal" & "Review Goal" dropdowns in `AddStudentModal`. 
-    - Logic: Automatic calculation of goal achievement based on (Hifz Pages >= Target) AND (Review Pages >= Target).
-    - Logic: "Khatim" students automatically pass Hifz goal check.
-    - UI: "Goal Achieved 🎯" badge in student history log.
+- **Quranic Days (الأيام القرآنية):**
+    - Full-screen Live Dashboard with real-time stats (Target, Accomplished, Purity, Khatmats).
+    - Event Management System: Create, Activate student-teacher assignments.
+    - Auto-Assignment: Instant distribution of students to their primary teachers.
+    - Teacher Logic: Simplified recording for intensive sessions (Hifz locked, Review-only goals).
+- **Communication & Notifications:**
+    - New global notification system with real-time browser alerts.
+    - File Attachments: Support for images and documents in notifications using Firebase Storage.
+    - Video Support: Integration of video links in announcements.
+- **UI/UX Refinements:**
+    - Custom premium confirmation modals replacing native alerts.
+    - Mobile optimization for all dashboards and notification views.
+    - Faster data refreshing (5s polling).
+    - "First Name Only" display for more friendly UI.
 
-### Pending / Next Steps
-- **Quranic Day (اليوم القرآني):** Feature definition and implementation pending.
+### Fixed
+- Firebase CORS issues for file uploads.
+- Notification dropdown clipping on mobile.
+- Precision Quran page calculations for targets.
+- Session quality metrics (Errors, Alerts, Clean Pages).
+
+## [1.1.0-beta]
+- Goal Tracking System (متابعة الهدف اليومي).
 
 ## [1.0.0] - 2026-01-12
 
