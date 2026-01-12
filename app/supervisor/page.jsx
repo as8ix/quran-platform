@@ -7,6 +7,7 @@ import Navbar from '../components/Navbar';
 import StatsCard from '../components/StatsCard';
 import Card from '../components/Card';
 import { formatHijri } from '../utils/dateUtils';
+import SendNotification from '../components/SendNotification';
 
 
 export default function SupervisorDashboard() {
@@ -300,6 +301,14 @@ export default function SupervisorDashboard() {
                             <span>🕌</span>
                             إنشاء حلقة
                         </button>
+                        {user && (
+                            <SendNotification
+                                senderRole="SUPERVISOR"
+                                senderId={user.id}
+                                students={students}
+                                teachers={teachers}
+                            />
+                        )}
                     </div>
                 </div>
 

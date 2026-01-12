@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import Navbar from '../components/Navbar';
 import AddStudentModal from '../components/AddStudentModal';
+import SendNotification from '../components/SendNotification';
 
 export default function TeacherDashboard() {
     const router = useRouter();
@@ -132,6 +133,13 @@ export default function TeacherDashboard() {
                             <span>➕</span>
                             إضافة طالب
                         </button>
+                        {user && (
+                            <SendNotification
+                                senderRole="TEACHER"
+                                senderId={user.id}
+                                students={students}
+                            />
+                        )}
                     </div>
                 </div>
 

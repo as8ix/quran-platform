@@ -93,16 +93,26 @@ model Session {
   isGoalAchieved   Boolean @default(false) // هل حقق الهدف اليومي؟
 }
 
+// Notification types: WARNING (Red), INFO (Blue), PROPOSAL (Green)
 model Notification {
-  id        Int      @id @default(autoincrement())
-  message   String
-  type      String   @default("INFO") // INFO, SUCCESS, WARNING, ERROR
-  isRead    Boolean  @default(false)
-  createdAt DateTime @default(now())
+  id             Int      @id @default(autoincrement())
+  title          String
+  message        String   // Content
+  type           String   @default("INFO") // WARNING, INFO, PROPOSAL
+  isRead         Boolean  @default(false)
+  createdAt      DateTime @default(now())
   
-  userId    Int?
-  user      User?    @relation(fields: [userId], references: [id])
+  attachmentUrl  String?
+  attachmentType String?  // IMAGE, VIDEO, LINK
   
-  studentId Int?
-  student   Student? @relation(fields: [studentId], references: [id])
+  // Recipient (Can be User or Student)
+  userId         Int?
+  user           User?    @relation(fields: [userId], references: [id])
+  
+  studentId      Int?
+  student        Student? @relation(fields: [studentId], references: [id])
+  
+  // Sender info (Optional)
+  senderId       Int?
+  senderRole     String?  // SUPERVISOR, TEACHER
 }

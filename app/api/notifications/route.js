@@ -31,18 +31,33 @@ export async function GET(request) {
 export async function POST(request) {
     try {
         const body = await request.json();
-        const { userId, studentId, message, type } = body;
+        const {
+            userId,
+            studentId,
+            title,
+            message,
+            type,
+            attachmentUrl,
+            attachmentType,
+            senderId,
+            senderRole
+        } = body;
 
-        if (!message) {
-            return NextResponse.json({ error: 'Message is required' }, { status: 400 });
+        if (!title || !message) {
+            return NextResponse.json({ error: 'Title and Message are required' }, { status: 400 });
         }
 
         const notification = await prisma.notification.create({
             data: {
                 userId: userId ? parseInt(userId) : null,
                 studentId: studentId ? parseInt(studentId) : null,
+                title,
                 message,
                 type: type || 'INFO',
+                attachmentUrl,
+                attachmentType,
+                senderId: senderId ? parseInt(senderId) : null,
+                senderRole,
                 isRead: false
             }
         });

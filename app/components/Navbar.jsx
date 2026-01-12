@@ -88,12 +88,15 @@ export default function Navbar({ userType, userName, onLogout }) {
                                             notifications.map(n => (
                                                 <div
                                                     key={n.id}
-                                                    onClick={() => !n.isRead && handleMarkAsRead(n.id)}
+                                                    onClick={() => {
+                                                        if (!n.isRead) handleMarkAsRead(n.id);
+                                                        window.location.href = `/notifications/${n.id}`;
+                                                    }}
                                                     className={`p-4 border-b border-slate-50 last:border-0 hover:bg-slate-50 transition-colors cursor-pointer ${!n.isRead ? 'bg-emerald-50/50' : ''}`}
                                                 >
                                                     <div className="flex justify-between items-start mb-1">
-                                                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${n.type === 'WARNING' ? 'bg-orange-100 text-orange-600' : 'bg-blue-100 text-blue-600'}`}>
-                                                            {n.type === 'WARNING' ? 'تنبيه' : 'إشعار'}
+                                                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${n.type === 'WARNING' ? 'bg-orange-100 text-orange-600' : n.type === 'PROPOSAL' ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-blue-600'}`}>
+                                                            {n.type === 'WARNING' ? 'تنبيه' : n.type === 'PROPOSAL' ? 'مقترح' : 'إشعار'}
                                                         </span>
                                                         <span className="text-[10px] text-slate-400">
                                                             {new Date(n.createdAt).toLocaleDateString()}
