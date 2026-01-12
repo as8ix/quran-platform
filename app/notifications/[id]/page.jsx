@@ -109,34 +109,38 @@ export default function NotificationDetails() {
                             </span>
                         </div>
 
-                        <div className="prose prose-lg max-w-none text-slate-600 leading-relaxed whitespace-pre-line mb-8">
-                            {notification.message}
-                        </div>
-
                         {notification.attachmentUrl && (
-                            <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
-                                <h3 className="font-bold text-slate-700 mb-3 text-sm">المرفقات</h3>
+                            <div className="mb-8 p-1 bg-slate-50 rounded-2xl border border-slate-100 overflow-hidden">
                                 {notification.attachmentType === 'IMAGE' ? (
-                                    <img
-                                        src={notification.attachmentUrl}
-                                        alt="مرفق"
-                                        className="w-full h-auto rounded-xl shadow-sm"
-                                        onError={(e) => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/400x200?text=Error+Loading+Image'; }}
-                                    />
+                                    <div className="space-y-2">
+                                        <img
+                                            src={notification.attachmentUrl}
+                                            alt="مرفق"
+                                            className="w-full h-auto rounded-xl shadow-sm max-h-[500px] object-contain bg-white"
+                                            onError={(e) => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/400x200?text=Error+Loading+Image'; }}
+                                        />
+                                    </div>
                                 ) : (
-                                    <a
-                                        href={notification.attachmentUrl}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="flex items-center gap-3 p-4 bg-white rounded-xl border border-slate-200 hover:shadow-md transition-all text-blue-600 font-bold"
-                                        download
-                                    >
-                                        <span>📂</span>
-                                        <span>تحميل أو فتح المرفق</span>
-                                    </a>
+                                    <div className="p-3">
+                                        <h3 className="font-bold text-slate-700 mb-3 text-sm">المرفقات</h3>
+                                        <a
+                                            href={notification.attachmentUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center gap-3 p-4 bg-white rounded-xl border border-slate-200 hover:shadow-md transition-all text-blue-600 font-bold"
+                                            download
+                                        >
+                                            <span>📂</span>
+                                            <span>تحميل أو فتح المرفق</span>
+                                        </a>
+                                    </div>
                                 )}
                             </div>
                         )}
+
+                        <div className="prose prose-lg max-w-none text-slate-600 leading-relaxed whitespace-pre-line mb-8 px-2">
+                            {notification.message}
+                        </div>
                     </div>
 
                     <div className="bg-slate-50 p-4 border-t border-slate-100 text-center text-xs text-slate-400">
