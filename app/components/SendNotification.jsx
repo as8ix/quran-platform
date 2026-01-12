@@ -51,8 +51,10 @@ export default function SendNotification({ senderRole, senderId, students = [], 
                 setAttachmentType('LINK');
             }
         } catch (error) {
-            console.error(error);
-            alert('خطأ في رفع الملف');
+            console.error("Firebase Storage Error:", error);
+            // Show more specific error message if available
+            const errorCode = error.code || 'unknown';
+            alert(`خطأ في رفع الملف: ${errorCode}`);
         } finally {
             setUploading(false);
         }
