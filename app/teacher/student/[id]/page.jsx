@@ -784,23 +784,37 @@ export default function StudentDetailsPage() {
                                             </span>
                                         </div>
 
-                                        <div className="mb-4">
-                                            <div className="text-xs font-black text-emerald-600 mb-1 uppercase tracking-tighter">الحفظ الجديد</div>
-                                            <div className="text-md font-bold text-slate-800">
-                                                سورة {session.hifzSurah} (من ص {session.hifzFromPage} إلى {session.hifzToPage})
-                                            </div>
-                                            {(session.hifzFromAyah || session.hifzToAyah) && (
-                                                <div className="text-xs text-emerald-600 mt-1 font-medium">
-                                                    الآيات: {session.hifzFromAyah || '?'} - {session.hifzToAyah || '?'}
+                                        {session.hifzSurah ? (
+                                            <div className="mb-4">
+                                                <div className="text-xs font-black text-emerald-600 mb-1 uppercase tracking-tighter">الحفظ الجديد</div>
+                                                <div className="text-md font-bold text-slate-800">
+                                                    سورة {session.hifzSurah} (من ص {session.hifzFromPage} إلى {session.hifzToPage})
                                                 </div>
-                                            )}
-                                        </div>
+                                                {(session.hifzFromAyah || session.hifzToAyah) && (
+                                                    <div className="text-xs text-emerald-600 mt-1 font-medium">
+                                                        الآيات: {session.hifzFromAyah || '?'} - {session.hifzToAyah || '?'}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <div className="mb-4">
+                                                <div className="px-3 py-2 bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-100 rounded-xl flex items-center gap-2">
+                                                    <span className="text-lg">🏆</span>
+                                                    <span className="text-xs font-bold text-amber-800">خاتم للقرآن الكريم</span>
+                                                </div>
+                                            </div>
+                                        )}
 
                                         {session.murajaahFromSurah && (
                                             <div className="mb-4">
                                                 <div className="text-xs font-black text-indigo-500 mb-1 uppercase tracking-tighter">المراجعة</div>
                                                 <div className="text-sm font-medium text-slate-600 leading-relaxed">
-                                                    {session.resultString || `من ${session.murajaahFromSurah} إلى ${session.murajaahToSurah}`}
+                                                    <div className="mb-1 text-slate-800 font-bold">
+                                                        من سورة {session.murajaahFromSurah} إلى سورة {session.murajaahToSurah}
+                                                    </div>
+                                                    <div className="text-xs text-slate-400 font-bold">
+                                                        {session.resultString}
+                                                    </div>
                                                 </div>
                                             </div>
                                         )}
