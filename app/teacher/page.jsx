@@ -15,6 +15,9 @@ export default function TeacherDashboard() {
     const [loading, setLoading] = useState(true);
     const [students, setStudents] = useState([]);
 
+    const [user, setUser] = useState(null);
+    const [teacherHalaqas, setTeacherHalaqas] = useState([]);
+
     const getFirstName = (fullName) => {
         if (!fullName) return '';
         return fullName.trim().split(/\s+/)[0];

@@ -12,6 +12,8 @@ import SendNotification from '../components/SendNotification';
 
 export default function SupervisorDashboard() {
     const router = useRouter();
+    const [user, setUser] = useState(null);
+
     const getFirstName = (fullName) => {
         if (!fullName) return '';
         return fullName.trim().split(/\s+/)[0];
