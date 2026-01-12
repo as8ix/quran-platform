@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { storage } from '../lib/firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { toast } from 'react-hot-toast';
 
 export default function SendNotification({ senderRole, senderId, students = [], teachers = [] }) {
     const [isOpen, setIsOpen] = useState(false);
@@ -52,9 +53,8 @@ export default function SendNotification({ senderRole, senderId, students = [], 
             }
         } catch (error) {
             console.error("Firebase Storage Error:", error);
-            // Show more specific error message if available
             const errorCode = error.code || 'unknown';
-            alert(`خطأ في رفع الملف: ${errorCode}`);
+            toast.error(`خطأ في رفع الملف: ${errorCode}`);
         } finally {
             setUploading(false);
         }
@@ -82,7 +82,7 @@ export default function SendNotification({ senderRole, senderId, students = [], 
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!title || !message || selectedRecipients.length === 0) {
-            alert('الرجاء تعبئة جميع الحقول المطلوبة واختيار مستلم واحد على الأقل');
+            toast.error('الرجاء تعبئة جميع الحقول المطلوبة واختيار مستلم واحد على الأقل');
             return;
         }
 
@@ -111,11 +111,11 @@ export default function SendNotification({ senderRole, senderId, students = [], 
             });
 
             await Promise.all(promises);
-            alert('تم إرسال الإشعارات بنجاح ✅');
+            toast.success('تم إرسال الإشعارات بنجاح ✅');
             resetForm();
         } catch (error) {
             console.error(error);
-            alert('حدث خطأ أثناء الإرسال');
+            toast.error('حدث خطأ أثناء الإرسال');
         } finally {
             setLoading(false);
         }
@@ -221,10 +221,20 @@ export default function SendNotification({ senderRole, senderId, students = [], 
                                                             <span className="text-xs font-bold text-slate-500">جاري الرفع...</span>
                                                         </div>
                                                     ) : attachmentUrl ? (
-                                                        <div className="flex items-center justify-center gap-2">
-                                                            <span className="text-green-600 text-lg">✅</span>
-                                                            <span className="text-xs font-bold text-slate-600 truncate max-w-[200px]">تم رفع الملف بنجاح</span>
-                                                            <button type="button" onClick={() => setAttachmentUrl('')} className="text-red-500 hover:text-red-700 underline text-xs">حذف</button>
+                                                        <div className="flex flex-col items-center gap-3">
+                                                            {attachmentType === 'IMAGE' ? (
+                                                                <div className="relative group">
+                                                                    <img src={attachmentUrl} alt="Preview" className="w-24 h-24 object-cover rounded-lg shadow-md border-2 border-white group-hover:opacity-75 transition" />
+                                                                    <button type="button" onClick={() => setAttachmentUrl('')} className="absolute -top-2 -left-2 bg-red-500 text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px] shadow-sm">✕</button>
+                                                                </div>
+                                                            ) : (
+                                                                <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-slate-100 shadow-sm">
+                                                                    <span className="text-green-600">✅</span>
+                                                                    <span className="text-xs font-bold text-slate-600 truncate max-w-[150px]">تم الرفع بنجاح</span>
+                                                                    <button type="button" onClick={() => setAttachmentUrl('')} className="text-red-500 hover:text-red-700 underline text-[10px] font-bold">حذف</button>
+                                                                </div>
+                                                            )}
+                                                            <span className="text-[10px] text-slate-400 font-bold">تم الرفع بنجاح</span>
                                                         </div>
                                                     ) : (
                                                         <div className="flex flex-col items-center">
