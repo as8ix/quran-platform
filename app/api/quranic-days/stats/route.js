@@ -68,6 +68,13 @@ async function calculateStats(event) {
         where: { id: { in: participatingStudentIds } }
     });
 
+    // 0. Precise Quran Logic for Targets
+    const juzStartPages = [
+        0, 1, 22, 42, 62, 82, 102, 122, 142, 162, 182,
+        202, 222, 242, 262, 282, 302, 322, 342, 362, 382,
+        402, 422, 442, 462, 482, 502, 522, 542, 562, 582
+    ];
+
     // 1. Achievements Logic
     let totalTargetPages = 0;
     let totalAccomplishedPages = 0;
@@ -75,11 +82,20 @@ async function calculateStats(event) {
     let totalKhatmats = 0;
 
     // Calculate Target: Sum of (juzCount * 20) for all students who participated
-    // Calculate Target: Sum of (juzCount * 20) for all students assigned to the event
+    // Calculate Target: Exact pages from Quran metadata
     assignedStudents.forEach(student => {
-        // If student is Khatim (30 juz), target is 30 * 20 = 600 pages
-        // Otherwise use their recorded juzCount
-        totalTargetPages += (student.juzCount || 0) * 20;
+        const count = Math.min(30, Math.max(0, student.juzCount || 0));
+        if (count > 0) {
+            // Find start page of the earliest juz memorized (reverse order)
+            // e.g. 1 juz = Juz 30 (page 582). 604 - 582 + 1 = 23 pages.
+            // e.g. 30 juz = Juz 1 (page 1). 604 - 1 + 1 = 604 pages.
+            const startJuzIndex = 31 - count;
+            const startPage = juzStartPages[startJuzIndex];
+            totalTargetPages += (604 - startPage + 1);
+        } else {
+            // If they have 0 juz but are assigned, we might count some minimum or skip
+            // The user said "ask for their memorized portion", so if it's 0, target is 0.
+        }
     });
 
     // Calculate Accomplished & Purity
@@ -92,9 +108,15 @@ async function calculateStats(event) {
     participatingStudentIds.forEach(sid => {
         const studentSessions = sessions.filter(s => s.studentId === sid);
         const student = sessionStudents.find(s => s.id === sid);
-        if (student && student.juzCount > 0) {
+        const count = Math.min(30, Math.max(0, student?.juzCount || 0));
+
+        if (student && count > 0) {
+            const startJuzIndex = 31 - count;
+            const startPage = juzStartPages[startJuzIndex];
+            const studentFullPortionPages = (604 - startPage + 1);
+
             const studentTotalPages = studentSessions.reduce((sum, s) => sum + (s.pagesCount || 0), 0);
-            totalKhatmats += studentTotalPages / (student.juzCount * 20);
+            totalKhatmats += studentTotalPages / studentFullPortionPages;
         }
     });
 
