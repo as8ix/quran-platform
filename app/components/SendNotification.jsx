@@ -161,45 +161,45 @@ export default function SendNotification({ senderRole, senderId, students = [], 
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
                     <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
                         {/* Header */}
-                        <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-indigo-50/50">
-                            <h3 className="text-xl font-black text-slate-800">إرسال إشعار جديد</h3>
+                        <div className="p-4 md:p-6 border-b border-slate-100 flex justify-between items-center bg-indigo-50/50">
+                            <h3 className="text-lg md:text-xl font-black text-slate-800">إرسال إشعار جديد</h3>
                             <button onClick={() => setIsOpen(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-white text-slate-400 hover:text-red-500 hover:bg-red-50 transition">✕</button>
                         </div>
 
-                        <div className="p-6 overflow-y-auto custom-scrollbar flex-1">
-                            <form onSubmit={handleSubmit} className="space-y-6">
+                        <div className="p-4 md:p-6 overflow-y-auto custom-scrollbar flex-1">
+                            <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
                                 {/* Type Selection */}
-                                <div className="grid grid-cols-3 gap-3">
-                                    <button type="button" onClick={() => setType('WARNING')} className={`p-3 rounded-xl border-2 font-bold text-sm transition ${type === 'WARNING' ? 'border-red-500 bg-red-50 text-red-700' : 'border-slate-100 text-slate-400'}`}>
-                                        ⚠️ تنبيه (أحمر)
+                                <div className="grid grid-cols-3 gap-2 md:gap-3">
+                                    <button type="button" onClick={() => setType('WARNING')} className={`p-2 md:p-3 rounded-xl border-2 font-bold text-[10px] md:text-sm transition ${type === 'WARNING' ? 'border-red-500 bg-red-50 text-red-700' : 'border-slate-100 text-slate-400'}`}>
+                                        ⚠️ تنبيه
                                     </button>
-                                    <button type="button" onClick={() => setType('INFO')} className={`p-3 rounded-xl border-2 font-bold text-sm transition ${type === 'INFO' ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-slate-100 text-slate-400'}`}>
-                                        📢 إشعار (أزرق)
+                                    <button type="button" onClick={() => setType('INFO')} className={`p-2 md:p-3 rounded-xl border-2 font-bold text-[10px] md:text-sm transition ${type === 'INFO' ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-slate-100 text-slate-400'}`}>
+                                        📢 إشعار
                                     </button>
-                                    <button type="button" onClick={() => setType('PROPOSAL')} className={`p-3 rounded-xl border-2 font-bold text-sm transition ${type === 'PROPOSAL' ? 'border-green-500 bg-green-50 text-green-700' : 'border-slate-100 text-slate-400'}`}>
-                                        💡 مقترح (أخضر)
+                                    <button type="button" onClick={() => setType('PROPOSAL')} className={`p-2 md:p-3 rounded-xl border-2 font-bold text-[10px] md:text-sm transition ${type === 'PROPOSAL' ? 'border-green-500 bg-green-50 text-green-700' : 'border-slate-100 text-slate-400'}`}>
+                                        💡 مقترح
                                     </button>
                                 </div>
 
                                 {/* Content */}
-                                <div className="space-y-4">
+                                <div className="space-y-3 md:space-y-4">
                                     <div>
-                                        <label className="block text-sm font-bold text-slate-700 mb-2">عنوان الإشعار <span className="text-red-500">*</span></label>
+                                        <label className="block text-xs md:text-sm font-bold text-slate-700 mb-1 md:mb-2">عنوان الإشعار <span className="text-red-500">*</span></label>
                                         <input
                                             type="text"
                                             value={title}
                                             onChange={(e) => setTitle(e.target.value)}
-                                            className="w-full p-3 rounded-xl border border-slate-200 focus:border-indigo-500 outline-none transition font-bold"
+                                            className="w-full p-2.5 md:p-3 rounded-xl border border-slate-200 focus:border-indigo-500 outline-none transition font-bold text-sm md:text-base"
                                             placeholder="مثال: موعد الاختبار القادم"
                                             required
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-bold text-slate-700 mb-2">محتوى الإشعار <span className="text-red-500">*</span></label>
+                                        <label className="block text-xs md:text-sm font-bold text-slate-700 mb-1 md:mb-2">محتوى الإشعار <span className="text-red-500">*</span></label>
                                         <textarea
                                             value={message}
                                             onChange={(e) => setMessage(e.target.value)}
-                                            className="w-full p-3 rounded-xl border border-slate-200 focus:border-indigo-500 outline-none transition h-32 resize-none"
+                                            className="w-full p-2.5 md:p-3 rounded-xl border border-slate-200 focus:border-indigo-500 outline-none transition h-24 md:h-32 resize-none text-sm md:text-base font-medium"
                                             placeholder="اكتب تفاصيل الإشعار هنا..."
                                             required
                                         ></textarea>
@@ -210,23 +210,23 @@ export default function SendNotification({ senderRole, senderId, students = [], 
                                 <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
                                     <div className="flex justify-between items-center mb-3">
                                         <label className="block text-sm font-bold text-slate-700">مرفقات (اختياري)</label>
-                                        <div className="flex gap-2 rounded-lg bg-white shadow-sm p-1">
-                                            <button type="button" onClick={() => setAttachmentMode('URL')} className={`px-3 py-1 rounded-md text-xs font-bold transition ${attachmentMode === 'URL' ? 'bg-indigo-600 text-white' : 'text-slate-500'}`}>رابط مباشر</button>
-                                            <button type="button" onClick={() => setAttachmentMode('FILE')} className={`px-3 py-1 rounded-md text-xs font-bold transition ${attachmentMode === 'FILE' ? 'bg-indigo-600 text-white' : 'text-slate-500'}`}>رفع ملف</button>
+                                        <div className="flex gap-1 md:gap-2 rounded-lg bg-white shadow-sm p-1">
+                                            <button type="button" onClick={() => setAttachmentMode('URL')} className={`px-2 md:px-3 py-1 rounded-md text-[10px] md:text-xs font-bold transition ${attachmentMode === 'URL' ? 'bg-indigo-600 text-white' : 'text-slate-500'}`}>رابط مباشر</button>
+                                            <button type="button" onClick={() => setAttachmentMode('FILE')} className={`px-2 md:px-3 py-1 rounded-md text-[10px] md:text-xs font-bold transition ${attachmentMode === 'FILE' ? 'bg-indigo-600 text-white' : 'text-slate-500'}`}>رفع ملف</button>
                                         </div>
                                     </div>
 
                                     {attachmentMode === 'URL' ? (
-                                        <div className="space-y-3">
+                                        <div className="space-y-2 md:space-y-3">
                                             <div className="flex gap-2">
-                                                <button type="button" onClick={() => setAttachmentType('IMAGE')} className={`px-3 py-1 rounded-lg text-xs font-bold ${attachmentType === 'IMAGE' ? 'bg-indigo-100 text-indigo-700' : 'bg-white text-slate-500 border'}`}>صورة</button>
-                                                <button type="button" onClick={() => setAttachmentType('LINK')} className={`px-3 py-1 rounded-lg text-xs font-bold ${attachmentType === 'LINK' ? 'bg-indigo-100 text-indigo-700' : 'bg-white text-slate-500 border'}`}>رابط / فيديو</button>
+                                                <button type="button" onClick={() => setAttachmentType('IMAGE')} className={`px-2 md:px-3 py-1 rounded-lg text-[10px] md:text-xs font-bold ${attachmentType === 'IMAGE' ? 'bg-indigo-100 text-indigo-700' : 'bg-white text-slate-500 border'}`}>صورة</button>
+                                                <button type="button" onClick={() => setAttachmentType('LINK')} className={`px-2 md:px-3 py-1 rounded-lg text-[10px] md:text-xs font-bold ${attachmentType === 'LINK' ? 'bg-indigo-100 text-indigo-700' : 'bg-white text-slate-500 border'}`}>رابط / فيديو</button>
                                             </div>
                                             <input
                                                 type="url"
                                                 value={attachmentUrl}
                                                 onChange={(e) => setAttachmentUrl(e.target.value)}
-                                                className="w-full p-2 rounded-lg border border-slate-200 text-sm ltr direction-force-ltr placeholder:text-right"
+                                                className="w-full p-2 rounded-lg border border-slate-200 text-xs md:text-sm ltr direction-force-ltr placeholder:text-right"
                                                 placeholder={attachmentType === 'IMAGE' ? 'رابط الصورة...' : 'رابط الفيديو أو الملف...'}
                                                 dir="ltr"
                                             />
@@ -280,9 +280,9 @@ export default function SendNotification({ senderRole, senderId, students = [], 
                                     <h4 className="font-bold text-slate-700 mb-3 flex justify-between items-center">
                                         <span>إلى من تريد الإرسال؟</span>
                                         {senderRole === 'SUPERVISOR' && (
-                                            <div className="flex gap-2 rounded-lg bg-slate-100 p-1">
-                                                <button type="button" onClick={() => { setTargetType('STUDENT'); setSelectedRecipients([]); }} className={`px-3 py-1 rounded-md text-xs font-bold ${targetType === 'STUDENT' ? 'bg-white shadow text-indigo-600' : 'text-slate-500'}`}>الطلاب</button>
-                                                <button type="button" onClick={() => { setTargetType('TEACHER'); setSelectedRecipients([]); }} className={`px-3 py-1 rounded-md text-xs font-bold ${targetType === 'TEACHER' ? 'bg-white shadow text-indigo-600' : 'text-slate-500'}`}>المعلمين</button>
+                                            <div className="flex gap-1 md:gap-2 rounded-lg bg-slate-100 p-1">
+                                                <button type="button" onClick={() => { setTargetType('STUDENT'); setSelectedRecipients([]); }} className={`px-2 md:px-3 py-1 rounded-md text-[10px] md:text-xs font-bold ${targetType === 'STUDENT' ? 'bg-white shadow text-indigo-600' : 'text-slate-500'}`}>الطلاب</button>
+                                                <button type="button" onClick={() => { setTargetType('TEACHER'); setSelectedRecipients([]); }} className={`px-2 md:px-3 py-1 rounded-md text-[10px] md:text-xs font-bold ${targetType === 'TEACHER' ? 'bg-white shadow text-indigo-600' : 'text-slate-500'}`}>المعلمين</button>
                                             </div>
                                         )}
                                     </h4>
@@ -315,17 +315,17 @@ export default function SendNotification({ senderRole, senderId, students = [], 
                         </div>
 
                         {/* Footer */}
-                        <div className="p-4 border-t border-slate-100 bg-slate-50 flex gap-3">
+                        <div className="p-3 md:p-4 border-t border-slate-100 bg-slate-50 flex gap-2 md:gap-3">
                             <button
                                 onClick={handleSubmit}
                                 disabled={loading || uploading}
-                                className="flex-1 bg-indigo-600 text-white py-3 rounded-xl font-bold hover:bg-indigo-700 transition shadow disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="flex-1 bg-indigo-600 text-white py-2.5 md:py-3 rounded-xl font-bold hover:bg-indigo-700 transition shadow disabled:opacity-50 disabled:cursor-not-allowed text-sm md:text-base"
                             >
-                                {loading ? 'جاري الإرسال...' : 'إرسال الإشعار 🚀'}
+                                {loading ? 'جاري...' : 'إرسال 🚀'}
                             </button>
                             <button
                                 onClick={() => setIsOpen(false)}
-                                className="px-6 py-3 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold hover:bg-slate-100 transition"
+                                className="px-4 md:px-6 py-2.5 md:py-3 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold hover:bg-slate-100 transition text-sm md:text-base"
                             >
                                 إلغاء
                             </button>

@@ -82,27 +82,27 @@ export default function NotificationDetails() {
         <div className="min-h-screen bg-slate-50 rtl" dir="rtl">
             <Navbar userType={user?.role?.toLowerCase() || 'student'} userName={user?.name} onLogout={() => router.push('/')} />
 
-            <main className="max-w-2xl mx-auto px-4 py-10">
+            <main className="max-w-2xl mx-auto px-4 md:px-6 py-6 md:py-10">
                 <button
                     onClick={() => router.back()}
-                    className="mb-6 flex items-center gap-2 text-slate-500 hover:text-slate-800 transition-colors"
+                    className="mb-6 flex items-center gap-2 text-slate-500 hover:text-slate-800 transition-colors text-sm md:text-base font-bold"
                 >
                     ➡️ عودة
                 </button>
 
-                <div className={`bg-white rounded-3xl shadow-xl overflow-hidden border-t-8 ${notification.type === 'WARNING' ? 'border-red-500' : notification.type === 'PROPOSAL' ? 'border-green-500' : 'border-blue-500'}`}>
+                <div className={`bg-white rounded-2xl md:rounded-3xl shadow-xl overflow-hidden border-t-8 ${notification.type === 'WARNING' ? 'border-red-500' : notification.type === 'PROPOSAL' ? 'border-green-500' : 'border-blue-500'}`}>
 
-                    <div className="p-8">
-                        <div className="flex justify-between items-start mb-6">
+                    <div className="p-5 md:p-8">
+                        <div className="flex flex-col md:flex-row justify-between items-start gap-4 mb-6">
                             <div>
-                                <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold mb-3 ${getTypeColor(notification.type)}`}>
+                                <span className={`inline-block px-3 py-1 rounded-full text-[10px] md:text-xs font-bold mb-2 md:mb-3 ${getTypeColor(notification.type)}`}>
                                     {getTypeLabel(notification.type)}
                                 </span>
-                                <h1 className="text-3xl font-black text-slate-800 leading-tight">
+                                <h1 className="text-xl md:text-3xl font-black text-slate-800 leading-tight">
                                     {notification.title}
                                 </h1>
                             </div>
-                            <span className="text-sm text-slate-400 font-medium">
+                            <span className="text-xs md:text-sm text-slate-400 font-medium whitespace-nowrap">
                                 {new Date(notification.createdAt).toLocaleDateString('ar-SA', {
                                     year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
                                 })}
@@ -110,33 +110,35 @@ export default function NotificationDetails() {
                         </div>
 
                         {notification.attachmentUrl && (
-                            <div className="mb-8">
+                            <div className="mb-6 md:mb-8 -mx-5 md:mx-0">
                                 {notification.attachmentType === 'IMAGE' ? (
                                     <img
                                         src={notification.attachmentUrl}
                                         alt="مرفق"
-                                        className="w-full h-auto rounded-3xl shadow-lg max-h-[600px] object-contain bg-white border border-slate-100"
+                                        className="w-full h-auto md:rounded-3xl shadow-lg max-h-[400px] md:max-h-[600px] object-contain bg-white border-y md:border border-slate-100"
                                         onError={(e) => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/400x200?text=Error+Loading+Image'; }}
                                     />
                                 ) : (
-                                    <a
-                                        href={notification.attachmentUrl}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="flex items-center gap-4 p-5 bg-indigo-50 rounded-2xl border border-indigo-100 hover:shadow-md transition-all text-indigo-700 font-bold group"
-                                        download
-                                    >
-                                        <span className="text-2xl group-hover:scale-110 transition-transform">📂</span>
-                                        <div className="flex flex-col">
-                                            <span className="text-sm">تحميل المرفق</span>
-                                            <span className="text-[10px] text-indigo-400 font-normal">اضغط للفتح أو التحميل</span>
-                                        </div>
-                                    </a>
+                                    <div className="px-5 md:px-0">
+                                        <a
+                                            href={notification.attachmentUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center gap-4 p-4 md:p-5 bg-indigo-50 rounded-2xl border border-indigo-100 hover:shadow-md transition-all text-indigo-700 font-bold group"
+                                            download
+                                        >
+                                            <span className="text-xl md:text-2xl group-hover:scale-110 transition-transform">📂</span>
+                                            <div className="flex flex-col">
+                                                <span className="text-xs md:text-sm">تحميل المرفق</span>
+                                                <span className="text-[9px] md:text-[10px] text-indigo-400 font-normal">اضغط للفتح أو التحميل</span>
+                                            </div>
+                                        </a>
+                                    </div>
                                 )}
                             </div>
                         )}
 
-                        <div className="prose prose-lg max-w-none text-slate-600 leading-relaxed whitespace-pre-line mb-8 px-2">
+                        <div className="prose prose-sm md:prose-lg max-w-none text-slate-600 leading-relaxed whitespace-pre-line mb-6 md:mb-8 px-1 md:px-2">
                             {notification.message}
                         </div>
                     </div>
