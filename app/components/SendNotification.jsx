@@ -194,14 +194,14 @@ export default function SendNotification({ senderRole, senderId, students = [], 
                                         <div className="space-y-3">
                                             <div className="flex gap-2">
                                                 <button type="button" onClick={() => setAttachmentType('IMAGE')} className={`px-3 py-1 rounded-lg text-xs font-bold ${attachmentType === 'IMAGE' ? 'bg-indigo-100 text-indigo-700' : 'bg-white text-slate-500 border'}`}>صورة</button>
-                                                <button type="button" onClick={() => setAttachmentType('LINK')} className={`px-3 py-1 rounded-lg text-xs font-bold ${attachmentType === 'LINK' ? 'bg-indigo-100 text-indigo-700' : 'bg-white text-slate-500 border'}`}>رابط / فيديو</button>
+                                                <button type="button" onClick={() => setAttachmentType('LINK')} className={`px-3 py-1 rounded-lg text-xs font-bold ${attachmentType === 'LINK' ? 'bg-indigo-100 text-indigo-700' : 'bg-white text-slate-500 border'}`}>ملف / تحميل</button>
                                             </div>
                                             <input
                                                 type="url"
                                                 value={attachmentUrl}
                                                 onChange={(e) => setAttachmentUrl(e.target.value)}
                                                 className="w-full p-2 rounded-lg border border-slate-200 text-sm ltr direction-force-ltr placeholder:text-right"
-                                                placeholder={attachmentType === 'IMAGE' ? 'رابط الصورة...' : 'رابط الفيديو أو الملف...'}
+                                                placeholder={attachmentType === 'IMAGE' ? 'رابط الصورة...' : 'رابط الملف (PDF، Word، إلخ)...'}
                                                 dir="ltr"
                                             />
                                         </div>
@@ -240,7 +240,7 @@ export default function SendNotification({ senderRole, senderId, students = [], 
                                                         <div className="flex flex-col items-center">
                                                             <span className="text-2xl mb-1">📁</span>
                                                             <span className="text-xs font-bold text-slate-500 text-center">اضغط هنا أو اسحب الملف لرفعه</span>
-                                                            <span className="text-[10px] text-slate-400 mt-1">صور، ملفات، فيديوهات قصيرة</span>
+                                                            <span className="text-[10px] text-slate-400 mt-1">صور، ملفات PDF، مستندات</span>
                                                         </div>
                                                     )}
                                                 </div>
@@ -304,9 +304,10 @@ export default function SendNotification({ senderRole, senderId, students = [], 
                                 إلغاء
                             </button>
                         </div>
-                    </div>
-                </div>
-            )}
+                    </div >
+                </div >
+            )
+            }
         </>
     );
 }

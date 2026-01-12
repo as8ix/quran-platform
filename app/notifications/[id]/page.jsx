@@ -110,30 +110,28 @@ export default function NotificationDetails() {
                         </div>
 
                         {notification.attachmentUrl && (
-                            <div className="mb-8 p-1 bg-slate-50 rounded-2xl border border-slate-100 overflow-hidden">
+                            <div className="mb-8">
                                 {notification.attachmentType === 'IMAGE' ? (
-                                    <div className="space-y-2">
-                                        <img
-                                            src={notification.attachmentUrl}
-                                            alt="مرفق"
-                                            className="w-full h-auto rounded-xl shadow-sm max-h-[500px] object-contain bg-white"
-                                            onError={(e) => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/400x200?text=Error+Loading+Image'; }}
-                                        />
-                                    </div>
+                                    <img
+                                        src={notification.attachmentUrl}
+                                        alt="مرفق"
+                                        className="w-full h-auto rounded-3xl shadow-lg max-h-[600px] object-contain bg-white border border-slate-100"
+                                        onError={(e) => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/400x200?text=Error+Loading+Image'; }}
+                                    />
                                 ) : (
-                                    <div className="p-3">
-                                        <h3 className="font-bold text-slate-700 mb-3 text-sm">المرفقات</h3>
-                                        <a
-                                            href={notification.attachmentUrl}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="flex items-center gap-3 p-4 bg-white rounded-xl border border-slate-200 hover:shadow-md transition-all text-blue-600 font-bold"
-                                            download
-                                        >
-                                            <span>📂</span>
-                                            <span>تحميل أو فتح المرفق</span>
-                                        </a>
-                                    </div>
+                                    <a
+                                        href={notification.attachmentUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center gap-4 p-5 bg-indigo-50 rounded-2xl border border-indigo-100 hover:shadow-md transition-all text-indigo-700 font-bold group"
+                                        download
+                                    >
+                                        <span className="text-2xl group-hover:scale-110 transition-transform">📂</span>
+                                        <div className="flex flex-col">
+                                            <span className="text-sm">تحميل المرفق</span>
+                                            <span className="text-[10px] text-indigo-400 font-normal">اضغط للفتح أو التحميل</span>
+                                        </div>
+                                    </a>
                                 )}
                             </div>
                         )}
