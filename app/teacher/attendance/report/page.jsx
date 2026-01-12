@@ -13,9 +13,20 @@ function ReportContent() {
     const [dateRange, setDateRange] = useState([]);
     const [title, setTitle] = useState('');
     const [loading, setLoading] = useState(true);
+    const [user, setUser] = useState(null);
+
+    // Get user from localStorage on mount
+    useEffect(() => {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+            setUser(JSON.parse(storedUser));
+        }
+    }, []);
 
     useEffect(() => {
         const fetchData = async () => {
+            if (!user) return;
+
             try {
                 // 1. Calculate Hijri Date Range
                 // We calculate the start/end of the *Hijri* month containing the pivot date.
@@ -41,14 +52,6 @@ function ReportContent() {
                 // Title (in Arabic) including Hijri Year
                 const reportTitle = new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura', { month: 'long', year: 'numeric' }).format(pivotDate);
                 if (type === 'week') {
-                    // Keep week logic logic if type is week? 
-                    // User said "Make date Hijri in everything", usually implies monthly reports.
-                    // For weekly, we usually stick to Sat-Thu, but displayed with Hijri dates?
-                    // Let's stick to the Month logic for "Monthly" and maybe verify Week.
-                    // Actually user complaint was about "Months end in 30/31", so likely focusing on Monthly report.
-                    // But let's apply Hijri headers to Week too.
-
-                    // If type is week, we just take the range as is, but display headers in Hijri.
                     const now = new Date(pivotDate);
                     const day = now.getDay();
                     const diffToSun = now.getDate() - day;
@@ -70,7 +73,6 @@ function ReportContent() {
                 while (current <= endDate) {
                     dates.push({
                         iso: current.toISOString().split('T')[0],
-                        // Display: "Sunday 5" (Hijri Day)
                         display: new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura', { weekday: 'short', day: 'numeric' }).format(current)
                     });
                     current.setDate(current.getDate() + 1);
@@ -81,8 +83,27 @@ function ReportContent() {
                 const startStr = startDate.toISOString().split('T')[0];
                 const endStr = endDate.toISOString().split('T')[0];
 
+                // First find teacher's halaqaId
+                let currentTeacherHalaqaId = null;
+                const halaqasRes = await fetch('/api/halaqas');
+                if (halaqasRes.ok) {
+                    const allHalaqas = await halaqasRes.json();
+                    const myHalaqas = allHalaqas.filter(h =>
+                        h.teacherId === user.id ||
+                        (h.assistants && h.assistants.some(a => a.id === user.id))
+                    );
+                    if (myHalaqas.length > 0) {
+                        currentTeacherHalaqaId = myHalaqas[0].id;
+                    }
+                }
+
+                let studentsUrl = '/api/students';
+                if (currentTeacherHalaqaId) {
+                    studentsUrl += `?halaqaId=${currentTeacherHalaqaId}`;
+                }
+
                 const [studentsRes, attendanceRes] = await Promise.all([
-                    fetch('/api/students'),
+                    fetch(studentsUrl),
                     fetch(`/api/attendance?startDate=${startStr}&endDate=${endStr}`)
                 ]);
 
@@ -99,7 +120,7 @@ function ReportContent() {
         };
 
         fetchData();
-    }, [type, dateParam]);
+    }, [type, dateParam, user]);
 
     const getStatus = (studentId, dateIso) => {
         // 1. Check if it's an Off Day (Thu=4, Fri=5, Sat=6)
