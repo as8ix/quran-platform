@@ -13,8 +13,10 @@ export default function AttendancePage() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+    const [user, setUser] = useState(null);
 
-    // Helper: Generate PDF Report
+    const teacherName = user ? `أهلًا أستاذ ${user.name} 👋` : 'أهلًا أستاذ 👋';
+
     // Helper: Generate PDF Report
     const openReport = (type) => { // type = 'week' | 'month'
         const url = `/teacher/attendance/report?type=${type}&date=${date}`;
@@ -22,16 +24,50 @@ export default function AttendancePage() {
         window.open(url, '_blank');
     };
 
+    // Get user from localStorage on mount
+    useEffect(() => {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+            setUser(JSON.parse(storedUser));
+        }
+    }, []);
+
     // Initial Fetch of Students
     useEffect(() => {
         const fetchStudents = async () => {
+            if (!user) return;
+
+            setLoading(true);
             try {
-                const response = await fetch('/api/students');
+                // First fetch teacher's halaqas to know what to filter by
+                let currentTeacherHalaqaId = null;
+
+                const halaqasRes = await fetch('/api/halaqas');
+                if (halaqasRes.ok) {
+                    const allHalaqas = await halaqasRes.json();
+
+                    // Find halaqas where teacher is lead or assistant
+                    const myHalaqas = allHalaqas.filter(h =>
+                        h.teacherId === user.id ||
+                        (h.assistants && h.assistants.some(a => a.id === user.id))
+                    );
+
+                    if (myHalaqas.length > 0) {
+                        currentTeacherHalaqaId = myHalaqas[0].id;
+                    }
+                }
+
+                let url = '/api/students';
+                if (currentTeacherHalaqaId) {
+                    url += `?halaqaId=${currentTeacherHalaqaId}`;
+                }
+
+                const response = await fetch(url);
                 const data = await response.json();
                 setStudents(data);
 
                 // After getting students, fetch attendance for today
-                fetchAttendanceForDate(new Date().toISOString().split('T')[0], data);
+                fetchAttendanceForDate(date, data);
             } catch (error) {
                 console.error("Error fetching students:", error);
                 toast.error("فشل تحميل قائمة الطلاب");
@@ -40,7 +76,7 @@ export default function AttendancePage() {
             }
         };
         fetchStudents();
-    }, []);
+    }, [user]);
 
     // Fetch Attendance when Date Changes
     useEffect(() => {
@@ -110,7 +146,7 @@ export default function AttendancePage() {
 
     return (
         <div className="min-h-screen bg-[#f8fafc] font-noto">
-            <Navbar userType="teacher" userName="أهلًا أستاذ عبدالله 👋" onLogout={() => router.push('/')} />
+            <Navbar userType="teacher" userName={teacherName} onLogout={() => router.push('/')} />
 
             <main className="max-w-4xl mx-auto px-4 py-10">
                 {/* Back Button */}
