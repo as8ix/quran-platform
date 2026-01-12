@@ -360,7 +360,8 @@ export default function StudentDetailsPage() {
             // Goal Achieved if:
             // (HifzDone >= HifzTarget) AND (ReviewDone >= ReviewTarget)
             // Note: If Target is 0, we assume it's "met" (not required).
-            const hifzMet = hifzTarget > 0 ? hifzDone >= hifzTarget : true;
+            // FIX: If student is Khatim, Hifz goal is automatically met (not applicable).
+            const hifzMet = isKhatim ? true : (hifzTarget > 0 ? hifzDone >= hifzTarget : true);
             const reviewMet = reviewTarget > 0 ? reviewDone >= reviewTarget : true;
 
             const isGoalAchieved = hifzMet && reviewMet;
