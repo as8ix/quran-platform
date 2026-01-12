@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.0-beta] - Work in Progress
+### Added
+- **Goal Tracking System (متابعة الهدف اليومي):**
+    - Database: Added `dailyTargetPages` to Student and `isGoalAchieved` to Session models.
+    - UI: Added "Hifz Goal" & "Review Goal" dropdowns in `AddStudentModal`. 
+    - Logic: Automatic calculation of goal achievement based on (Hifz Pages >= Target) AND (Review Pages >= Target).
+    - Logic: "Khatim" students automatically pass Hifz goal check.
+    - UI: "Goal Achieved 🎯" badge in student history log.
+
+### Pending / Next Steps
+- **Quranic Day (اليوم القرآني):** Feature definition and implementation pending.
+
 ## [1.0.0] - 2026-01-12
 
 ### Released
