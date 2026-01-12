@@ -456,7 +456,7 @@ export default function SupervisorDashboard() {
                 </div>
 
                 {/* Quranic Events Management */}
-                <ManageEvents teachers={teachers} />
+                <ManageEvents teachers={teachers} students={students} />
             </div>
 
             {/* Modals */}

@@ -64,7 +64,34 @@ export default function StudentDetailsPage() {
             const res = await fetch('/api/quranic-events?activeOnly=true');
             if (res.ok) {
                 const data = await res.json();
-                if (data.length > 0) setActiveEvent(data[0]);
+                if (data.length > 0) {
+                    const event = data[0];
+                    setActiveEvent(event);
+
+                    // Check if this student is assigned to this teacher for this event
+                    const storedUser = localStorage.getItem('user');
+                    if (storedUser) {
+                        const currentUser = JSON.parse(storedUser);
+                        const assignedRes = await fetch(`/api/quranic-events/assignments?eventId=${event.id}`);
+                        if (assignedRes.ok) {
+                            const assignments = await assignedRes.json();
+                            const isAssigned = assignments.some(a =>
+                                a.studentId === parseInt(studentId) &&
+                                a.teacherId === currentUser.id
+                            );
+                            setIsQuranicDaySession(isAssigned);
+                            // Store assignment status in a separate state if needed, 
+                            // but setting the toggle is enough to "activate" it.
+                            if (!isAssigned) {
+                                // If not assigned, they can still record a normal session, 
+                                // but we might want to hide the toggle or show it as disabled.
+                                // The user said " يكون عنده تسجيل التسميع في الأيام القرآنية فقط" 
+                                // which implies if he's in the event, he records for it.
+                                // I'll add a check in the UI.
+                            }
+                        }
+                    }
+                }
             }
         } catch (e) { console.error(e); }
     };
@@ -611,19 +638,17 @@ export default function StudentDetailsPage() {
                             </h2>
 
                             {/* Quranic Day Active Banner/Toggle */}
-                            {activeEvent && (
-                                <div className={`mb-8 p-6 rounded-[2rem] border-2 transition-all cursor-pointer ${isQuranicDaySession ? 'bg-amber-50 border-amber-300 shadow-lg shadow-amber-100' : 'bg-slate-50 border-slate-200 opacity-60'}`} onClick={() => setIsQuranicDaySession(!isQuranicDaySession)}>
-                                    <div className="flex justify-between items-center">
-                                        <div className="flex items-center gap-4">
-                                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-2xl ${isQuranicDaySession ? 'bg-amber-100' : 'bg-white'}`}>🏆</div>
-                                            <div>
-                                                <div className="font-black text-amber-900 leading-tight">دورة: {activeEvent.name}</div>
-                                                <div className="text-xs font-bold text-amber-600">هل هذا التسميع خاص بالأيام القرآنية؟</div>
-                                            </div>
+                            {activeEvent && isQuranicDaySession && (
+                                <div className="mb-8 p-6 rounded-[2rem] border-2 bg-amber-50 border-amber-300 shadow-lg shadow-amber-100 flex justify-between items-center animate-pulse-slow">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl bg-amber-100">🏆</div>
+                                        <div>
+                                            <div className="font-black text-amber-900 leading-tight">دورة الأيام القرآنية: {activeEvent.name}</div>
+                                            <div className="text-xs font-bold text-amber-600">هذا الطالب مسند إليك في هذه الدورة. سيتم احتساب الجلسة في الإحصائيات.</div>
                                         </div>
-                                        <div className={`w-14 h-8 rounded-full relative transition-all ${isQuranicDaySession ? 'bg-amber-500' : 'bg-slate-300'}`}>
-                                            <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all ${isQuranicDaySession ? 'right-7' : 'right-1'}`}></div>
-                                        </div>
+                                    </div>
+                                    <div className="bg-amber-500 text-white px-4 py-2 rounded-xl text-xs font-black shadow-sm">
+                                        تسجيل معتمد
                                     </div>
                                 </div>
                             )}
@@ -995,6 +1020,15 @@ export default function StudentDetailsPage() {
                     student={student}
                 />
             )}
+            <style jsx global>{`
+                @keyframes pulse-slow {
+                    0%, 100% { opacity: 1; transform: scale(1); }
+                    50% { opacity: 0.9; transform: scale(0.995); }
+                }
+                .animate-pulse-slow {
+                    animation: pulse-slow 3s ease-in-out infinite;
+                }
+            `}</style>
         </div>
     );
 }

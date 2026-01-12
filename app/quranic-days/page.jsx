@@ -10,6 +10,7 @@ export default function QuranicDaysDashboard() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [user, setUser] = useState(null);
+    const [isFullscreen, setIsFullscreen] = useState(false);
 
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
@@ -34,6 +35,26 @@ export default function QuranicDaysDashboard() {
             setLoading(false);
         }
     };
+
+    const toggleFullscreen = () => {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch((e) => {
+                toast.error(`خطأ في تفعيل ملء الشاشة: ${e.message}`);
+            });
+            setIsFullscreen(true);
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+                setIsFullscreen(false);
+            }
+        }
+    };
+
+    useEffect(() => {
+        const handleFsChange = () => setIsFullscreen(!!document.fullscreenElement);
+        document.addEventListener('fullscreenchange', handleFsChange);
+        return () => document.removeEventListener('fullscreenchange', handleFsChange);
+    }, []);
 
     const exportToCSV = () => {
         if (!stats) return;
@@ -99,49 +120,61 @@ export default function QuranicDaysDashboard() {
     );
 
     return (
-        <div className="min-h-screen bg-[#FDFCFB] font-noto rtl" dir="rtl">
-            <Navbar
-                userType={user?.role?.toLowerCase() || 'teacher'}
-                userName={user ? `أهلاً ${user.name.split(' ')[0]} 👋` : ''}
-            />
+        <div className={`min-h-screen ${isFullscreen ? 'bg-slate-900 shadow-[inset_0_0_100px_rgba(0,0,0,0.5)]' : 'bg-[#FDFCFB]'} font-noto rtl transition-all duration-700`} dir="rtl">
+            {!isFullscreen && (
+                <Navbar
+                    userType={user?.role?.toLowerCase() || 'teacher'}
+                    userName={user ? `أهلاً ${user.name.split(' ')[0]} 👋` : ''}
+                />
+            )}
 
-            <main className="max-w-7xl mx-auto px-4 py-8 md:py-12">
-                {/* Back Button */}
-                <button
-                    onClick={() => router.push(user?.role === 'SUPERVISOR' ? '/supervisor' : '/teacher')}
-                    className="mb-8 flex items-center gap-4 text-slate-500 hover:text-slate-800 font-bold transition-colors group"
-                >
-                    <span className="w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center group-hover:shadow-xl transition-all border border-slate-50">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="#475569" className="w-6 h-6">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-                        </svg>
-                    </span>
-                    <span className="text-xl">عودة للقائمة الرئيسية</span>
-                </button>
+            <main className={`max-w-7xl mx-auto px-4 ${isFullscreen ? 'py-4' : 'py-8 md:py-12'}`}>
+                {/* Back Button - Hidden in FS */}
+                {!isFullscreen && (
+                    <button
+                        onClick={() => router.push(user?.role === 'SUPERVISOR' ? '/supervisor' : '/teacher')}
+                        className="mb-8 flex items-center gap-4 text-slate-500 hover:text-slate-800 font-bold transition-colors group"
+                    >
+                        <span className="w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center group-hover:shadow-xl transition-all border border-slate-50">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="#475569" className="w-6 h-6">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                            </svg>
+                        </span>
+                        <span className="text-xl">عودة للقائمة الرئيسية</span>
+                    </button>
+                )}
 
                 {/* Dashboard Header */}
-                <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-12">
+                <div className={`flex flex-col md:flex-row justify-between items-center gap-6 ${isFullscreen ? 'mb-8' : 'mb-12'}`}>
                     <div className="flex items-center gap-6">
-                        <div className="w-20 h-20 bg-amber-600 text-white rounded-[2rem] flex items-center justify-center text-3xl font-black shadow-xl shadow-amber-200 animate-bounce-slow">
+                        <div className={`w-20 h-20 ${isFullscreen ? 'bg-amber-500' : 'bg-amber-600'} text-white rounded-[2rem] flex items-center justify-center text-3xl font-black shadow-xl shadow-amber-200 animate-bounce-slow`}>
                             🏆
                         </div>
                         <div>
-                            <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight mb-2">
+                            <h1 className={`text-4xl md:text-5xl font-black ${isFullscreen ? 'text-white' : 'text-slate-900'} tracking-tight mb-2`}>
                                 إحصائيات: <span className="text-amber-600">{stats.eventName}</span>
                             </h1>
                             <p className="text-slate-400 font-bold flex items-center gap-2">
                                 <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
-                                جاري عرض النتائج المباشرة للدورة الحالية
+                                {isFullscreen ? 'بث مباشر للنتائج الاحترافية' : 'جاري عرض النتائج المباشرة للدورة الحالية'}
                             </p>
                         </div>
                     </div>
                     <div className="flex gap-4">
                         <button
-                            onClick={exportToCSV}
-                            className="bg-white text-slate-700 px-6 py-4 rounded-2xl font-bold border-2 border-slate-100 hover:border-amber-500 transition-all flex items-center gap-2 shadow-sm"
+                            onClick={toggleFullscreen}
+                            className={`${isFullscreen ? 'bg-slate-800 text-white' : 'bg-white text-slate-700'} px-6 py-4 rounded-2xl font-bold border-2 ${isFullscreen ? 'border-slate-700' : 'border-slate-100'} hover:border-amber-500 transition-all flex items-center gap-2 shadow-sm`}
                         >
-                            <span>📊</span> تصدير البيانات للـ Excel
+                            <span>{isFullscreen ? '📺 خروج من العرض' : '📺 وضع العرض (Full Screen)'}</span>
                         </button>
+                        {!isFullscreen && (
+                            <button
+                                onClick={exportToCSV}
+                                className="bg-white text-slate-700 px-6 py-4 rounded-2xl font-bold border-2 border-slate-100 hover:border-amber-500 transition-all flex items-center gap-2 shadow-sm"
+                            >
+                                <span>📊</span> تصدير البيانات للـ Excel
+                            </button>
+                        )}
                     </div>
                 </div>
 
