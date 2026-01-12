@@ -56,8 +56,15 @@ async function calculateStats(event) {
     const participatingStudentIds = [...new Set(sessions.map(s => s.studentId))];
     const actualAttendance = participatingStudentIds.length;
 
-    // Fetch full student data for these students to get their juzCount
-    const students = await prisma.student.findMany({
+    // Assigned Students (the total targeted group)
+    const assignedStudents = await prisma.student.findMany({
+        where: {
+            eventAssignments: { some: { eventId: event.id } }
+        }
+    });
+
+    // Fetch full student data for session participants (for leaderboards etc)
+    const sessionStudents = await prisma.student.findMany({
         where: { id: { in: participatingStudentIds } }
     });
 
@@ -68,8 +75,11 @@ async function calculateStats(event) {
     let totalKhatmats = 0;
 
     // Calculate Target: Sum of (juzCount * 20) for all students who participated
-    students.forEach(student => {
-        totalTargetPages += (student.juzCount || 1) * 20; // Default to 1 juz if 0 for target calc
+    // Calculate Target: Sum of (juzCount * 20) for all students assigned to the event
+    assignedStudents.forEach(student => {
+        // If student is Khatim (30 juz), target is 30 * 20 = 600 pages
+        // Otherwise use their recorded juzCount
+        totalTargetPages += (student.juzCount || 0) * 20;
     });
 
     // Calculate Accomplished & Purity
@@ -81,7 +91,7 @@ async function calculateStats(event) {
     // Calculate Khatmats per student
     participatingStudentIds.forEach(sid => {
         const studentSessions = sessions.filter(s => s.studentId === sid);
-        const student = students.find(s => s.id === sid);
+        const student = sessionStudents.find(s => s.id === sid);
         if (student && student.juzCount > 0) {
             const studentTotalPages = studentSessions.reduce((sum, s) => sum + (s.pagesCount || 0), 0);
             totalKhatmats += studentTotalPages / (student.juzCount * 20);
@@ -99,7 +109,7 @@ async function calculateStats(event) {
     // 3. Top 5 Most Reciting
     const studentStats = participatingStudentIds.map(sid => {
         const studentSessions = sessions.filter(s => s.studentId === sid);
-        const student = students.find(s => s.id === sid);
+        const student = sessionStudents.find(s => s.id === sid);
         const pages = studentSessions.reduce((sum, s) => sum + (s.pagesCount || 0), 0);
         const clean = studentSessions.reduce((sum, s) => sum + (s.cleanPagesCount || 0), 0);
         const quality = pages > 0 ? (clean / pages) * 100 : 0;
