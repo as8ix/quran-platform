@@ -24,6 +24,7 @@ export default function ManageEvents({ teachers, students }) {
     });
 
     const [editingId, setEditingId] = useState(null);
+    const [confirmConfig, setConfirmConfig] = useState(null); // { title: '', message: '', onConfirm: () => {} }
 
     useEffect(() => {
         fetchEvents();
@@ -87,17 +88,21 @@ export default function ManageEvents({ teachers, students }) {
     };
 
     const handleDelete = async (id) => {
-        if (!confirm('هل أنت متأكد من حذف هذه الدورة؟ سيتم فصل جميع الجلسات المرتبطة بها.')) return;
-
-        try {
-            const res = await fetch(`/api/quranic-events?id=${id}`, { method: 'DELETE' });
-            if (res.ok) {
-                toast.success('تم حذف الدورة بنجاح');
-                fetchEvents();
+        setConfirmConfig({
+            title: 'حذف الدورة',
+            message: 'هل أنت متأكد من حذف هذه الدورة؟ سيتم فصل جميع الجلسات المرتبطة بها.',
+            onConfirm: async () => {
+                try {
+                    const res = await fetch(`/api/quranic-events?id=${id}`, { method: 'DELETE' });
+                    if (res.ok) {
+                        toast.success('تم حذف الدورة بنجاح');
+                        fetchEvents();
+                    }
+                } catch (error) {
+                    toast.error('خطأ في الحذف');
+                }
             }
-        } catch (error) {
-            toast.error('خطأ في الحذف');
-        }
+        });
     };
 
     const toggleActive = async (id, currentState) => {
@@ -175,42 +180,46 @@ export default function ManageEvents({ teachers, students }) {
         } catch (e) { toast.error('خطأ في الحذف'); }
     };
     const handleAutoAssign = async () => {
-        if (!confirm('سيتم توزيع جميع الطلاب تلقائياً حسب معلميهم في الحلقات (فقط المعلمون المشاركون في الدورة). هل تريد الاستمرار؟')) return;
+        setConfirmConfig({
+            title: 'إسناد تلقائي',
+            message: 'سيتم توزيع جميع الطلاب تلقائياً حسب معلميهم في الحلقات (فقط المعلمون المشاركون في الدورة). هل تريد الاستمرار؟',
+            onConfirm: async () => {
+                setLoadingAssignments(true);
+                try {
+                    // 1. Group students by their teacherId
+                    const teacherGroups = {};
+                    students.forEach(student => {
+                        const teacherId = student.halaqa?.teacherId;
+                        if (teacherId && selectedEvent.teachers.some(t => t.id === teacherId)) {
+                            if (!teacherGroups[teacherId]) teacherGroups[teacherId] = [];
+                            teacherGroups[teacherId].push(student.id);
+                        }
+                    });
 
-        setLoadingAssignments(true);
-        try {
-            // 1. Group students by their teacherId
-            const teacherGroups = {};
-            students.forEach(student => {
-                const teacherId = student.halaqa?.teacherId;
-                if (teacherId && selectedEvent.teachers.some(t => t.id === teacherId)) {
-                    if (!teacherGroups[teacherId]) teacherGroups[teacherId] = [];
-                    teacherGroups[teacherId].push(student.id);
+                    // 2. Submit each group
+                    const promises = Object.entries(teacherGroups).map(([teacherId, studentIds]) => {
+                        return fetch('/api/quranic-events/assignments', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                eventId: selectedEvent.id,
+                                teacherId: parseInt(teacherId),
+                                studentIds
+                            })
+                        });
+                    });
+
+                    await Promise.all(promises);
+                    toast.success('تم التوزيع التلقائي بنجاح');
+                    fetchAssignments(selectedEvent.id);
+                } catch (error) {
+                    console.error(error);
+                    toast.error('حدث خطأ أثناء التوزيع التلقائي');
+                } finally {
+                    setLoadingAssignments(false);
                 }
-            });
-
-            // 2. Submit each group
-            const promises = Object.entries(teacherGroups).map(([teacherId, studentIds]) => {
-                return fetch('/api/quranic-events/assignments', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        eventId: selectedEvent.id,
-                        teacherId: parseInt(teacherId),
-                        studentIds
-                    })
-                });
-            });
-
-            await Promise.all(promises);
-            toast.success('تم التوزيع التلقائي بنجاح');
-            fetchAssignments(selectedEvent.id);
-        } catch (error) {
-            console.error(error);
-            toast.error('حدث خطأ أثناء التوزيع التلقائي');
-        } finally {
-            setLoadingAssignments(false);
-        }
+            }
+        });
     };
 
     return (
@@ -478,6 +487,39 @@ export default function ManageEvents({ teachers, students }) {
                                         <div className="text-center py-20 text-slate-300 font-bold italic">لا توجد توزيعات بعد. ابدأ باختيار معلم وطلاب.</div>
                                     )}
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* Confirmation Modal */}
+            {confirmConfig && (
+                <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+                    <div className="bg-white rounded-[2.5rem] p-8 w-full max-w-sm shadow-2xl animate-popIn border border-slate-100/50">
+                        <div className="text-center">
+                            <div className="w-20 h-20 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center text-4xl mx-auto mb-6 shadow-inner ring-8 ring-amber-50/50">
+                                ⚠️
+                            </div>
+                            <h3 className="text-2xl font-black text-slate-800 mb-3">{confirmConfig.title}</h3>
+                            <p className="text-slate-500 font-bold leading-relaxed mb-8">
+                                {confirmConfig.message}
+                            </p>
+                            <div className="flex gap-4">
+                                <button
+                                    onClick={() => setConfirmConfig(null)}
+                                    className="flex-1 py-4 bg-slate-100 text-slate-500 rounded-2xl font-black hover:bg-slate-200 transition-all active:scale-95"
+                                >
+                                    إلغاء
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        confirmConfig.onConfirm();
+                                        setConfirmConfig(null);
+                                    }}
+                                    className="flex-1 py-4 bg-amber-600 text-white rounded-2xl font-black shadow-lg shadow-amber-200 hover:bg-amber-700 transition-all active:scale-95 translate-y-[-2px]"
+                                >
+                                    تأكيد
+                                </button>
                             </div>
                         </div>
                     </div>
