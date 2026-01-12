@@ -1,5 +1,6 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { toast } from 'react-hot-toast';
 
 export default function Navbar({ userType, userName, onLogout }) {
     const titles = {
@@ -12,11 +13,22 @@ export default function Navbar({ userType, userName, onLogout }) {
     const [showNotifications, setShowNotifications] = useState(false);
     const [unreadCount, setUnreadCount] = useState(0);
 
+    const lastNotificationsRef = useRef([]);
+
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
         if (storedUser) {
             const user = JSON.parse(storedUser);
+
+            // Initial fetch
             fetchNotifications(user);
+
+            // Set up polling interval (every 15 seconds)
+            const interval = setInterval(() => {
+                fetchNotifications(user);
+            }, 15000);
+
+            return () => clearInterval(interval);
         }
     }, [userType]);
 
@@ -29,7 +41,25 @@ export default function Navbar({ userType, userName, onLogout }) {
             const res = await fetch(`/api/notifications?${param}`);
             if (res.ok) {
                 const data = await res.json();
+
+                // Check if there are NEW notifications to show a toast
+                if (lastNotificationsRef.current.length > 0) {
+                    const newNotifications = data.filter(
+                        newN => !lastNotificationsRef.current.some(oldN => oldN.id === newN.id)
+                    );
+
+                    if (newNotifications.length > 0) {
+                        const latest = newNotifications[0];
+                        toast.success(`إشعار جديد: ${latest.title || 'رسالة جديدة'}`, {
+                            duration: 5000,
+                            position: 'top-left',
+                            icon: '🔔',
+                        });
+                    }
+                }
+
                 setNotifications(data);
+                lastNotificationsRef.current = data;
                 const unread = data.filter(n => !n.isRead).length;
                 setUnreadCount(unread);
             }
