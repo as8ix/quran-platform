@@ -11,6 +11,7 @@ export default function AddStudentModal({ isOpen, onClose, onAdd, halaqaId, stud
     const [hifzProgress, setHifzProgress] = useState('');
     const [juzCount, setJuzCount] = useState(0);
     const [reviewPlan, setReviewPlan] = useState('');
+    const [dailyTargetPages, setDailyTargetPages] = useState('1');
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
@@ -21,6 +22,7 @@ export default function AddStudentModal({ isOpen, onClose, onAdd, halaqaId, stud
             setHifzProgress(student.hifzProgress || '');
             setJuzCount(student.juzCount || 0);
             setReviewPlan(student.reviewPlan || '');
+            setDailyTargetPages(student.dailyTargetPages || '1');
         } else {
             // Reset if opening in "Add Mode"
             setName('');
@@ -29,6 +31,7 @@ export default function AddStudentModal({ isOpen, onClose, onAdd, halaqaId, stud
             setHifzProgress('');
             setJuzCount(0);
             setReviewPlan('');
+            setDailyTargetPages('1');
         }
     }, [student, isOpen]);
 
@@ -63,7 +66,9 @@ export default function AddStudentModal({ isOpen, onClose, onAdd, halaqaId, stud
             hifzProgress: hifzProgress || 'الفاتحة',
             currentHifzSurahId: selectedSurah ? selectedSurah.id : 1,
             juzCount: parseInt(juzCount),
+            juzCount: parseInt(juzCount),
             reviewPlan,
+            dailyTargetPages: parseFloat(dailyTargetPages),
             halaqaId
         };
 
@@ -92,7 +97,9 @@ export default function AddStudentModal({ isOpen, onClose, onAdd, halaqaId, stud
                 setPassword('');
                 setHifzProgress('');
                 setJuzCount(0);
+                setJuzCount(0);
                 setReviewPlan('');
+                setDailyTargetPages('1');
             }
             toast.success(student ? "تم التعديل بنجاح" : "تم إضافة الطالب بنجاح!", { icon: '🎉' });
             onAdd();
@@ -209,6 +216,19 @@ export default function AddStudentModal({ isOpen, onClose, onAdd, halaqaId, stud
                                 <option value="ثلاث">ثلاث أجزاء</option>
                                 <option value="تحديد خاص">تحديد خاص</option>
                             </select>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-bold text-gray-700 mb-2 mr-1">الهدف اليومي (عدد الصفحات)</label>
+                            <input
+                                type="number"
+                                step="0.5"
+                                className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent focus:border-emerald-500 focus:bg-white rounded-2xl transition-all outline-none text-lg"
+                                placeholder="مثال: 1"
+                                value={dailyTargetPages}
+                                onChange={(e) => setDailyTargetPages(e.target.value)}
+                            />
+                            <p className="text-[10px] text-gray-400 mt-1 mr-1">سيتم استخدامه لحساب "إنجاز الهدف" تلقائياً</p>
                         </div>
                     </div>
                 </div>

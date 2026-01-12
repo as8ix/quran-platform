@@ -51,6 +51,7 @@ export async function POST(request) {
                 currentHifzSurahId: parseInt(currentHifzSurahId) || 1,
                 juzCount: parseInt(juzCount) || 0,
                 reviewPlan,
+                dailyTargetPages: parseFloat(body.dailyTargetPages) || 1.0,
                 halaqaId: body.halaqaId ? parseInt(body.halaqaId) : null
             }
         });
@@ -79,6 +80,7 @@ export async function PUT(request) {
                 currentHifzSurahId: parseInt(currentHifzSurahId) || 1,
                 juzCount: parseInt(juzCount) || 0,
                 reviewPlan,
+                dailyTargetPages: parseFloat(body.dailyTargetPages) || 1.0,
                 halaqaId: halaqaId ? parseInt(halaqaId) : null
             }
         });

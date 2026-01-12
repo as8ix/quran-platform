@@ -43,6 +43,7 @@ model Student {
   currentHifzSurahId Int? @default(114) // 1-114
   juzCount     Int      @default(0)
   reviewPlan   String?
+  dailyTargetPages Float? @default(1.0) // Goal in pages (can be 0.5)
   createdAt    DateTime @default(now())
   
   halaqaId     Int?
@@ -87,4 +88,5 @@ model Session {
   errorsCount      Int @default(0)  // عدد الأخطاء
   alertsCount      Int @default(0)  // عدد التنبيهات
   cleanPagesCount  Int @default(0)  // الصفحات النقية
+  isGoalAchieved   Boolean @default(false) // هل حقق الهدف اليومي؟
 }

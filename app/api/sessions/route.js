@@ -55,6 +55,7 @@ export async function POST(request) {
                 errorsCount: parseInt(errorsCount) || 0,
                 alertsCount: parseInt(alertsCount) || 0,
                 cleanPagesCount: parseInt(cleanPagesCount) || 0,
+                isGoalAchieved: body.isGoalAchieved || false,
                 date: new Date()
             }
         });

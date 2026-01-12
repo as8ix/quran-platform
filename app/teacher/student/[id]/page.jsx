@@ -303,6 +303,24 @@ export default function StudentDetailsPage() {
             const fromSurahName = quranData.find(s => s.id === parseInt(mFromSurah))?.name;
             const toSurahName = quranData.find(s => s.id === parseInt(mToSurah))?.name;
 
+            // Goal Calculation
+            // Default goal is 1 if not set (from student props)
+            const targetPages = student?.dailyTargetPages || 1.0;
+
+            // Calculate pages done today in Hifz
+            // (End - Start) + 1. If 0 pages (Khatim or none), then 0.
+            let pagesDone = 0;
+            if (!isKhatim && hifzToPage && hifzFromPage) {
+                pagesDone = (parseInt(hifzToPage) - parseInt(hifzFromPage)) + 1;
+            }
+
+            // Simple Goal logic: Did they memorize enough pages?
+            // Note: We could also include Review pages in a "Review Goal", but user asked for "Daily Goal" in context of Hifz usually.
+            // Let's assume hifzGoal first. 
+            // If user meant "Total Pages (Hifz + Review)" we can adjust. 
+            // For now: Goal Achieved if Hifz Pages >= Target Pages.
+            const isGoalAchieved = pagesDone >= targetPages;
+
             const response = await fetch('/api/sessions', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -324,7 +342,8 @@ export default function StudentDetailsPage() {
                     errorsCount: parseInt(errorsCount) || 0,
                     alertsCount: parseInt(alertsCount) || 0,
                     cleanPagesCount: parseInt(cleanPagesCount) || 0,
-                    isFinishedSurah // Will be false for Khatim
+                    isFinishedSurah, // Will be false for Khatim
+                    isGoalAchieved
                 })
             });
 
@@ -788,6 +807,19 @@ export default function StudentDetailsPage() {
                                             <span className="text-xs bg-emerald-100 text-emerald-700 font-black px-3 py-1 rounded-full">
                                                 {session.pagesCount} ص
                                             </span>
+                                        </div>
+
+                                        {/* Goal Status Badge */}
+                                        <div className="mb-3">
+                                            {session.isGoalAchieved ? (
+                                                <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-50 text-green-700 text-[10px] font-black rounded-lg border border-green-100">
+                                                    <span>🎯</span> حقق الهدف اليومي
+                                                </span>
+                                            ) : (
+                                                <span className="inline-flex items-center gap-1 px-2 py-1 bg-slate-50 text-slate-400 text-[10px] font-bold rounded-lg border border-slate-100">
+                                                    <span>➖</span> لم يحقق الهدف
+                                                </span>
+                                            )}
                                         </div>
 
                                         {session.hifzSurah ? (
