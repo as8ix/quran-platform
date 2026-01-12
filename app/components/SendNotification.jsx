@@ -1,10 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { storage } from '../lib/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 export default function SendNotification({ senderRole, senderId, students = [], teachers = [] }) {
     const [isOpen, setIsOpen] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [uploading, setUploading] = useState(false);
 
     // Form States
     const [title, setTitle] = useState('');
@@ -12,6 +15,7 @@ export default function SendNotification({ senderRole, senderId, students = [], 
     const [type, setType] = useState('INFO');
     const [attachmentUrl, setAttachmentUrl] = useState('');
     const [attachmentType, setAttachmentType] = useState('IMAGE'); // IMAGE, LINK
+    const [attachmentMode, setAttachmentMode] = useState('URL'); // URL, FILE
 
     // Target Selection
     const [targetType, setTargetType] = useState('STUDENT'); // STUDENT, TEACHER
@@ -24,9 +28,34 @@ export default function SendNotification({ senderRole, senderId, students = [], 
         setType('INFO');
         setAttachmentUrl('');
         setAttachmentType('IMAGE');
+        setAttachmentMode('URL');
         setSelectedRecipients([]);
         setSelectAll(false);
         setIsOpen(false);
+    };
+
+    const handleFileUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        setUploading(true);
+        try {
+            const fileRef = ref(storage, `notifications/${Date.now()}_${file.name}`);
+            await uploadBytes(fileRef, file);
+            const url = await getDownloadURL(fileRef);
+            setAttachmentUrl(url);
+            // Auto-detect image
+            if (file.type.startsWith('image/')) {
+                setAttachmentType('IMAGE');
+            } else {
+                setAttachmentType('LINK');
+            }
+        } catch (error) {
+            console.error(error);
+            alert('خطأ في رفع الملف');
+        } finally {
+            setUploading(false);
+        }
     };
 
     const handleSelectAll = (checked) => {
@@ -151,19 +180,61 @@ export default function SendNotification({ senderRole, senderId, students = [], 
 
                                 {/* Attachments */}
                                 <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                                    <label className="block text-sm font-bold text-slate-700 mb-3">مرفقات (اختياري)</label>
-                                    <div className="flex gap-2 mb-3">
-                                        <button type="button" onClick={() => setAttachmentType('IMAGE')} className={`px-3 py-1 rounded-lg text-xs font-bold ${attachmentType === 'IMAGE' ? 'bg-indigo-600 text-white' : 'bg-white text-slate-500 border'}`}>صورة</button>
-                                        <button type="button" onClick={() => setAttachmentType('LINK')} className={`px-3 py-1 rounded-lg text-xs font-bold ${attachmentType === 'LINK' ? 'bg-indigo-600 text-white' : 'bg-white text-slate-500 border'}`}>رابط / فيديو</button>
+                                    <div className="flex justify-between items-center mb-3">
+                                        <label className="block text-sm font-bold text-slate-700">مرفقات (اختياري)</label>
+                                        <div className="flex gap-2 rounded-lg bg-white shadow-sm p-1">
+                                            <button type="button" onClick={() => setAttachmentMode('URL')} className={`px-3 py-1 rounded-md text-xs font-bold transition ${attachmentMode === 'URL' ? 'bg-indigo-600 text-white' : 'text-slate-500'}`}>رابط مباشر</button>
+                                            <button type="button" onClick={() => setAttachmentMode('FILE')} className={`px-3 py-1 rounded-md text-xs font-bold transition ${attachmentMode === 'FILE' ? 'bg-indigo-600 text-white' : 'text-slate-500'}`}>رفع ملف</button>
+                                        </div>
                                     </div>
-                                    <input
-                                        type="url"
-                                        value={attachmentUrl}
-                                        onChange={(e) => setAttachmentUrl(e.target.value)}
-                                        className="w-full p-2 rounded-lg border border-slate-200 text-sm ltr direction-force-ltr placeholder:text-right"
-                                        placeholder={attachmentType === 'IMAGE' ? 'رابط الصورة...' : 'رابط الفيديو أو الملف...'}
-                                        dir="ltr"
-                                    />
+
+                                    {attachmentMode === 'URL' ? (
+                                        <div className="space-y-3">
+                                            <div className="flex gap-2">
+                                                <button type="button" onClick={() => setAttachmentType('IMAGE')} className={`px-3 py-1 rounded-lg text-xs font-bold ${attachmentType === 'IMAGE' ? 'bg-indigo-100 text-indigo-700' : 'bg-white text-slate-500 border'}`}>صورة</button>
+                                                <button type="button" onClick={() => setAttachmentType('LINK')} className={`px-3 py-1 rounded-lg text-xs font-bold ${attachmentType === 'LINK' ? 'bg-indigo-100 text-indigo-700' : 'bg-white text-slate-500 border'}`}>رابط / فيديو</button>
+                                            </div>
+                                            <input
+                                                type="url"
+                                                value={attachmentUrl}
+                                                onChange={(e) => setAttachmentUrl(e.target.value)}
+                                                className="w-full p-2 rounded-lg border border-slate-200 text-sm ltr direction-force-ltr placeholder:text-right"
+                                                placeholder={attachmentType === 'IMAGE' ? 'رابط الصورة...' : 'رابط الفيديو أو الملف...'}
+                                                dir="ltr"
+                                            />
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-3">
+                                            <div className="relative border-2 border-dashed border-slate-200 rounded-xl p-4 transition hover:border-indigo-300">
+                                                <input
+                                                    type="file"
+                                                    onChange={handleFileUpload}
+                                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                                    disabled={uploading}
+                                                />
+                                                <div className="text-center">
+                                                    {uploading ? (
+                                                        <div className="flex flex-col items-center">
+                                                            <div className="w-6 h-6 border-2 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-2"></div>
+                                                            <span className="text-xs font-bold text-slate-500">جاري الرفع...</span>
+                                                        </div>
+                                                    ) : attachmentUrl ? (
+                                                        <div className="flex items-center justify-center gap-2">
+                                                            <span className="text-green-600 text-lg">✅</span>
+                                                            <span className="text-xs font-bold text-slate-600 truncate max-w-[200px]">تم رفع الملف بنجاح</span>
+                                                            <button type="button" onClick={() => setAttachmentUrl('')} className="text-red-500 hover:text-red-700 underline text-xs">حذف</button>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="flex flex-col items-center">
+                                                            <span className="text-2xl mb-1">📁</span>
+                                                            <span className="text-xs font-bold text-slate-500 text-center">اضغط هنا أو اسحب الملف لرفعه</span>
+                                                            <span className="text-[10px] text-slate-400 mt-1">صور، ملفات، فيديوهات قصيرة</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* Recipients */}
@@ -209,7 +280,7 @@ export default function SendNotification({ senderRole, senderId, students = [], 
                         <div className="p-4 border-t border-slate-100 bg-slate-50 flex gap-3">
                             <button
                                 onClick={handleSubmit}
-                                disabled={loading}
+                                disabled={loading || uploading}
                                 className="flex-1 bg-indigo-600 text-white py-3 rounded-xl font-bold hover:bg-indigo-700 transition shadow disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {loading ? 'جاري الإرسال...' : 'إرسال الإشعار 🚀'}

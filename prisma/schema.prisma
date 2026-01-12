@@ -96,7 +96,7 @@ model Session {
 // Notification types: WARNING (Red), INFO (Blue), PROPOSAL (Green)
 model Notification {
   id             Int      @id @default(autoincrement())
-  title          String
+  title          String   @default("إشعار جديد")
   message        String   // Content
   type           String   @default("INFO") // WARNING, INFO, PROPOSAL
   isRead         Boolean  @default(false)

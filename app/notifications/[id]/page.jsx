@@ -129,8 +129,10 @@ export default function NotificationDetails() {
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="flex items-center gap-3 p-4 bg-white rounded-xl border border-slate-200 hover:shadow-md transition-all text-blue-600 font-bold"
+                                        download
                                     >
-                                        🔗 فتح المرفق (رابط)
+                                        <span>📂</span>
+                                        <span>تحميل أو فتح المرفق</span>
                                     </a>
                                 )}
                             </div>
