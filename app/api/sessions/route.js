@@ -34,21 +34,21 @@ export async function POST(request) {
             hifzSurah, hifzFromPage, hifzToPage, hifzFromAyah, hifzToAyah,
             murajaahFromSurah, murajaahFromAyah, murajaahToSurah, murajaahToAyah,
             pagesCount, resultString, notes, isFinishedSurah,
-            errorsCount, alertsCount, cleanPagesCount
+            errorsCount, alertsCount, cleanPagesCount, quranicEventId
         } = body;
 
         const session = await prisma.session.create({
             data: {
                 studentId: parseInt(studentId),
                 hifzSurah,
-                hifzFromPage: parseInt(hifzFromPage),
-                hifzToPage: parseInt(hifzToPage),
+                hifzFromPage: hifzFromPage ? parseInt(hifzFromPage) : null,
+                hifzToPage: hifzToPage ? parseInt(hifzToPage) : null,
                 hifzFromAyah: hifzFromAyah ? parseInt(hifzFromAyah) : null,
                 hifzToAyah: hifzToAyah ? parseInt(hifzToAyah) : null,
                 murajaahFromSurah,
-                murajaahFromAyah: parseInt(murajaahFromAyah),
+                murajaahFromAyah: murajaahFromAyah ? parseInt(murajaahFromAyah) : null,
                 murajaahToSurah,
-                murajaahToAyah: parseInt(murajaahToAyah),
+                murajaahToAyah: murajaahToAyah ? parseInt(murajaahToAyah) : null,
                 pagesCount: parseFloat(pagesCount) || 0,
                 resultString,
                 notes,
@@ -56,6 +56,7 @@ export async function POST(request) {
                 alertsCount: parseInt(alertsCount) || 0,
                 cleanPagesCount: parseInt(cleanPagesCount) || 0,
                 isGoalAchieved: body.isGoalAchieved || false,
+                quranicEventId: quranicEventId ? parseInt(quranicEventId) : null,
                 date: new Date()
             }
         });

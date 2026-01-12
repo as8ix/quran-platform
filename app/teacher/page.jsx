@@ -117,7 +117,13 @@ export default function TeacherDashboard() {
                         </h1>
                         <p className="text-slate-500 mt-2 text-lg">لديك {students.length} طالب مسجل في حلقتك</p>
                     </div>
-                    <div className="flex gap-3">
+                    <div className="flex flex-wrap gap-3">
+                        <button
+                            onClick={() => router.push('/quranic-days')}
+                            className="flex items-center gap-2 px-6 py-3 bg-amber-600 text-white rounded-2xl font-bold shadow-lg shadow-amber-200 hover:bg-amber-700 transition-all active:scale-95"
+                        >
+                            <span>🏆</span> الأيام القرآنية
+                        </button>
                         <button
                             onClick={() => router.push('/teacher/attendance')}
                             className="flex items-center gap-2 px-6 py-3 bg-white border-2 border-slate-200 rounded-2xl font-bold text-slate-600 hover:border-emerald-500 hover:text-emerald-600 transition-all shadow-sm active:scale-95"

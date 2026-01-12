@@ -43,6 +43,8 @@ export default function StudentDetailsPage() {
 
     const [showEditModal, setShowEditModal] = useState(false);
     const [deleting, setDeleting] = useState(false);
+    const [activeEvent, setActiveEvent] = useState(null);
+    const [isQuranicDaySession, setIsQuranicDaySession] = useState(false);
 
     const [user, setUser] = useState(null);
 
@@ -54,7 +56,18 @@ export default function StudentDetailsPage() {
         if (!studentId) return;
         fetchStudent();
         fetchHistory();
+        fetchActiveEvent();
     }, [studentId]);
+
+    const fetchActiveEvent = async () => {
+        try {
+            const res = await fetch('/api/quranic-events?activeOnly=true');
+            if (res.ok) {
+                const data = await res.json();
+                if (data.length > 0) setActiveEvent(data[0]);
+            }
+        } catch (e) { console.error(e); }
+    };
 
     const getFirstName = (fullName) => {
         if (!fullName) return '';
@@ -399,7 +412,8 @@ export default function StudentDetailsPage() {
                     alertsCount: parseInt(alertsCount) || 0,
                     cleanPagesCount: parseInt(cleanPagesCount) || 0,
                     isFinishedSurah, // Will be false for Khatim
-                    isGoalAchieved
+                    isGoalAchieved,
+                    quranicEventId: isQuranicDaySession ? activeEvent?.id : null
                 })
             });
 
@@ -595,6 +609,24 @@ export default function StudentDetailsPage() {
                                 <span className="p-3 bg-emerald-100 rounded-2xl">✍️</span>
                                 تسجيل تسميع اليوم
                             </h2>
+
+                            {/* Quranic Day Active Banner/Toggle */}
+                            {activeEvent && (
+                                <div className={`mb-8 p-6 rounded-[2rem] border-2 transition-all cursor-pointer ${isQuranicDaySession ? 'bg-amber-50 border-amber-300 shadow-lg shadow-amber-100' : 'bg-slate-50 border-slate-200 opacity-60'}`} onClick={() => setIsQuranicDaySession(!isQuranicDaySession)}>
+                                    <div className="flex justify-between items-center">
+                                        <div className="flex items-center gap-4">
+                                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-2xl ${isQuranicDaySession ? 'bg-amber-100' : 'bg-white'}`}>🏆</div>
+                                            <div>
+                                                <div className="font-black text-amber-900 leading-tight">دورة: {activeEvent.name}</div>
+                                                <div className="text-xs font-bold text-amber-600">هل هذا التسميع خاص بالأيام القرآنية؟</div>
+                                            </div>
+                                        </div>
+                                        <div className={`w-14 h-8 rounded-full relative transition-all ${isQuranicDaySession ? 'bg-amber-500' : 'bg-slate-300'}`}>
+                                            <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all ${isQuranicDaySession ? 'right-7' : 'right-1'}`}></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
 
                             <div className="space-y-10">
                                 {/* Hifz Section - Hidden for Khatim */}

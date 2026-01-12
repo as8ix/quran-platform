@@ -23,6 +23,7 @@ model User {
   teacherHalaqas Halaqa[] @relation("TeacherHalaqas")
   assistantHalaqas Halaqa[] @relation("AssistantTeachers")
   notifications Notification[]
+  participatingEvents QuranicEvent[] @relation("EventTeachers")
 }
 
 model Halaqa {
@@ -91,6 +92,21 @@ model Session {
   alertsCount      Int @default(0)  // عدد التنبيهات
   cleanPagesCount  Int @default(0)  // الصفحات النقية
   isGoalAchieved   Boolean @default(false) // هل حقق الهدف اليومي؟
+
+  // Quranic Days Relation
+  quranicEventId Int?
+  quranicEvent   QuranicEvent? @relation(fields: [quranicEventId], references: [id])
+}
+
+model QuranicEvent {
+  id          Int       @id @default(autoincrement())
+  name        String
+  startDate   DateTime
+  endDate     DateTime
+  isActive    Boolean   @default(false)
+  sessions    Session[]
+  teachers    User[]    @relation("EventTeachers")
+  createdAt   DateTime  @default(now())
 }
 
 // Notification types: WARNING (Red), INFO (Blue), PROPOSAL (Green)
