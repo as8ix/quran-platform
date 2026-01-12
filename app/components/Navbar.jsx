@@ -108,7 +108,7 @@ export default function Navbar({ userType, userName, onLogout }) {
 
                             {/* Dropdown */}
                             {showNotifications && (
-                                <div className="absolute left-1/2 -translate-x-1/2 md:translate-x-0 md:left-0 mt-4 w-[calc(100vw-2rem)] md:w-80 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden z-[100] max-w-sm md:max-w-none">
+                                <div className="fixed md:absolute inset-x-4 md:inset-x-auto md:left-0 top-[75px] md:top-full mt-2 md:mt-4 md:w-80 bg-white rounded-2xl shadow-2xl md:shadow-xl border border-slate-100 overflow-hidden z-[100]">
                                     <div className="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
                                         <h3 className="font-bold text-slate-700">الإشعارات</h3>
                                         <span className="text-xs text-slate-500">{unreadCount} غير مقروء</span>
