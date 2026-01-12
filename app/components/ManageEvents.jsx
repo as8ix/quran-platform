@@ -174,6 +174,44 @@ export default function ManageEvents({ teachers, students }) {
             }
         } catch (e) { toast.error('خطأ في الحذف'); }
     };
+    const handleAutoAssign = async () => {
+        if (!confirm('سيتم توزيع جميع الطلاب تلقائياً حسب معلميهم في الحلقات (فقط المعلمون المشاركون في الدورة). هل تريد الاستمرار؟')) return;
+
+        setLoadingAssignments(true);
+        try {
+            // 1. Group students by their teacherId
+            const teacherGroups = {};
+            students.forEach(student => {
+                const teacherId = student.halaqa?.teacherId;
+                if (teacherId && selectedEvent.teachers.some(t => t.id === teacherId)) {
+                    if (!teacherGroups[teacherId]) teacherGroups[teacherId] = [];
+                    teacherGroups[teacherId].push(student.id);
+                }
+            });
+
+            // 2. Submit each group
+            const promises = Object.entries(teacherGroups).map(([teacherId, studentIds]) => {
+                return fetch('/api/quranic-events/assignments', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        eventId: selectedEvent.id,
+                        teacherId: parseInt(teacherId),
+                        studentIds
+                    })
+                });
+            });
+
+            await Promise.all(promises);
+            toast.success('تم التوزيع التلقائي بنجاح');
+            fetchAssignments(selectedEvent.id);
+        } catch (error) {
+            console.error(error);
+            toast.error('حدث خطأ أثناء التوزيع التلقائي');
+        } finally {
+            setLoadingAssignments(false);
+        }
+    };
 
     return (
         <div className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-slate-100 flex flex-col h-full mt-8">
@@ -330,7 +368,15 @@ export default function ManageEvents({ teachers, students }) {
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
                     <div className="bg-white rounded-[2rem] p-8 w-full max-w-4xl shadow-2xl relative animate-fadeIn flex flex-col max-h-[90vh]">
                         <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-2xl font-black text-slate-800">توزيع الطلاب - {selectedEvent.name}</h3>
+                            <div className="flex items-center gap-4">
+                                <h3 className="text-2xl font-black text-slate-800">توزيع الطلاب - {selectedEvent.name}</h3>
+                                <button
+                                    onClick={handleAutoAssign}
+                                    className="bg-amber-50 text-amber-600 px-3 py-1.5 rounded-xl text-xs font-black border border-amber-200 hover:bg-amber-100 transition-all"
+                                >
+                                    🪄 إسناد تلقائي حسب الحلقات
+                                </button>
+                            </div>
                             <button onClick={() => setShowAssignmentModal(false)} className="text-slate-400 text-2xl hover:text-slate-600 font-bold">✕</button>
                         </div>
 
