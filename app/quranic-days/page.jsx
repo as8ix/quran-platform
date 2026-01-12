@@ -106,6 +106,19 @@ export default function QuranicDaysDashboard() {
             />
 
             <main className="max-w-7xl mx-auto px-4 py-8 md:py-12">
+                {/* Back Button */}
+                <button
+                    onClick={() => router.push(user?.role === 'SUPERVISOR' ? '/supervisor' : '/teacher')}
+                    className="mb-8 flex items-center gap-4 text-slate-500 hover:text-slate-800 font-bold transition-colors group"
+                >
+                    <span className="w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center group-hover:shadow-xl transition-all border border-slate-50">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="#475569" className="w-6 h-6">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                        </svg>
+                    </span>
+                    <span className="text-xl">عودة للقائمة الرئيسية</span>
+                </button>
+
                 {/* Dashboard Header */}
                 <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-12">
                     <div className="flex items-center gap-6">
