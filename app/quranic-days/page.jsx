@@ -74,10 +74,10 @@ export default function QuranicDaysDashboard() {
             ['الحضور الفعلي', stats.general.actualAttendance],
             ['المستهدف بالصفحات', stats.achievements.target],
             ['الصفحات المنجزة', stats.achievements.accomplished],
-            ['الصفحات النقية', stats.achievements.purity],
+            ['صفحات بجودة عالية', stats.achievements.purity],
             ['إجمالي الختمات', stats.achievements.khatmats],
-            ['معدل النقاء %', stats.rates.purityRate],
-            ['تحقيق الأهداف %', stats.rates.goalAchievementRate],
+            ['جودة التلاوة %', stats.rates.purityRate],
+            ['إنجاز الورد %', stats.rates.goalAchievementRate],
             ['معدل الإنجاز %', stats.rates.achievementRate],
             ['', ''],
             ['لوحة الشرف: الأكثر تسميعاً', ''],
@@ -221,7 +221,7 @@ export default function QuranicDaysDashboard() {
                         <div className="space-y-8 relative z-10">
                             <AchievementItem label="المستهدف بالصفحات" value={stats.achievements.target} unit="صفحة" color="text-slate-400" />
                             <AchievementItem label="الصفحات المنجزة" value={stats.achievements.accomplished} unit="صفحة" color="text-amber-600" isMain />
-                            <AchievementItem label="الصفحات النقية" value={stats.achievements.purity} unit="صفحة" color="text-emerald-500" />
+                            <AchievementItem label="صفحات بجودة عالية" value={stats.achievements.purity} unit="صفحة" color="text-emerald-500" />
                             <AchievementItem label="إجمالي الختمات" value={stats.achievements.khatmats} unit="ختمة" color="text-indigo-600" />
                         </div>
                     </div>
@@ -233,15 +233,15 @@ export default function QuranicDaysDashboard() {
                         </h3>
 
                         <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
-                            <RadialProgress percentage={stats.rates.purityRate} label="معدل النقاء" color="#F59E0B" />
-                            <RadialProgress percentage={stats.rates.goalAchievementRate} label="تحقيق الأهداف" color="#10B981" />
+                            <RadialProgress percentage={stats.rates.purityRate} label="جودة التلاوة" color="#F59E0B" />
+                            <RadialProgress percentage={stats.rates.goalAchievementRate} label="إنجاز الورد" color="#10B981" />
                             <RadialProgress percentage={stats.rates.achievementRate} label="معدل الإنجاز" color="#6366F1" />
                         </div>
 
                         <div className="mt-8 pt-8 border-t border-slate-800 flex justify-center items-center gap-8">
                             <div className="flex items-center gap-2">
                                 <span className="w-3 h-3 bg-amber-500 rounded-full shadow-[0_0_10px_rgba(245,158,11,0.5)]"></span>
-                                <span className="text-xs font-bold text-slate-400">نظافة التلاوة</span>
+                                <span className="text-xs font-bold text-slate-400">جودة التلاوة</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <span className="w-3 h-3 bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]"></span>
