@@ -1,0 +1,31 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "username": "supervisor",
+      "password": "123",
+      "name": "المشرف العام",
+      "role": "SUPERVISOR",
+      "createdAt": "2026-01-06T03:29:11.481Z"
+    },
+    {
+      "id": 10,
+      "username": "bassam",
+      "password": "123",
+      "name": "بسام فوزي حوذان",
+      "role": "TEACHER",
+      "createdAt": "2026-01-06T03:39:11.244Z"
+    }
+  ],
+  "halaqas": [
+    {
+      "id": 5,
+      "name": "زيد بن ثابت",
+      "teacherId": 10,
+      "createdAt": "2026-01-06T03:39:16.351Z"
+    }
+  ],
+  "students": [],
+  "sessions": [],
+  "attendance": []
+}
