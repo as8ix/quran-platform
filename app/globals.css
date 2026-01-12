@@ -82,6 +82,79 @@
   border-radius: 5px;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(to bottom, #155724, #1e7e34);
+/* Print Styles */
+@media print {
+  @page {
+    margin: 1cm;
+    size: A4;
+  }
+
+  body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    background-color: white !important;
+  }
+
+  /* Hide everything we don't want to print */
+  nav,                /* Navbar */
+  button,             /* All buttons */
+  a[href],           /* Links/Back buttons */
+  .no-print,         /* Utility class for hiding specific elements */
+  form,               /* Input forms (Adding sessions) */
+  .modal-backdrop,    /* Modals */
+  textarea           /* Notes input */
+  {
+    display: none !important;
+  }
+
+  /* Layout Adjustments for Print */
+  main {
+    padding: 0 !important;
+    max-width: 100% !important;
+  }
+
+  /* Header Card Adjustments */
+  .bg-white {
+    box-shadow: none !important;
+    border: 1px solid #ddd !important;
+    border-radius: 1rem !important;
+  }
+
+  /* Ensure history list flows naturally */
+  .max-h-\[calc\(100vh-350px\)\] {
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .sticky {
+    position: static !important;
+  }
+
+  /* Reset layout grid to focus on history */
+  .grid {
+    display: block !important;
+  }
+  
+  .col-span-2 {
+    display: none !important; /* Hide the form col entirely if using grid */
+  }
+
+  /* Show specific hidden elements if marked for print */
+  .print-only {
+    display: block !important;
+  }
+  
+  .print-break-inside-avoid {
+    break-inside: avoid;
+  }
+
+  /* Custom Watermark or Header for Print */
+  body::before {
+    content: "تقرير سجل الإنجاز - منصة التحفيظ";
+    display: block;
+    text-align: center;
+    font-size: 10pt;
+    color: #999;
+    margin-bottom: 20px;
+  }
 }

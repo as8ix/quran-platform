@@ -463,6 +463,12 @@ export default function StudentDetailsPage() {
                     >
                         <span>🗑️</span> {deleting ? 'جاري الحذف...' : 'حذف'}
                     </button>
+                    <button
+                        onClick={() => window.print()}
+                        className="px-4 py-2 bg-slate-800 text-white rounded-xl font-bold hover:bg-slate-900 transition-colors flex items-center gap-2 shadow-lg shadow-slate-200"
+                    >
+                        <span>🖨️</span> طباعة التقرير
+                    </button>
                 </div>
 
                 {/* Header Card */}
