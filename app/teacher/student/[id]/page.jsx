@@ -410,9 +410,9 @@ export default function StudentDetailsPage() {
             // 4. Compare
             // Goal Achieved if:
             // (HifzDone >= HifzTarget) AND (ReviewDone >= ReviewTarget)
-            // Note: If Target is 0, we assume it's "met" (not required).
-            // FIX: If student is Khatim, Hifz goal is automatically met (not applicable).
-            const hifzMet = isKhatim ? true : (hifzTarget > 0 ? hifzDone >= hifzTarget : true);
+            // EXCEPTION: In Quranic Day sessions, we ignore Hifz goal and only focus on Review.
+            const isQuranicDay = !!(isQuranicDaySession && activeEvent);
+            const hifzMet = (isKhatim || isQuranicDay) ? true : (hifzTarget > 0 ? hifzDone >= hifzTarget : true);
             const reviewMet = reviewTarget > 0 ? reviewDone >= reviewTarget : true;
 
             const isGoalAchieved = hifzMet && reviewMet;
@@ -422,12 +422,12 @@ export default function StudentDetailsPage() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     studentId,
-                    // Only send hifz data if not Khatim
-                    hifzSurah: isKhatim ? null : currentSurah?.name,
-                    hifzFromPage: isKhatim ? null : parseInt(hifzFromPage),
-                    hifzToPage: isKhatim ? null : parseInt(hifzToPage),
-                    hifzFromAyah: isKhatim ? null : parseInt(hifzFromAyah),
-                    hifzToAyah: isKhatim ? null : parseInt(hifzToAyah),
+                    // Only send hifz data if not Khatim AND not a Quranic Day session
+                    hifzSurah: (isKhatim || isQuranicDay) ? null : currentSurah?.name,
+                    hifzFromPage: (isKhatim || isQuranicDay) ? null : parseInt(hifzFromPage),
+                    hifzToPage: (isKhatim || isQuranicDay) ? null : parseInt(hifzToPage),
+                    hifzFromAyah: (isKhatim || isQuranicDay) ? null : parseInt(hifzFromAyah),
+                    hifzToAyah: (isKhatim || isQuranicDay) ? null : parseInt(hifzToAyah),
                     murajaahFromSurah: fromSurahName,
                     murajaahFromAyah: parseInt(mFromAyah),
                     murajaahToSurah: toSurahName,
@@ -654,8 +654,8 @@ export default function StudentDetailsPage() {
                             )}
 
                             <div className="space-y-10">
-                                {/* Hifz Section - Hidden for Khatim */}
-                                {!isKhatim ? (
+                                {/* Hifz Section - Hidden for Khatim or Quranic Day */}
+                                {(!isKhatim && !isQuranicDaySession) ? (
                                     <div className="p-8 bg-emerald-50/50 rounded-[2.5rem] border border-emerald-100 shadow-inner">
                                         <div className="flex justify-between items-center mb-6">
                                             <h3 className="text-emerald-800 font-black text-xl flex items-center gap-3">
@@ -725,6 +725,14 @@ export default function StudentDetailsPage() {
                                                     </div>
                                                 </div>
                                             </div>
+                                        </div>
+                                    </div>
+                                ) : isQuranicDaySession ? (
+                                    <div className="p-8 bg-gradient-to-br from-indigo-50 to-amber-50 rounded-[2.5rem] border-2 border-amber-200 shadow-inner">
+                                        <div className="text-center">
+                                            <div className="text-6xl mb-4">🛡️</div>
+                                            <h3 className="text-2xl font-black text-amber-800 mb-2">وضع الأيام القرآنية نشط</h3>
+                                            <p className="text-amber-600 font-bold">تم قفل قسم الحفظ - التركيز الآن على المراجعة المكثفة فقط</p>
                                         </div>
                                     </div>
                                 ) : (
