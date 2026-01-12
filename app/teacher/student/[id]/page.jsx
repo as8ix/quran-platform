@@ -44,11 +44,22 @@ export default function StudentDetailsPage() {
     const [showEditModal, setShowEditModal] = useState(false);
     const [deleting, setDeleting] = useState(false);
 
+    const [user, setUser] = useState(null);
+
     useEffect(() => {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+            setUser(JSON.parse(storedUser));
+        }
         if (!studentId) return;
         fetchStudent();
         fetchHistory();
     }, [studentId]);
+
+    const getFirstName = (fullName) => {
+        if (!fullName) return '';
+        return fullName.trim().split(/\s+/)[0];
+    };
 
     useEffect(() => {
         if (student) {
@@ -496,7 +507,11 @@ export default function StudentDetailsPage() {
 
     return (
         <div className="min-h-screen bg-[#f8fafc] font-noto rtl" dir="rtl">
-            <Navbar userType="teacher" userName="أهلًا أستاذ عبدالله 👋" onLogout={() => router.push('/')} />
+            <Navbar
+                userType="teacher"
+                userName={user ? `أهلًا أستاذ ${getFirstName(user.name)} 👋` : 'أهلًا أستاذ 👋'}
+                onLogout={() => router.push('/')}
+            />
 
             <main className="max-w-6xl mx-auto px-4 py-10">
                 {/* Back Button */}
@@ -544,7 +559,7 @@ export default function StudentDetailsPage() {
                             {student?.name?.charAt(0)}
                         </div>
                         <div>
-                            <h1 className="text-4xl font-black text-slate-800 tracking-tight">{student?.name}</h1>
+                            <h1 className="text-4xl font-black text-slate-800 tracking-tight">{getFirstName(student?.name)}</h1>
                             <div className="flex items-center gap-2 mt-2">
                                 {isKhatim ? (
                                     <span className="px-4 py-2 bg-gradient-to-r from-amber-400 to-yellow-400 text-amber-900 rounded-full text-sm font-black shadow-lg shadow-amber-200 flex items-center gap-2">

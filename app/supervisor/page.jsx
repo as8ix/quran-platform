@@ -12,9 +12,12 @@ import SendNotification from '../components/SendNotification';
 
 export default function SupervisorDashboard() {
     const router = useRouter();
-    const [user, setUser] = useState(null);
+    const getFirstName = (fullName) => {
+        if (!fullName) return '';
+        return fullName.trim().split(/\s+/)[0];
+    };
 
-    const supervisorName = user ? `المشرف ${user.name}` : 'المشرف';
+    const supervisorName = user ? `أهلًا بالمشرف ${getFirstName(user.name)} 👋` : 'أهلًا بالمشرف 👋';
 
     // Data State
     const [teachers, setTeachers] = useState([]);
@@ -282,7 +285,7 @@ export default function SupervisorDashboard() {
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
                     <div>
                         <h1 className="text-4xl font-black text-slate-800 tracking-tight">
-                            مرحباً <span className="text-emerald-600">{user ? user.name : 'المشرف'}</span> 👋
+                            مرحباً <span className="text-emerald-600">{user ? getFirstName(user.name) : 'المشرف'}</span> 👋
                         </h1>
                         <p className="text-slate-500 mt-2 text-lg">إدارة المعلمين والحلقات ومتابعة الإنجاز العام</p>
                     </div>

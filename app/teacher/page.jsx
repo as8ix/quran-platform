@@ -15,10 +15,12 @@ export default function TeacherDashboard() {
     const [loading, setLoading] = useState(true);
     const [students, setStudents] = useState([]);
 
-    const [user, setUser] = useState(null);
-    const [teacherHalaqas, setTeacherHalaqas] = useState([]);
+    const getFirstName = (fullName) => {
+        if (!fullName) return '';
+        return fullName.trim().split(/\s+/)[0];
+    };
 
-    const teacherName = user ? `أهلًا أستاذ ${user.name} 👋` : 'أهلًا أستاذ 👋';
+    const teacherName = user ? `أهلًا أستاذ ${getFirstName(user.name)} 👋` : 'أهلًا أستاذ 👋';
 
     useEffect(() => {
         // Get user from localStorage
@@ -208,7 +210,7 @@ export default function TeacherDashboard() {
                                 </div>
 
                                 <h3 className="text-xl font-bold text-slate-800 mb-1 group-hover:text-emerald-600 transition-colors">
-                                    {student.name}
+                                    {getFirstName(student.name)}
                                 </h3>
                                 <p className="text-slate-500 text-sm mb-4 line-clamp-1">
                                     وصل إلى: {student.hifzProgress || 'بداية الحفظ'}
