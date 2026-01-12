@@ -11,7 +11,9 @@ import { formatHijri } from '../utils/dateUtils';
 
 export default function SupervisorDashboard() {
     const router = useRouter();
-    const supervisorName = 'المشرف خالد';
+    const [user, setUser] = useState(null);
+
+    const supervisorName = user ? `المشرف ${user.name}` : 'المشرف';
 
     // Data State
     const [teachers, setTeachers] = useState([]);
@@ -39,6 +41,10 @@ export default function SupervisorDashboard() {
     const [deletingId, setDeletingId] = useState(null); // ID of item being deleted (teacher or halaqa)
 
     useEffect(() => {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+            setUser(JSON.parse(storedUser));
+        }
         fetchData();
     }, []);
 
@@ -263,7 +269,7 @@ export default function SupervisorDashboard() {
         { label: 'إجمالي الحلقات', value: halaqas.length, trend: 'نشطة', icon: '🕌', color: 'from-blue-500 to-blue-600' },
         { label: 'عدد المعلمين', value: teachers.length, trend: `${activeTeachers} لديهم حلقات`, icon: '👨‍🏫', color: 'from-green-500 to-green-600' },
         { label: 'إجمالي الطلاب', value: totalStudents, trend: 'طالب مسجل', icon: '🎯', color: 'from-orange-500 to-orange-600' },
-        { label: 'فئة المعلمين', value: 'عام', trend: 'صلاحيات كاملة', icon: '⚡', color: 'from-teal-500 to-cyan-500' },
+        { label: 'فئة المستخدم', value: user?.role === 'SUPERVISOR' ? 'مشرف عام' : 'مستخدم', trend: 'صلاحيات كاملة', icon: '⚡', color: 'from-teal-500 to-cyan-500' },
     ];
 
     return (
