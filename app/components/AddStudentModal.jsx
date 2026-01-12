@@ -12,6 +12,7 @@ export default function AddStudentModal({ isOpen, onClose, onAdd, halaqaId, stud
     const [juzCount, setJuzCount] = useState(0);
     const [reviewPlan, setReviewPlan] = useState('');
     const [dailyTargetPages, setDailyTargetPages] = useState('1');
+    const [hifzPlanType, setHifzPlanType] = useState('1'); // Default to 1 page
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
@@ -22,7 +23,14 @@ export default function AddStudentModal({ isOpen, onClose, onAdd, halaqaId, stud
             setHifzProgress(student.hifzProgress || '');
             setJuzCount(student.juzCount || 0);
             setReviewPlan(student.reviewPlan || '');
-            setDailyTargetPages(student.dailyTargetPages || '1');
+            const target = String(student.dailyTargetPages || '1');
+            setDailyTargetPages(target);
+            // Check if target matches one of our presets
+            if (['0.5', '1', '2'].includes(target)) {
+                setHifzPlanType(target);
+            } else {
+                setHifzPlanType('custom');
+            }
         } else {
             // Reset if opening in "Add Mode"
             setName('');
@@ -32,6 +40,7 @@ export default function AddStudentModal({ isOpen, onClose, onAdd, halaqaId, stud
             setJuzCount(0);
             setReviewPlan('');
             setDailyTargetPages('1');
+            setHifzPlanType('1');
         }
     }, [student, isOpen]);
 
@@ -100,6 +109,7 @@ export default function AddStudentModal({ isOpen, onClose, onAdd, halaqaId, stud
                 setJuzCount(0);
                 setReviewPlan('');
                 setDailyTargetPages('1');
+                setHifzPlanType('1');
             }
             toast.success(student ? "تم التعديل بنجاح" : "تم إضافة الطالب بنجاح!", { icon: '🎉' });
             onAdd();
@@ -205,30 +215,86 @@ export default function AddStudentModal({ isOpen, onClose, onAdd, halaqaId, stud
                         <div>
                             <label className="block text-sm font-bold text-gray-700 mb-2 mr-1">خطة المراجعة</label>
                             <select
-                                className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent focus:border-emerald-500 focus:bg-white rounded-2xl transition-all outline-none appearance-none"
-                                value={reviewPlan}
-                                onChange={(e) => setReviewPlan(e.target.value)}
+                                className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent focus:border-emerald-500 focus:bg-white rounded-2xl transition-all outline-none appearance-none mb-2"
+                                value={['نصف جزء', 'جزء', 'جزئين', 'ثلاث'].includes(reviewPlan) ? reviewPlan : 'custom'}
+                                onChange={(e) => {
+                                    if (e.target.value !== 'custom') {
+                                        setReviewPlan(e.target.value);
+                                    } else {
+                                        setReviewPlan('صفحة'); // Default for custom
+                                    }
+                                }}
                             >
                                 <option value="">اختر خطة المراجعة...</option>
                                 <option value="نصف جزء">نصف جزء</option>
                                 <option value="جزء">جزء</option>
                                 <option value="جزئين">جزئين</option>
                                 <option value="ثلاث">ثلاث أجزاء</option>
-                                <option value="تحديد خاص">تحديد خاص</option>
+                                <option value="custom">تحديد خاص (صفحات قليلة)</option>
                             </select>
+
+                            {/* Show detailed options if Custom (not standard juz) is active */}
+                            {!['', 'نصف جزء', 'جزء', 'جزئين', 'ثلاث'].includes(reviewPlan) && (
+                                <div className="animate-in fade-in slide-in-from-top-2 duration-300 mb-4 bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                                    <label className="block text-xs font-bold text-gray-500 mb-2">مقدار المراجعة الخاص:</label>
+                                    <select
+                                        className="w-full px-4 py-3 bg-white border border-gray-200 focus:border-emerald-500 rounded-xl outline-none"
+                                        value={reviewPlan}
+                                        onChange={(e) => setReviewPlan(e.target.value)}
+                                    >
+                                        <option value="نصف صفحة">نصف صفحة</option>
+                                        <option value="صفحة">صفحة واحدة</option>
+                                        <option value="صفحتين">صفحتين</option>
+                                        <option value="custom_num">عدد آخر...</option>
+                                    </select>
+
+                                    {/* Free text for really custom review */}
+                                    {!['نصف صفحة', 'صفحة', 'صفحتين'].includes(reviewPlan) && (
+                                        <input
+                                            type="text"
+                                            className="w-full mt-2 px-4 py-3 bg-white border border-gray-200 focus:border-emerald-500 rounded-xl outline-none"
+                                            placeholder="اكتب المقدار (مثلاً: 5 صفحات)..."
+                                            value={reviewPlan === 'custom_num' ? '' : reviewPlan}
+                                            onChange={(e) => setReviewPlan(e.target.value)}
+                                        />
+                                    )}
+                                </div>
+                            )}
                         </div>
 
                         <div>
-                            <label className="block text-sm font-bold text-gray-700 mb-2 mr-1">الهدف اليومي (عدد الصفحات)</label>
-                            <input
-                                type="number"
-                                step="0.5"
-                                className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent focus:border-emerald-500 focus:bg-white rounded-2xl transition-all outline-none text-lg"
-                                placeholder="مثال: 1"
-                                value={dailyTargetPages}
-                                onChange={(e) => setDailyTargetPages(e.target.value)}
-                            />
-                            <p className="text-[10px] text-gray-400 mt-1 mr-1">سيتم استخدامه لحساب "إنجاز الهدف" تلقائياً</p>
+                            <label className="block text-sm font-bold text-gray-700 mb-2 mr-1">الهدف اليومي (حفظ)</label>
+                            <select
+                                className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent focus:border-emerald-500 focus:bg-white rounded-2xl transition-all outline-none appearance-none mb-2"
+                                value={hifzPlanType}
+                                onChange={(e) => {
+                                    setHifzPlanType(e.target.value);
+                                    if (e.target.value !== 'custom') {
+                                        setDailyTargetPages(e.target.value);
+                                    }
+                                }}
+                            >
+                                <option value="0.5">نصف صفحة</option>
+                                <option value="1">صفحة واحدة</option>
+                                <option value="2">صفحتين</option>
+                                <option value="custom">تحديد خاص (عدد صفحات)</option>
+                            </select>
+
+                            {/* Show input only if custom is selected */}
+                            {hifzPlanType === 'custom' && (
+                                <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                                    <input
+                                        type="number"
+                                        step="0.5"
+                                        className="w-full px-5 py-4 bg-white border-2 border-emerald-100 focus:border-emerald-500 rounded-2xl transition-all outline-none text-lg"
+                                        placeholder="عدد الصفحات..."
+                                        value={dailyTargetPages}
+                                        onChange={(e) => setDailyTargetPages(e.target.value)}
+                                        autoFocus
+                                    />
+                                </div>
+                            )}
+                            <p className="text-[10px] text-gray-400 mt-1 mr-1">سيتم استخدام (الحفظ + المراجعة) لحساب "إنجاز الهدف" تلقائياً</p>
                         </div>
                     </div>
                 </div>

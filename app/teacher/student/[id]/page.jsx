@@ -304,22 +304,66 @@ export default function StudentDetailsPage() {
             const toSurahName = quranData.find(s => s.id === parseInt(mToSurah))?.name;
 
             // Goal Calculation
-            // Default goal is 1 if not set (from student props)
-            const targetPages = student?.dailyTargetPages || 1.0;
+            // 1. Get Hifz Target (student.dailyTargetPages)
+            const hifzTarget = student?.dailyTargetPages || 0;
 
-            // Calculate pages done today in Hifz
-            // (End - Start) + 1. If 0 pages (Khatim or none), then 0.
-            let pagesDone = 0;
-            if (!isKhatim && hifzToPage && hifzFromPage) {
-                pagesDone = (parseInt(hifzToPage) - parseInt(hifzFromPage)) + 1;
+            // 2. Get Review Target (from student.reviewPlan string)
+            // Parse "part", "2 parts", etc into pages.
+            // Assumption: 1 Juz = 20 pages.
+            let reviewTarget = 0;
+            const plan = student?.reviewPlan || '';
+            if (plan.includes('نصف جزء')) reviewTarget = 10;
+            else if (plan === 'جزء') reviewTarget = 20;
+            else if (plan === 'جزئين') reviewTarget = 40;
+            else if (plan.includes('ثلاث')) reviewTarget = 60;
+            else if (plan === 'نصف صفحة') reviewTarget = 0.5;
+            else if (plan === 'صفحة') reviewTarget = 1;
+            else if (plan === 'صفحتين') reviewTarget = 2;
+            else {
+                // Try to parse custom number if existing (e.g. "5")
+                // If it's pure number
+                if (!isNaN(parseFloat(plan))) reviewTarget = parseFloat(plan);
             }
 
-            // Simple Goal logic: Did they memorize enough pages?
-            // Note: We could also include Review pages in a "Review Goal", but user asked for "Daily Goal" in context of Hifz usually.
-            // Let's assume hifzGoal first. 
-            // If user meant "Total Pages (Hifz + Review)" we can adjust. 
-            // For now: Goal Achieved if Hifz Pages >= Target Pages.
-            const isGoalAchieved = pagesDone >= targetPages;
+            // 3. Calculate Actuals
+            let hifzDone = 0;
+            if (!isKhatim && hifzToPage && hifzFromPage) {
+                hifzDone = (parseInt(hifzToPage) - parseInt(hifzFromPage)) + 1;
+            }
+
+            // Review Done (pagesCount is strict, but sometimes it's calculated from Ayahs. 
+            // In Murajaah, pagesCount is usually (toPage - fromPage + 1). 
+            // We use the `pagesCount` variable which comes from state (auto calculated or manual override needed?)
+            // Actually, `pagesCount` state is set by `calculatePages`. Check if that covers Murajaah only or total?
+            // In this component, `pagesCount` seems to be Total Pages? No.
+            // Let's re-verify `calculatePages`.
+            // Wait, `pagesCount` in state effectively stores the calculated result. 
+            // Is it Hifz + Review? 
+            // Looking at `handleSaveSession`, we pass `pagesCount`.
+            // Usually `pagesCount` is the Total Recitation. 
+            // We need separate Review Pages count to compare against Review Target.
+
+            // Re-calculate Review Pages explicitly:
+            let reviewDone = 0;
+            if (mFromSurah && mToSurah) {
+                // We need to know pages of Review. 
+                // Since we don't have direct page inputs for Review (only Surah/Ayah), 
+                // we rely on the helper `calculatePages` which sets `pagesCount`.
+                // `pagesCount` likely includes Hifz if `calculatePages` considers it?
+                // Let's assume `pagesCount` = Total Pages.
+                // So ReviewDone = TotalPages - HifzDone.
+                reviewDone = parseFloat(pagesCount) - hifzDone;
+                if (reviewDone < 0) reviewDone = 0;
+            }
+
+            // 4. Compare
+            // Goal Achieved if:
+            // (HifzDone >= HifzTarget) AND (ReviewDone >= ReviewTarget)
+            // Note: If Target is 0, we assume it's "met" (not required).
+            const hifzMet = hifzTarget > 0 ? hifzDone >= hifzTarget : true;
+            const reviewMet = reviewTarget > 0 ? reviewDone >= reviewTarget : true;
+
+            const isGoalAchieved = hifzMet && reviewMet;
 
             const response = await fetch('/api/sessions', {
                 method: 'POST',
