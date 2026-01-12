@@ -19,4 +19,4 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 - UI responsiveness for mobile devices.
 - Prisma Schema compatibility with Vercel.
-- Improved "Khatim" student display (Hidden new memorization, detailed review logs).
+- Improved "Khatim" student display (Hidden new memorization, detailed review logs with Ayah numbers).

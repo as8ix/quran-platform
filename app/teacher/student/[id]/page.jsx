@@ -810,7 +810,7 @@ export default function StudentDetailsPage() {
                                                 <div className="text-xs font-black text-indigo-500 mb-1 uppercase tracking-tighter">المراجعة</div>
                                                 <div className="text-sm font-medium text-slate-600 leading-relaxed">
                                                     <div className="mb-1 text-slate-800 font-bold">
-                                                        من سورة {session.murajaahFromSurah} إلى سورة {session.murajaahToSurah}
+                                                        من سورة {session.murajaahFromSurah} <span className="text-xs text-slate-500 font-normal">(آية {session.murajaahFromAyah})</span> إلى سورة {session.murajaahToSurah} <span className="text-xs text-slate-500 font-normal">(آية {session.murajaahToAyah})</span>
                                                     </div>
                                                     <div className="text-xs text-slate-400 font-bold">
                                                         {session.resultString}
