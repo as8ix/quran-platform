@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { storage } from '../lib/firebase';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { toast } from 'react-hot-toast';
 
 export default function SendNotification({ senderRole, senderId, students = [], teachers = [] }) {
@@ -39,6 +39,13 @@ export default function SendNotification({ senderRole, senderId, students = [], 
         const file = e.target.files[0];
         if (!file) return;
 
+        // Block video files
+        if (file.type.startsWith('video/')) {
+            toast.error('عذراً، لا يُسمح برفع ملفات الفيديو');
+            e.target.value = ''; // Reset input
+            return;
+        }
+
         setUploading(true);
         try {
             const fileRef = ref(storage, `notifications/${Date.now()}_${file.name}`);
@@ -57,6 +64,25 @@ export default function SendNotification({ senderRole, senderId, students = [], 
             toast.error(`خطأ في رفع الملف: ${errorCode}`);
         } finally {
             setUploading(false);
+        }
+    };
+
+    const handleFileDelete = async () => {
+        if (!attachmentUrl) return;
+
+        try {
+            // Only try to delete from Firebase if it's a firebase URL
+            if (attachmentUrl.includes('firebasestorage.googleapis.com')) {
+                const fileRef = ref(storage, attachmentUrl);
+                await deleteObject(fileRef);
+            }
+            setAttachmentUrl('');
+            toast.success('تم حذف الملف بنجاح');
+        } catch (error) {
+            console.error("Delete Error:", error);
+            toast.error('حدث خطأ أثناء حذف الملف من التخزين');
+            // Still clear the URL locally if there's an error (e.g. file already deleted)
+            setAttachmentUrl('');
         }
     };
 
@@ -225,13 +251,13 @@ export default function SendNotification({ senderRole, senderId, students = [], 
                                                             {attachmentType === 'IMAGE' ? (
                                                                 <div className="relative group">
                                                                     <img src={attachmentUrl} alt="Preview" className="w-24 h-24 object-cover rounded-lg shadow-md border-2 border-white group-hover:opacity-75 transition" />
-                                                                    <button type="button" onClick={() => setAttachmentUrl('')} className="absolute -top-2 -left-2 bg-red-500 text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px] shadow-sm">✕</button>
+                                                                    <button type="button" onClick={handleFileDelete} className="absolute -top-2 -left-2 bg-red-500 text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px] shadow-sm">✕</button>
                                                                 </div>
                                                             ) : (
                                                                 <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-slate-100 shadow-sm">
                                                                     <span className="text-green-600">✅</span>
                                                                     <span className="text-xs font-bold text-slate-600 truncate max-w-[150px]">تم الرفع بنجاح</span>
-                                                                    <button type="button" onClick={() => setAttachmentUrl('')} className="text-red-500 hover:text-red-700 underline text-[10px] font-bold">حذف</button>
+                                                                    <button type="button" onClick={handleFileDelete} className="text-red-500 hover:text-red-700 underline text-[10px] font-bold">حذف</button>
                                                                 </div>
                                                             )}
                                                             <span className="text-[10px] text-slate-400 font-bold">تم الرفع بنجاح</span>
