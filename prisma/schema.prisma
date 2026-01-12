@@ -22,6 +22,7 @@ model User {
   // Relations
   teacherHalaqas Halaqa[] @relation("TeacherHalaqas")
   assistantHalaqas Halaqa[] @relation("AssistantTeachers")
+  notifications Notification[]
 }
 
 model Halaqa {
@@ -51,6 +52,7 @@ model Student {
   
   attendance   Attendance[]
   sessions     Session[]
+  notifications Notification[]
 }
 
 model Attendance {
@@ -89,4 +91,18 @@ model Session {
   alertsCount      Int @default(0)  // عدد التنبيهات
   cleanPagesCount  Int @default(0)  // الصفحات النقية
   isGoalAchieved   Boolean @default(false) // هل حقق الهدف اليومي؟
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  message   String
+  type      String   @default("INFO") // INFO, SUCCESS, WARNING, ERROR
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  
+  userId    Int?
+  user      User?    @relation(fields: [userId], references: [id])
+  
+  studentId Int?
+  student   Student? @relation(fields: [studentId], references: [id])
 }
