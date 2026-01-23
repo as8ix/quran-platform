@@ -13,7 +13,7 @@ export default function QuranicDaysDashboard() {
     const [isFullscreen, setIsFullscreen] = useState(false);
 
     useEffect(() => {
-        const storedUser = localStorage.getItem('user');
+        const storedUser = sessionStorage.getItem('user');
         if (storedUser) setUser(JSON.parse(storedUser));
         fetchStats();
 

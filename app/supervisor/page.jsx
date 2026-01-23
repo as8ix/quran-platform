@@ -48,7 +48,7 @@ export default function SupervisorDashboard() {
     const [deletingId, setDeletingId] = useState(null); // ID of item being deleted (teacher or halaqa)
 
     useEffect(() => {
-        const storedUser = localStorage.getItem('user');
+        const storedUser = sessionStorage.getItem('user');
         if (storedUser) {
             setUser(JSON.parse(storedUser));
         }

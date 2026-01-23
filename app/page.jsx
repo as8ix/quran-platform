@@ -13,7 +13,7 @@ export default function Home() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const storedUser = localStorage.getItem('user');
+      const storedUser = sessionStorage.getItem('user');
       if (storedUser) {
         const user = JSON.parse(storedUser);
         router.push(`/${user.role.toLowerCase()}`);
@@ -60,7 +60,7 @@ export default function Home() {
       if (res.ok) {
         showNotification('✓ تم تسجيل الدخول بنجاح', 'success');
         // Store user info in localStorage for simple session management
-        localStorage.setItem('user', JSON.stringify(data));
+        sessionStorage.setItem('user', JSON.stringify(data));
 
         setTimeout(() => {
           router.push(`/${selectedRole}`);

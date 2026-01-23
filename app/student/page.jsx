@@ -12,7 +12,7 @@ export default function StudentDashboard() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const storedUser = localStorage.getItem('user');
+        const storedUser = sessionStorage.getItem('user');
         if (!storedUser) {
             router.push('/');
             return;
@@ -66,7 +66,22 @@ export default function StudentDashboard() {
         </div>
     );
 
-    if (!student) return <div className="min-h-screen flex items-center justify-center font-bold text-red-500">حدث خطأ في تحميل البيانات</div>;
+    if (!student) {
+        const handleLogout = () => {
+            // Clear session storage and redirect to login/home
+            sessionStorage.removeItem('user');
+            router.push('/');
+        };
+        return (
+            <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50">
+                <div className="w-12 h-12 border-4 border-red-500 border-t-red-600 rounded-full animate-spin"></div>
+                <p className="mt-4 text-red-500 font-bold">حدث خطأ في تحميل البيانات</p>
+                <button onClick={handleLogout} className="mt-4 px-4 py-2 bg-red-600 text-white rounded">
+                    تسجيل الخروج
+                </button>
+            </div>
+        );
+    }
 
     const isKhatim = student.juzCount === 30;
 

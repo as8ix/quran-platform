@@ -16,7 +16,7 @@ export default function Navbar({ userType, userName, onLogout }) {
     const lastNotificationsRef = useRef([]);
 
     useEffect(() => {
-        const storedUser = localStorage.getItem('user');
+        const storedUser = sessionStorage.getItem('user');
         if (storedUser) {
             const user = JSON.parse(storedUser);
 
@@ -151,7 +151,7 @@ export default function Navbar({ userType, userName, onLogout }) {
                             <span className="font-semibold text-gray-700 hidden md:block">{userName}</span>
                             <button
                                 onClick={() => {
-                                    localStorage.removeItem('user');
+                                    sessionStorage.removeItem('user');
                                     if (onLogout) onLogout();
                                 }}
                                 className="px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5"
