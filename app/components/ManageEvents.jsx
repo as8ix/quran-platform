@@ -377,27 +377,27 @@ export default function ManageEvents({ teachers, students }) {
             {/* Assignment Modal */}
             {showAssignmentModal && selectedEvent && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
-                    <div className="bg-white rounded-[2rem] p-8 w-full max-w-4xl shadow-2xl relative animate-fadeIn flex flex-col max-h-[90vh]">
+                    <div className="bg-white dark:bg-slate-800 rounded-[2rem] p-8 w-full max-w-4xl shadow-2xl relative animate-fadeIn flex flex-col max-h-[90vh]">
                         <div className="flex justify-between items-center mb-6">
                             <div className="flex items-center gap-4">
-                                <h3 className="text-2xl font-black text-slate-800">توزيع الطلاب - {selectedEvent.name}</h3>
+                                <h3 className="text-2xl font-black text-slate-800 dark:text-white">توزيع الطلاب - {selectedEvent.name}</h3>
                                 <button
                                     onClick={handleAutoAssign}
-                                    className="bg-amber-50 text-amber-600 px-3 py-1.5 rounded-xl text-xs font-black border border-amber-200 hover:bg-amber-100 transition-all"
+                                    className="bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 px-3 py-1.5 rounded-xl text-xs font-black border border-amber-200 dark:border-amber-700 hover:bg-amber-100 dark:hover:bg-amber-900/50 transition-all"
                                 >
                                     🪄 إسناد تلقائي حسب الحلقات
                                 </button>
                             </div>
-                            <button onClick={() => setShowAssignmentModal(false)} className="text-slate-400 text-2xl hover:text-slate-600 font-bold">✕</button>
+                            <button onClick={() => setShowAssignmentModal(false)} className="text-slate-400 dark:text-slate-500 text-2xl hover:text-slate-600 dark:hover:text-slate-300 font-bold">✕</button>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 overflow-hidden">
                             {/* Distribution Form */}
                             <div className="space-y-6">
                                 <div>
-                                    <label className="block text-sm font-bold text-slate-600 mb-2">1. اختر المعلم الفاحص</label>
+                                    <label className="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">1. اختر المعلم الفاحص</label>
                                     <select
-                                        className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl outline-none focus:border-indigo-500 font-bold"
+                                        className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900/50 border-2 border-slate-100 dark:border-slate-700 rounded-xl outline-none focus:border-indigo-500 font-bold dark:text-white"
                                         value={assignmentTeacherId}
                                         onChange={(e) => setAssignmentTeacherId(e.target.value)}
                                     >
@@ -409,14 +409,14 @@ export default function ManageEvents({ teachers, students }) {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-bold text-slate-600 mb-2">2. اختر الطلاب للإسناد</label>
-                                    <div className="h-[300px] overflow-y-auto bg-slate-50 border-2 border-slate-100 rounded-xl p-2 custom-scrollbar">
+                                    <label className="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">2. اختر الطلاب للإسناد</label>
+                                    <div className="h-[300px] overflow-y-auto bg-slate-50 dark:bg-slate-900/50 border-2 border-slate-100 dark:border-slate-700 rounded-xl p-2 custom-scrollbar">
                                         {students.map(s => {
                                             const isAssigned = assignments.some(a => a.studentId === s.id);
                                             const assignedTeacher = assignments.find(a => a.studentId === s.id)?.teacher.name;
 
                                             return (
-                                                <label key={s.id} className={`flex items-center justify-between p-3 rounded-lg mb-1 cursor-pointer transition-all ${assignmentStudentIds.includes(s.id) ? 'bg-indigo-100' : 'hover:bg-slate-100'}`}>
+                                                <label key={s.id} className={`flex items-center justify-between p-3 rounded-lg mb-1 cursor-pointer transition-all ${assignmentStudentIds.includes(s.id) ? 'bg-indigo-100 dark:bg-indigo-900/30' : 'hover:bg-slate-100 dark:hover:bg-slate-700'}`}>
                                                     <div className="flex items-center gap-3">
                                                         <input
                                                             type="checkbox"
@@ -432,10 +432,10 @@ export default function ManageEvents({ teachers, students }) {
                                                             }}
                                                             className="w-5 h-5 accent-indigo-600"
                                                         />
-                                                        <span className="font-bold text-slate-700">{s.name}</span>
+                                                        <span className="font-bold text-slate-700 dark:text-slate-200">{s.name}</span>
                                                     </div>
                                                     {isAssigned && (
-                                                        <span className="text-[10px] font-black bg-white px-2 py-0.5 rounded-full border border-indigo-100 text-indigo-500">
+                                                        <span className="text-[10px] font-black bg-white dark:bg-slate-800 px-2 py-0.5 rounded-full border border-indigo-100 dark:border-indigo-800 text-indigo-500 dark:text-indigo-400">
                                                             مع {assignedTeacher}
                                                         </span>
                                                     )}
@@ -448,7 +448,7 @@ export default function ManageEvents({ teachers, students }) {
                                 <button
                                     onClick={handleSaveAssignment}
                                     disabled={submitting}
-                                    className="w-full py-4 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100"
+                                    className="w-full py-4 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 dark:shadow-none"
                                 >
                                     {submitting ? 'جاري الحفظ...' : 'تثبيت التوزيع المستهدف'}
                                 </button>
@@ -456,8 +456,8 @@ export default function ManageEvents({ teachers, students }) {
 
                             {/* Current Distribution List */}
                             <div className="flex flex-col">
-                                <label className="block text-sm font-bold text-slate-600 mb-2">التوزيع الحالي في الدورة</label>
-                                <div className="flex-1 overflow-y-auto bg-white border-2 border-slate-50 rounded-2xl p-4 custom-scrollbar">
+                                <label className="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">التوزيع الحالي في الدورة</label>
+                                <div className="flex-1 overflow-y-auto bg-white dark:bg-slate-900/50 border-2 border-slate-50 dark:border-slate-700 rounded-2xl p-4 custom-scrollbar">
                                     {loadingAssignments ? (
                                         <div className="text-center py-20 text-slate-400 font-bold">جاري التحميل...</div>
                                     ) : assignments.length > 0 ? (
@@ -468,14 +468,14 @@ export default function ManageEvents({ teachers, students }) {
                                                 const teacherAssignments = assignments.filter(a => a.teacherId === tid);
 
                                                 return (
-                                                    <div key={tid} className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                                    <div key={tid} className="p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700">
                                                         <div className="flex justify-between items-center mb-3">
-                                                            <span className="font-black text-indigo-700">{teacherName}</span>
-                                                            <span className="text-xs font-bold bg-white px-2 py-1 rounded-lg border border-slate-200">{teacherAssignments.length} طلاب</span>
+                                                            <span className="font-black text-indigo-700 dark:text-indigo-400">{teacherName}</span>
+                                                            <span className="text-xs font-bold bg-white dark:bg-slate-900 px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-600 dark:text-slate-300">{teacherAssignments.length} طلاب</span>
                                                         </div>
                                                         <div className="flex flex-wrap gap-2">
                                                             {teacherAssignments.map(a => (
-                                                                <div key={a.id} className="flex items-center gap-1 bg-white px-2 py-1 rounded-lg border border-slate-200 text-xs font-bold group">
+                                                                <div key={a.id} className="flex items-center gap-1 bg-white dark:bg-slate-900 px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-600 text-xs font-bold dark:text-slate-300 group">
                                                                     <span>{a.student.name}</span>
                                                                     <button onClick={() => deleteAssignment(a.id)} className="text-red-400 hover:text-red-600 px-1 font-black">×</button>
                                                                 </div>
@@ -486,7 +486,7 @@ export default function ManageEvents({ teachers, students }) {
                                             })}
                                         </div>
                                     ) : (
-                                        <div className="text-center py-20 text-slate-300 font-bold italic">لا توجد توزيعات بعد. ابدأ باختيار معلم وطلاب.</div>
+                                        <div className="text-center py-20 text-slate-300 dark:text-slate-500 font-bold italic">لا توجد توزيعات بعد. ابدأ باختيار معلم وطلاب.</div>
                                     )}
                                 </div>
                             </div>
@@ -497,19 +497,19 @@ export default function ManageEvents({ teachers, students }) {
             {/* Confirmation Modal */}
             {confirmConfig && (
                 <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-[9999] flex items-center justify-center p-4">
-                    <div className="bg-white rounded-[2.5rem] p-8 w-full max-w-sm shadow-2xl animate-popIn border border-slate-100/50">
+                    <div className="bg-white dark:bg-slate-800 rounded-[2.5rem] p-8 w-full max-w-sm shadow-2xl animate-popIn border border-slate-100/50 dark:border-slate-700">
                         <div className="text-center">
-                            <div className="w-20 h-20 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center text-4xl mx-auto mb-6 shadow-inner ring-8 ring-amber-50/50">
+                            <div className="w-20 h-20 bg-amber-50 dark:bg-amber-900/30 text-amber-500 rounded-full flex items-center justify-center text-4xl mx-auto mb-6 shadow-inner ring-8 ring-amber-50/50 dark:ring-amber-900/20">
                                 ⚠️
                             </div>
-                            <h3 className="text-2xl font-black text-slate-800 mb-3">{confirmConfig.title}</h3>
-                            <p className="text-slate-500 font-bold leading-relaxed mb-8">
+                            <h3 className="text-2xl font-black text-slate-800 dark:text-white mb-3">{confirmConfig.title}</h3>
+                            <p className="text-slate-500 dark:text-slate-400 font-bold leading-relaxed mb-8">
                                 {confirmConfig.message}
                             </p>
                             <div className="flex gap-4">
                                 <button
                                     onClick={() => setConfirmConfig(null)}
-                                    className="flex-1 py-4 bg-slate-100 text-slate-500 rounded-2xl font-black hover:bg-slate-200 transition-all active:scale-95"
+                                    className="flex-1 py-4 bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 rounded-2xl font-black hover:bg-slate-200 dark:hover:bg-slate-600 transition-all active:scale-95"
                                 >
                                     إلغاء
                                 </button>
@@ -518,7 +518,7 @@ export default function ManageEvents({ teachers, students }) {
                                         confirmConfig.onConfirm();
                                         setConfirmConfig(null);
                                     }}
-                                    className="flex-1 py-4 bg-amber-600 text-white rounded-2xl font-black shadow-lg shadow-amber-200 hover:bg-amber-700 transition-all active:scale-95 translate-y-[-2px]"
+                                    className="flex-1 py-4 bg-amber-600 text-white rounded-2xl font-black shadow-lg shadow-amber-200 dark:shadow-none hover:bg-amber-700 transition-all active:scale-95 translate-y-[-2px]"
                                 >
                                     تأكيد
                                 </button>
