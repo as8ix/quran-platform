@@ -87,7 +87,8 @@ export default function Navbar({ userType, userName, onLogout }) {
             <div className="max-w-7xl mx-auto px-6 py-4">
                 <div className="flex justify-between items-center">
                     <div className="flex items-center gap-3">
-                        <img src="/mosque-logo.png" alt="شعار الجامع" className="w-10 h-10 object-contain" />
+                        <img src="/mosque-logo.png" alt="شعار الجامع" className="w-10 h-10 object-contain dark:hidden" />
+                        <img src="/mosque-logo-white.png" alt="شعار الجامع" className="w-10 h-10 object-contain hidden dark:block" />
                         <span className="font-amiri text-2xl font-bold text-green-600 dark:text-green-500">
                             {titles[userType] || 'المنصة'}
                         </span>
