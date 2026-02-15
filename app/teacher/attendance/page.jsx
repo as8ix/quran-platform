@@ -150,16 +150,16 @@ export default function AttendancePage() {
     if (loading) return <div className="p-10 text-center">جاري التحميل...</div>;
 
     return (
-        <div className="min-h-screen bg-[#f8fafc] font-noto">
+        <div className="min-h-screen bg-[#f8fafc] dark:bg-slate-950 font-noto transition-colors duration-300">
             <Navbar userType="teacher" userName={teacherName} onLogout={() => router.push('/login')} />
 
             <main className="max-w-4xl mx-auto px-4 py-10">
                 {/* Back Button */}
                 <button
                     onClick={() => router.push('/teacher')}
-                    className="mb-6 flex items-center gap-2 text-slate-500 hover:text-slate-800 font-bold transition-colors group"
+                    className="mb-6 flex items-center gap-2 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-bold transition-colors group"
                 >
-                    <span className="p-2 bg-white rounded-full shadow-sm group-hover:shadow-md transition-all">
+                    <span className="p-2 bg-white dark:bg-slate-800 rounded-full shadow-sm group-hover:shadow-md transition-all border border-slate-100 dark:border-slate-700">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
                         </svg>
@@ -167,42 +167,43 @@ export default function AttendancePage() {
                     عودة للقائمة الرئيسية
                 </button>
 
-                <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
                     <div>
-                        <h1 className="text-4xl font-black text-slate-800 tracking-tight">كشف الحضور والغياب</h1>
-                        <p className="text-slate-500 mt-2">قم بتحديد حالة حضور الطلاب لهذا اليوم</p>
+                        <h1 className="text-3xl md:text-4xl font-black text-slate-800 dark:text-white tracking-tight">كشف الحضور والغياب</h1>
+                        <p className="text-slate-500 dark:text-slate-400 mt-2 text-sm md:text-base">قم بتحديد حالة حضور الطلاب لهذا اليوم</p>
                     </div>
-                    <div className="bg-white p-2 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-3 px-4">
-                        <span className="text-slate-400 font-bold">التاريخ:</span>
+
+                    <div className="w-full md:w-auto bg-white dark:bg-slate-900 p-3 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 flex flex-wrap md:flex-nowrap items-center justify-center gap-3 px-4">
+                        <span className="text-slate-400 font-bold text-sm">التاريخ:</span>
 
                         {/* Hijri Primary */}
-                        <div className="font-black text-emerald-600 text-lg whitespace-nowrap">
+                        <div className="font-black text-emerald-600 dark:text-emerald-400 text-base md:text-lg whitespace-nowrap">
                             {formatHijri(date, 'long')}
                         </div>
 
-                        {/* Divider */}
-                        <div className="h-8 w-[2px] bg-slate-100 mx-1"></div>
+                        {/* Divider - Hidden on very small screens if wrapping occurs often, or kept */}
+                        <div className="hidden md:block h-8 w-[2px] bg-slate-100 dark:bg-slate-700 mx-1"></div>
 
                         {/* Gregorian Secondary */}
                         <input
                             type="date"
                             value={date}
                             onChange={(e) => setDate(e.target.value)}
-                            className="bg-transparent font-bold text-slate-400 text-sm outline-none"
+                            className="bg-transparent font-bold text-slate-400 dark:text-slate-500 text-sm outline-none cursor-pointer"
                         />
                     </div>
 
-                    <div className="flex gap-4">
+                    <div className="flex gap-3 w-full md:w-auto overflow-x-auto pb-2 md:pb-0">
                         <button
                             onClick={() => openReport('week')}
-                            className="px-6 py-2 bg-indigo-50 text-indigo-600 rounded-xl font-bold hover:bg-indigo-100 transition-colors flex items-center gap-2"
+                            className="flex-1 md:flex-none px-4 md:px-6 py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-xl font-bold hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-colors flex items-center justify-center gap-2 whitespace-nowrap"
                         >
                             <span>📄</span>
                             تقرير أسبوعي
                         </button>
                         <button
                             onClick={() => openReport('month')}
-                            className="px-6 py-2 bg-purple-50 text-purple-600 rounded-xl font-bold hover:bg-purple-100 transition-colors flex items-center gap-2"
+                            className="flex-1 md:flex-none px-4 md:px-6 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 rounded-xl font-bold hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors flex items-center justify-center gap-2 whitespace-nowrap"
                         >
                             <span>📊</span>
                             تقرير شهري
