@@ -29,7 +29,7 @@ export default function ThemeProvider({ children }) {
     }, []);
 
     const toggleDarkMode = () => {
-        setIsDarkMode(prev => {
+        setIsDarkMode((prev) => {
             const newMode = !prev;
             if (newMode) {
                 document.documentElement.classList.add('dark');

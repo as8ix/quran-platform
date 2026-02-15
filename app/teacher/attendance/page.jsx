@@ -210,48 +210,44 @@ export default function AttendancePage() {
                     </div>
                 </div>
 
-                <div className="bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/50 overflow-hidden border border-slate-100">
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-right border-collapse">
+                <div className="bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-xl shadow-slate-200/50 dark:shadow-none overflow-hidden border border-slate-100 dark:border-slate-700">
+                    <div className="overflow-x-auto custom-scrollbar p-2">
+                        <table className="w-full text-right border-collapse min-w-[600px]">
                             <thead>
-                                <tr className="bg-slate-50 border-b border-slate-100">
-                                    <th className="px-8 py-6 font-black text-slate-400 text-sm uppercase tracking-wider">اسم الطالب</th>
-                                    <th className="px-8 py-6 font-black text-slate-400 text-sm uppercase tracking-wider text-center">الحالة</th>
+                                <tr className="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-700">
+                                    <th className="px-6 py-6 font-black text-slate-400 text-sm uppercase tracking-wider whitespace-nowrap">اسم الطالب</th>
+                                    <th className="px-6 py-6 font-black text-slate-400 text-sm uppercase tracking-wider text-center whitespace-nowrap">حالة الحضور</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-50">
+                            <tbody className="divide-y divide-slate-50 dark:divide-slate-700/50">
                                 {students.map((student) => (
-                                    <tr key={student.id} className="hover:bg-slate-50/50 transition-colors">
-                                        <td className="px-8 py-6">
-                                            <div className="font-bold text-slate-700 text-lg">{student.name}</div>
-                                            <div className="text-slate-400 text-sm">محفوظات: {student.juzCount} جزء</div>
+                                    <tr key={student.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
+                                        <td className="px-6 py-6">
+                                            <div className="font-bold text-slate-700 dark:text-slate-200 text-lg whitespace-nowrap">{student.name}</div>
+                                            <div className="text-slate-400 text-sm whitespace-nowrap">محفوظات: {student.juzCount} جزء</div>
                                         </td>
-                                        <td className="px-8 py-6">
+                                        <td className="px-6 py-6">
                                             <div className="flex items-center justify-center gap-2">
-                                                <button
-                                                    onClick={() => handleStatusChange(student.id, 'PRESENT')}
-                                                    className={`px-4 py-2 rounded-xl font-bold transition-all ${attendance[student.id] === 'PRESENT' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-200' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'}`}
-                                                >
-                                                    حاضر
-                                                </button>
-                                                <button
-                                                    onClick={() => handleStatusChange(student.id, 'LATE')}
-                                                    className={`px-4 py-2 rounded-xl font-bold transition-all ${attendance[student.id] === 'LATE' ? 'bg-amber-400 text-white shadow-lg shadow-amber-200' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'}`}
-                                                >
-                                                    متأخر
-                                                </button>
-                                                <button
-                                                    onClick={() => handleStatusChange(student.id, 'ABSENT_EXCUSED')}
-                                                    className={`px-4 py-2 rounded-xl font-bold transition-all ${attendance[student.id] === 'ABSENT_EXCUSED' ? 'bg-orange-500 text-white shadow-lg shadow-orange-200' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'}`}
-                                                >
-                                                    بعذر
-                                                </button>
-                                                <button
-                                                    onClick={() => handleStatusChange(student.id, 'ABSENT_UNEXCUSED')}
-                                                    className={`px-4 py-2 rounded-xl font-bold transition-all ${attendance[student.id] === 'ABSENT_UNEXCUSED' ? 'bg-rose-500 text-white shadow-lg shadow-rose-200' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'}`}
-                                                >
-                                                    بدون عذر
-                                                </button>
+                                                {[
+                                                    { id: 'PRESENT', label: 'حاضر', color: 'bg-emerald-500', shadow: 'shadow-emerald-200' },
+                                                    { id: 'LATE', label: 'متأخر', color: 'bg-amber-400', shadow: 'shadow-amber-200' },
+                                                    { id: 'ABSENT_EXCUSED', label: 'بعذر', color: 'bg-orange-500', shadow: 'shadow-orange-200' },
+                                                    { id: 'ABSENT_UNEXCUSED', label: 'غياب', color: 'bg-rose-500', shadow: 'shadow-rose-200' }
+                                                ].map((status) => (
+                                                    <button
+                                                        key={status.id}
+                                                        onClick={() => handleStatusChange(student.id, status.id)}
+                                                        className={`
+                                                            px-3 py-2 rounded-xl font-bold text-sm transition-all whitespace-nowrap
+                                                            ${attendance[student.id] === status.id
+                                                                ? `${status.color} text-white shadow-lg ${status.shadow}`
+                                                                : 'bg-slate-100 dark:bg-slate-700 text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600'
+                                                            }
+                                                        `}
+                                                    >
+                                                        {status.label}
+                                                    </button>
+                                                ))}
                                             </div>
                                         </td>
                                     </tr>
