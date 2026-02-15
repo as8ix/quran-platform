@@ -15,7 +15,7 @@ export default function NotificationDetails() {
     useEffect(() => {
         const storedUser = sessionStorage.getItem('user');
         if (!storedUser) {
-            router.push('/');
+            router.push('/login');
             return;
         }
         setUser(JSON.parse(storedUser));
@@ -80,7 +80,7 @@ export default function NotificationDetails() {
 
     return (
         <div className="min-h-screen bg-slate-50 rtl" dir="rtl">
-            <Navbar userType={user?.role?.toLowerCase() || 'student'} userName={user?.name} onLogout={() => router.push('/')} />
+            <Navbar userType={user?.role?.toLowerCase() || 'student'} userName={user?.name} onLogout={() => router.push('/login')} />
 
             <main className="max-w-2xl mx-auto px-4 md:px-6 py-6 md:py-10">
                 <button

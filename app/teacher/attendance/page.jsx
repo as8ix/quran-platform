@@ -15,7 +15,12 @@ export default function AttendancePage() {
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [user, setUser] = useState(null);
 
-    const teacherName = user ? `أهلًا أستاذ ${user.name} 👋` : 'أهلًا أستاذ 👋';
+    const getFirstName = (fullName) => {
+        if (!fullName) return '';
+        return fullName.trim().split(/\s+/)[0];
+    };
+
+    const teacherName = user ? `أهلًا ${getFirstName(user.name)} 👋` : 'أهلًا 👋';
 
     // Helper: Generate PDF Report
     const openReport = (type) => { // type = 'week' | 'month'
@@ -146,7 +151,7 @@ export default function AttendancePage() {
 
     return (
         <div className="min-h-screen bg-[#f8fafc] font-noto">
-            <Navbar userType="teacher" userName={teacherName} onLogout={() => router.push('/')} />
+            <Navbar userType="teacher" userName={teacherName} onLogout={() => router.push('/login')} />
 
             <main className="max-w-4xl mx-auto px-4 py-10">
                 {/* Back Button */}

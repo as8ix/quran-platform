@@ -1,4 +1,4 @@
-import { prisma } from '@/app/lib/prisma';
+import { prisma } from '../../lib/prisma';
 import { NextResponse } from 'next/server';
 import { quranData } from '@/app/data/quranData';
 
@@ -61,30 +61,50 @@ export async function POST(request) {
             }
         });
 
-        // Update student progress if surah finished
+        /* EXAMS FEATURE DISABLED
+        if (isFinishedSurah) {
+             const student = await prisma.student.findUnique({ where: { id: parseInt(studentId) } });
+            // ... Exam logic commented out ...
+        }
+        */
+
+        // MOVED UPDATE LOGIC OUTSIDE OF COMMENTED EXAM BLOCK
+        console.log("Session created. isFinishedSurah:", isFinishedSurah);
+
         if (isFinishedSurah) {
             const student = await prisma.student.findUnique({ where: { id: parseInt(studentId) } });
             if (student) {
-                let nextSurahId = student.currentHifzSurahId;
-                if (nextSurahId === 1) {
-                    nextSurahId = 114;
-                } else if (nextSurahId > 2) {
-                    nextSurahId -= 1;
-                }
+                // Determine Next Surah
+                let currentSurahId = student.currentHifzSurahId;
 
-                const nextSurah = quranData.find(s => s.id === nextSurahId);
-                if (nextSurah) {
-                    const standardJuz = Math.floor((nextSurah.startPage - 1) / 20) + 1;
-                    const reversedJuz = 31 - standardJuz;
-
+                if (currentSurahId <= 2) {
+                    // Finished Baqarah (2) or Fatiha (1) -> KHATIM
+                    // User requested to show Khatim immediately after Baqarah
                     await prisma.student.update({
                         where: { id: parseInt(studentId) },
                         data: {
-                            currentHifzSurahId: nextSurahId,
-                            hifzProgress: nextSurah.name,
-                            juzCount: reversedJuz
+                            juzCount: 31, // Special flag for Khatim
+                            hifzProgress: "خاتم للقرآن الكريم"
                         }
                     });
+                } else {
+                    // Normal progression (descending order 114 -> 3)
+                    let nextSurahId = currentSurahId - 1;
+
+                    const nextSurah = quranData.find(s => s.id === nextSurahId);
+                    if (nextSurah) {
+                        const standardJuz = Math.floor((nextSurah.startPage - 1) / 20) + 1;
+                        const reversedJuz = 31 - standardJuz;
+
+                        await prisma.student.update({
+                            where: { id: parseInt(studentId) },
+                            data: {
+                                currentHifzSurahId: nextSurahId,
+                                hifzProgress: nextSurah.name,
+                                juzCount: reversedJuz
+                            }
+                        });
+                    }
                 }
             }
         }

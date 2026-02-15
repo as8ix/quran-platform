@@ -13,6 +13,7 @@ export async function GET() {
         id: true,
         name: true,
         username: true,
+        password: true,
         createdAt: true,
         _count: {
           select: {
@@ -74,5 +75,42 @@ export async function DELETE(request) {
   } catch (error) {
     console.error("Delete Teacher Error:", error);
     return NextResponse.json({ error: 'Failed to delete teacher (might be assigned to a Halaqa)' }, { status: 500 });
+  }
+}
+
+export async function PUT(request) {
+  try {
+    const body = await request.json();
+    const { id, name, username, password } = body;
+
+    if (!id) return NextResponse.json({ error: 'ID required' }, { status: 400 });
+
+    // Check if username is taken by another user
+    if (username) {
+      const existingUser = await prisma.user.findFirst({
+        where: {
+          username,
+          NOT: { id: parseInt(id) }
+        }
+      });
+      if (existingUser) {
+        return NextResponse.json({ error: 'Username already exists' }, { status: 400 });
+      }
+    }
+
+    const updateData = {};
+    if (name) updateData.name = name;
+    if (username) updateData.username = username;
+    if (password) updateData.password = password;
+
+    const teacher = await prisma.user.update({
+      where: { id: parseInt(id) },
+      data: updateData
+    });
+
+    return NextResponse.json(teacher);
+  } catch (error) {
+    console.error("Update Teacher Error:", error);
+    return NextResponse.json({ error: 'Failed to update teacher' }, { status: 500 });
   }
 }

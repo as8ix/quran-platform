@@ -49,7 +49,7 @@ export default function JuzModal({ juz, onClose }) {
 
     return (
         <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 dir-rtl"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[9999] dir-rtl"
             onClick={onClose}
         >
             <div

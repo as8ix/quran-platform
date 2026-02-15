@@ -1,8 +1,10 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import { toast } from 'react-hot-toast';
+import { useTheme } from './ThemeProvider';
 
 export default function Navbar({ userType, userName, onLogout }) {
+    const { isDarkMode, toggleDarkMode, mounted } = useTheme();
     const titles = {
         student: 'لوحة الطالب',
         teacher: 'لوحة المعلم',
@@ -81,26 +83,45 @@ export default function Navbar({ userType, userName, onLogout }) {
     };
 
     return (
-        <nav className="bg-white shadow-md sticky top-0 z-50 backdrop-blur-lg bg-opacity-90">
+        <nav className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-lg shadow-md border-b border-slate-100 dark:border-slate-800 sticky top-0 z-50 transition-colors duration-300">
             <div className="max-w-7xl mx-auto px-6 py-4">
                 <div className="flex justify-between items-center">
                     <div className="flex items-center gap-3">
-                        <span className="text-4xl">📖</span>
-                        <span className="font-amiri text-2xl font-bold text-green-600">
+                        <span className="text-4xl animate-pulse-slow">📖</span>
+                        <span className="font-amiri text-2xl font-bold text-green-600 dark:text-green-500">
                             {titles[userType] || 'المنصة'}
                         </span>
                     </div>
 
                     <div className="flex items-center gap-6">
+                        {/* Theme Toggle */}
+                        <button
+                            onClick={toggleDarkMode}
+                            className="p-2.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-amber-400 hover:scale-110 transition-all duration-300 min-w-[40px] flex items-center justify-center"
+                            title={isDarkMode ? 'الوضع الفاتح' : 'الوضع الداكن'}
+                        >
+                            {!mounted ? (
+                                <div className="w-5 h-5 border-2 border-slate-300 dark:border-slate-600 border-t-transparent rounded-full animate-spin"></div>
+                            ) : isDarkMode ? (
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" />
+                                </svg>
+                            ) : (
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.718 9.718 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
+                                </svg>
+                            )}
+                        </button>
+
                         {/* Notifications Bell */}
                         <div className="relative">
                             <button
                                 onClick={() => setShowNotifications(!showNotifications)}
-                                className="relative p-2 text-2xl hover:bg-slate-100 rounded-full transition-colors"
+                                className="relative p-2 text-2xl hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"
                             >
                                 🔔
                                 {unreadCount > 0 && (
-                                    <span className="absolute top-0 right-0 bg-red-500 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full border-2 border-white">
+                                    <span className="absolute top-0 right-0 bg-red-500 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full border-2 border-white dark:border-slate-900">
                                         {unreadCount}
                                     </span>
                                 )}
@@ -108,10 +129,10 @@ export default function Navbar({ userType, userName, onLogout }) {
 
                             {/* Dropdown */}
                             {showNotifications && (
-                                <div className="fixed md:absolute inset-x-4 md:inset-x-auto md:left-0 top-[75px] md:top-full mt-2 md:mt-4 md:w-80 bg-white rounded-2xl shadow-2xl md:shadow-xl border border-slate-100 overflow-hidden z-[100]">
-                                    <div className="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
-                                        <h3 className="font-bold text-slate-700">الإشعارات</h3>
-                                        <span className="text-xs text-slate-500">{unreadCount} غير مقروء</span>
+                                <div className="fixed md:absolute inset-x-4 md:inset-x-auto md:left-0 top-[75px] md:top-full mt-2 md:mt-4 md:w-80 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl md:shadow-xl border border-slate-100 dark:border-slate-700 overflow-hidden z-[100]">
+                                    <div className="p-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 flex justify-between items-center">
+                                        <h3 className="font-bold text-slate-700 dark:text-slate-200">الإشعارات</h3>
+                                        <span className="text-xs text-slate-500 dark:text-slate-400">{unreadCount} غير مقروء</span>
                                     </div>
                                     <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
                                         {notifications.length > 0 ? (
@@ -122,7 +143,7 @@ export default function Navbar({ userType, userName, onLogout }) {
                                                         if (!n.isRead) handleMarkAsRead(n.id);
                                                         window.location.href = `/notifications/${n.id}`;
                                                     }}
-                                                    className={`p-4 border-b border-slate-50 last:border-0 hover:bg-slate-50 transition-colors cursor-pointer ${!n.isRead ? 'bg-emerald-50/50' : ''}`}
+                                                    className={`p-4 border-b border-slate-50 dark:border-slate-700 last:border-0 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors cursor-pointer ${!n.isRead ? 'bg-emerald-50/50 dark:bg-emerald-900/10' : ''}`}
                                                 >
                                                     <div className="flex justify-between items-start mb-1">
                                                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${n.type === 'WARNING' ? 'bg-orange-100 text-orange-600' : n.type === 'PROPOSAL' ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-blue-600'}`}>
@@ -148,7 +169,7 @@ export default function Navbar({ userType, userName, onLogout }) {
                         </div>
 
                         <div className="flex items-center gap-4">
-                            <span className="font-semibold text-gray-700 hidden md:block">{userName}</span>
+                            <span className="font-semibold text-gray-700 dark:text-slate-200 hidden md:block">{userName}</span>
                             <button
                                 onClick={() => {
                                     sessionStorage.removeItem('user');

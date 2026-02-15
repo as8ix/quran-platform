@@ -1,13 +1,13 @@
 export default function Footer() {
     return (
-        <footer className="w-full py-6 text-center text-gray-500 text-sm mt-auto border-t border-gray-100 bg-white/50 backdrop-blur-sm">
+        <footer className="w-full py-6 text-center text-gray-500 dark:text-gray-400 text-sm mt-auto border-t border-gray-100 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm">
             <div className="flex items-center justify-center gap-2">
                 <span>هل تحتاج إلى مساعدة؟</span>
                 <a
                     href="https://wa.me/966509762389"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-1 text-green-600 hover:text-green-700 font-semibold transition-colors"
+                    className="flex items-center gap-1 text-green-600 dark:text-green-500 hover:text-green-700 dark:hover:text-green-400 font-semibold transition-colors"
                 >
                     <span>تواصل معنا عبر واتساب</span>
                     <svg

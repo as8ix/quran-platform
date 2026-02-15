@@ -122,11 +122,11 @@ export default function AddStudentModal({ isOpen, onClose, onAdd, halaqaId, stud
 
     return (
         <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-6 z-[100] animate-in fade-in duration-300"
+            className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-6 z-[9999] animate-in fade-in duration-300"
             onClick={onClose}
         >
             <div
-                className="bg-white rounded-3xl max-w-lg w-full shadow-2xl overflow-hidden border border-white/20 transform animate-in slide-in-from-bottom-4 duration-500"
+                className="bg-white dark:bg-slate-800 rounded-3xl max-w-lg w-full shadow-2xl overflow-hidden border border-white/20 dark:border-slate-700 transform animate-in slide-in-from-bottom-4 duration-500"
                 onClick={(e) => e.stopPropagation()}
             >
                 <div className="bg-gradient-to-r from-emerald-600 to-teal-500 p-8 text-white relative">
@@ -147,13 +147,13 @@ export default function AddStudentModal({ isOpen, onClose, onAdd, halaqaId, stud
                     </div>
                 </div>
 
-                <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
+                <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar bg-white dark:bg-slate-800 transition-colors">
                     <div className="space-y-4">
                         <div>
-                            <label className="block text-sm font-bold text-gray-700 mb-2 mr-1">اسم الطالب الرباعي</label>
+                            <label className="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-2 mr-1">اسم الطالب الرباعي</label>
                             <input
                                 type="text"
-                                className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent focus:border-emerald-500 focus:bg-white rounded-2xl transition-all outline-none text-lg"
+                                className="w-full px-5 py-4 bg-gray-50 dark:bg-slate-900 border-2 border-transparent focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800 rounded-2xl transition-all outline-none text-lg dark:text-white font-bold"
                                 placeholder="مثال: محمد بن خالد العتيبي"
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
@@ -162,22 +162,22 @@ export default function AddStudentModal({ isOpen, onClose, onAdd, halaqaId, stud
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-bold text-gray-700 mb-2 mr-1">اسم المستخدم (للدخول)</label>
+                                <label className="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-2 mr-1">اسم المستخدم (للدخول)</label>
                                 <input
                                     type="text"
                                     dir="ltr"
-                                    className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent focus:border-emerald-500 focus:bg-white rounded-2xl transition-all outline-none text-left"
+                                    className="w-full px-5 py-4 bg-gray-50 dark:bg-slate-900 border-2 border-transparent focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800 rounded-2xl transition-all outline-none text-left dark:text-white font-bold"
                                     placeholder="username"
                                     value={username}
                                     onChange={(e) => setUsername(e.target.value)}
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-bold text-gray-700 mb-2 mr-1">كلمة المرور</label>
+                                <label className="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-2 mr-1">كلمة المرور</label>
                                 <input
                                     type="text"
                                     dir="ltr"
-                                    className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent focus:border-emerald-500 focus:bg-white rounded-2xl transition-all outline-none text-left font-mono"
+                                    className="w-full px-5 py-4 bg-gray-50 dark:bg-slate-900 border-2 border-transparent focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800 rounded-2xl transition-all outline-none text-left font-mono dark:text-white font-bold"
                                     placeholder="password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
@@ -187,35 +187,35 @@ export default function AddStudentModal({ isOpen, onClose, onAdd, halaqaId, stud
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-bold text-gray-700 mb-2 mr-1">وين واصل في الحفظ؟</label>
+                                <label className="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-2 mr-1">وين واصل في الحفظ؟</label>
                                 <select
-                                    className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent focus:border-emerald-500 focus:bg-white rounded-2xl transition-all outline-none appearance-none"
+                                    className="w-full px-5 py-4 bg-gray-50 dark:bg-slate-900 border-2 border-transparent focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800 rounded-2xl transition-all outline-none appearance-none dark:text-white font-bold"
                                     value={hifzProgress}
                                     onChange={(e) => handleSurahChange(e.target.value)}
                                 >
-                                    <option value="">اختر السورة...</option>
+                                    <option value="" className="dark:bg-slate-800">اختر السورة...</option>
                                     {quranData.map(s => (
-                                        <option key={s.id} value={s.name}>{s.name}</option>
+                                        <option key={s.id} value={s.name} className="dark:bg-slate-800">{s.name}</option>
                                     ))}
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-bold text-gray-700 mb-2 mr-1">عدد الأجزاء المحفوظة</label>
+                                <label className="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-2 mr-1">عدد الأجزاء المحفوظة</label>
                                 <input
                                     type="number"
-                                    className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent focus:border-emerald-500 focus:bg-white rounded-2xl transition-all outline-none font-bold text-emerald-600"
+                                    className="w-full px-5 py-4 bg-gray-50 dark:bg-slate-900 border-2 border-transparent focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800 rounded-2xl transition-all outline-none font-bold text-emerald-600 dark:text-emerald-500"
                                     placeholder="0"
                                     value={juzCount}
                                     onChange={(e) => setJuzCount(e.target.value)}
                                 />
-                                <p className="text-[10px] text-gray-400 mt-1 mr-1">يتم احتسابه تلقائياً (يمكنك تعديله)</p>
+                                <p className="text-[10px] text-gray-400 dark:text-slate-500 mt-1 mr-1">يتم احتسابه تلقائياً (يمكنك تعديله)</p>
                             </div>
                         </div>
 
                         <div>
-                            <label className="block text-sm font-bold text-gray-700 mb-2 mr-1">خطة المراجعة</label>
+                            <label className="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-2 mr-1">خطة المراجعة</label>
                             <select
-                                className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent focus:border-emerald-500 focus:bg-white rounded-2xl transition-all outline-none appearance-none mb-2"
+                                className="w-full px-5 py-4 bg-gray-50 dark:bg-slate-900 border-2 border-transparent focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800 rounded-2xl transition-all outline-none appearance-none mb-2 dark:text-white font-bold"
                                 value={['نصف جزء', 'جزء', 'جزئين', 'ثلاث'].includes(reviewPlan) ? reviewPlan : 'custom'}
                                 onChange={(e) => {
                                     if (e.target.value !== 'custom') {
@@ -225,34 +225,34 @@ export default function AddStudentModal({ isOpen, onClose, onAdd, halaqaId, stud
                                     }
                                 }}
                             >
-                                <option value="">اختر خطة المراجعة...</option>
-                                <option value="نصف جزء">نصف جزء</option>
-                                <option value="جزء">جزء</option>
-                                <option value="جزئين">جزئين</option>
-                                <option value="ثلاث">ثلاث أجزاء</option>
-                                <option value="custom">تحديد خاص (صفحات قليلة)</option>
+                                <option value="" className="dark:bg-slate-800">اختر خطة المراجعة...</option>
+                                <option value="نصف جزء" className="dark:bg-slate-800">نصف جزء</option>
+                                <option value="جزء" className="dark:bg-slate-800">جزء</option>
+                                <option value="جزئين" className="dark:bg-slate-800">جزئين</option>
+                                <option value="ثلاث" className="dark:bg-slate-800">ثلاث أجزاء</option>
+                                <option value="custom" className="dark:bg-slate-800">تحديد خاص (صفحات قليلة)</option>
                             </select>
 
                             {/* Show detailed options if Custom (not standard juz) is active */}
                             {!['', 'نصف جزء', 'جزء', 'جزئين', 'ثلاث'].includes(reviewPlan) && (
-                                <div className="animate-in fade-in slide-in-from-top-2 duration-300 mb-4 bg-gray-50 p-4 rounded-2xl border border-gray-100">
-                                    <label className="block text-xs font-bold text-gray-500 mb-2">مقدار المراجعة الخاص:</label>
+                                <div className="animate-in fade-in slide-in-from-top-2 duration-300 mb-4 bg-gray-50 dark:bg-slate-900/50 p-4 rounded-2xl border border-gray-100 dark:border-slate-700">
+                                    <label className="block text-xs font-bold text-gray-500 dark:text-slate-400 mb-2">مقدار المراجعة الخاص:</label>
                                     <select
-                                        className="w-full px-4 py-3 bg-white border border-gray-200 focus:border-emerald-500 rounded-xl outline-none"
+                                        className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 focus:border-emerald-500 rounded-xl outline-none dark:text-white font-bold"
                                         value={reviewPlan}
                                         onChange={(e) => setReviewPlan(e.target.value)}
                                     >
-                                        <option value="نصف صفحة">نصف صفحة</option>
-                                        <option value="صفحة">صفحة واحدة</option>
-                                        <option value="صفحتين">صفحتين</option>
-                                        <option value="custom_num">عدد آخر...</option>
+                                        <option value="نصف صفحة" className="dark:bg-slate-800">نصف صفحة</option>
+                                        <option value="صفحة" className="dark:bg-slate-800">صفحة واحدة</option>
+                                        <option value="صفحتين" className="dark:bg-slate-800">صفحتين</option>
+                                        <option value="custom_num" className="dark:bg-slate-800">عدد آخر...</option>
                                     </select>
 
                                     {/* Free text for really custom review */}
                                     {!['نصف صفحة', 'صفحة', 'صفحتين'].includes(reviewPlan) && (
                                         <input
                                             type="text"
-                                            className="w-full mt-2 px-4 py-3 bg-white border border-gray-200 focus:border-emerald-500 rounded-xl outline-none"
+                                            className="w-full mt-2 px-4 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 focus:border-emerald-500 rounded-xl outline-none dark:text-white"
                                             placeholder="اكتب المقدار (مثلاً: 5 صفحات)..."
                                             value={reviewPlan === 'custom_num' ? '' : reviewPlan}
                                             onChange={(e) => setReviewPlan(e.target.value)}
@@ -263,9 +263,9 @@ export default function AddStudentModal({ isOpen, onClose, onAdd, halaqaId, stud
                         </div>
 
                         <div>
-                            <label className="block text-sm font-bold text-gray-700 mb-2 mr-1">الهدف اليومي (حفظ)</label>
+                            <label className="block text-sm font-bold text-gray-700 dark:text-slate-300 mb-2 mr-1">الهدف اليومي (حفظ)</label>
                             <select
-                                className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent focus:border-emerald-500 focus:bg-white rounded-2xl transition-all outline-none appearance-none mb-2"
+                                className="w-full px-5 py-4 bg-gray-50 dark:bg-slate-900 border-2 border-transparent focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800 rounded-2xl transition-all outline-none appearance-none mb-2 dark:text-white font-bold"
                                 value={hifzPlanType}
                                 onChange={(e) => {
                                     setHifzPlanType(e.target.value);
@@ -274,10 +274,10 @@ export default function AddStudentModal({ isOpen, onClose, onAdd, halaqaId, stud
                                     }
                                 }}
                             >
-                                <option value="0.5">نصف صفحة</option>
-                                <option value="1">صفحة واحدة</option>
-                                <option value="2">صفحتين</option>
-                                <option value="custom">تحديد خاص (عدد صفحات)</option>
+                                <option value="0.5" className="dark:bg-slate-800">نصف صفحة</option>
+                                <option value="1" className="dark:bg-slate-800">صفحة واحدة</option>
+                                <option value="2" className="dark:bg-slate-800">صفحتين</option>
+                                <option value="custom" className="dark:bg-slate-800">تحديد خاص (عدد صفحات)</option>
                             </select>
 
                             {/* Show input only if custom is selected */}
@@ -286,7 +286,7 @@ export default function AddStudentModal({ isOpen, onClose, onAdd, halaqaId, stud
                                     <input
                                         type="number"
                                         step="0.5"
-                                        className="w-full px-5 py-4 bg-white border-2 border-emerald-100 focus:border-emerald-500 rounded-2xl transition-all outline-none text-lg"
+                                        className="w-full px-5 py-4 bg-white dark:bg-slate-800 border-2 border-emerald-100 dark:border-emerald-900/50 focus:border-emerald-500 rounded-2xl transition-all outline-none text-lg dark:text-white"
                                         placeholder="عدد الصفحات..."
                                         value={dailyTargetPages}
                                         onChange={(e) => setDailyTargetPages(e.target.value)}
@@ -294,16 +294,16 @@ export default function AddStudentModal({ isOpen, onClose, onAdd, halaqaId, stud
                                     />
                                 </div>
                             )}
-                            <p className="text-[10px] text-gray-400 mt-1 mr-1">سيتم استخدام (الحفظ + المراجعة) لحساب "إنجاز الهدف" تلقائياً</p>
+                            <p className="text-[10px] text-gray-400 dark:text-slate-500 mt-1 mr-1">سيتم استخدام (الحفظ + المراجعة) لحساب "إنجاز الهدف" تلقائياً</p>
                         </div>
                     </div>
                 </div>
 
-                <div className="p-8 bg-gray-50/50 border-t border-gray-100 flex gap-4">
+                <div className="p-8 bg-gray-50/50 dark:bg-slate-900/50 border-t border-gray-100 dark:border-slate-700 flex gap-4">
                     <button
                         onClick={onClose}
                         disabled={loading}
-                        className="flex-1 px-6 py-4 bg-white text-gray-600 rounded-2xl font-bold hover:bg-gray-100 border-2 border-gray-200 transition-all disabled:opacity-50"
+                        className="flex-1 px-6 py-4 bg-white dark:bg-slate-800 text-gray-600 dark:text-slate-400 rounded-2xl font-bold hover:bg-gray-100 dark:hover:bg-slate-700 border-2 border-gray-200 dark:border-slate-700 transition-all disabled:opacity-50"
                     >
                         إلغاء
                     </button>

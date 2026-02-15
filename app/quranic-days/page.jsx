@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Navbar from '../components/Navbar';
+import { useTheme } from '../components/ThemeProvider';
+import { toast } from 'react-hot-toast';
 
 export default function QuranicDaysDashboard() {
     const router = useRouter();
@@ -101,21 +103,23 @@ export default function QuranicDaysDashboard() {
         document.body.removeChild(link);
     };
 
-    if (loading) return (
-        <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+    const { isDarkMode, mounted } = useTheme();
+
+    if (!mounted || loading) return (
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
             <div className="flex flex-col items-center gap-4">
                 <div className="w-16 h-16 border-4 border-amber-600 border-t-transparent rounded-full animate-spin"></div>
-                <div className="text-amber-900 font-black animate-pulse">جاري تجهيز الإحصائيات...</div>
+                <div className="text-amber-600 font-black animate-pulse">جاري تجهيز الإحصائيات...</div>
             </div>
         </div>
     );
 
     if (error) return (
-        <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-            <div className="bg-white p-8 rounded-[2.5rem] shadow-xl border border-red-100 text-center max-w-md">
+        <div className="min-h-screen bg-[var(--bg-main)] flex items-center justify-center p-4">
+            <div className="bg-white dark:bg-slate-800 p-8 rounded-[2.5rem] shadow-xl border border-red-100 dark:border-red-900/30 text-center max-w-md">
                 <div className="text-5xl mb-4">⚠️</div>
-                <h2 className="text-2xl font-black text-slate-800 mb-2">{error}</h2>
-                <p className="text-slate-500 mb-6 font-bold">يرجى التأكد من وجود دورة "أيام قرآنية" نشطة حالياً وتسجيل بعض الجلسات فيها.</p>
+                <h2 className="text-2xl font-black text-slate-800 dark:text-white mb-2">{error}</h2>
+                <p className="text-slate-500 dark:text-slate-400 mb-6 font-bold">يرجى التأكد من وجود دورة "أيام قرآنية" نشطة حالياً وتسجيل بعض الجلسات فيها.</p>
                 <button
                     onClick={() => router.push(user?.role === 'SUPERVISOR' ? '/supervisor' : '/teacher')}
                     className="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-black transition-all"
@@ -127,7 +131,7 @@ export default function QuranicDaysDashboard() {
     );
 
     return (
-        <div className={`min-h-screen ${isFullscreen ? 'h-screen overflow-hidden bg-slate-900 shadow-[inset_0_0_100px_rgba(0,0,0,0.5)]' : 'bg-[#FDFCFB]'} font-noto rtl transition-all duration-700`} dir="rtl">
+        <div className={`min-h-screen ${isFullscreen ? 'h-screen overflow-hidden bg-slate-900 shadow-[inset_0_0_100px_rgba(0,0,0,0.5)]' : 'bg-[#FDFCFB] dark:bg-slate-950'} text-slate-900 dark:text-white font-noto rtl transition-all duration-700`} dir="rtl">
             {!isFullscreen && (
                 <Navbar
                     userType={user?.role?.toLowerCase() || 'teacher'}
@@ -140,10 +144,10 @@ export default function QuranicDaysDashboard() {
                 {!isFullscreen && (
                     <button
                         onClick={() => router.push(user?.role === 'SUPERVISOR' ? '/supervisor' : '/teacher')}
-                        className="mb-8 flex items-center gap-4 text-slate-500 hover:text-slate-800 font-bold transition-colors group"
+                        className="mb-8 flex items-center gap-4 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white font-bold transition-colors group"
                     >
-                        <span className="w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center group-hover:shadow-xl transition-all border border-slate-50">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="#475569" className="w-6 h-6">
+                        <span className="w-12 h-12 bg-white dark:bg-slate-800 rounded-full shadow-lg flex items-center justify-center group-hover:shadow-xl transition-all border border-slate-50 dark:border-slate-700">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-6 h-6">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
                             </svg>
                         </span>
@@ -158,8 +162,8 @@ export default function QuranicDaysDashboard() {
                             🏆
                         </div>
                         <div>
-                            <h1 className={`${isFullscreen ? 'text-2xl' : 'text-4xl md:text-5xl'} font-black ${isFullscreen ? 'text-white' : 'text-slate-900'} tracking-tight`}>
-                                إحصائيات: <span className="text-amber-600">{stats.eventName}</span>
+                            <h1 className={`${isFullscreen ? 'text-2xl' : 'text-4xl md:text-5xl'} font-black ${isFullscreen ? 'text-white' : 'text-slate-900 dark:text-white'} tracking-tight`}>
+                                إحصائيات: <span className="text-amber-600 dark:text-amber-500">{stats.eventName}</span>
                             </h1>
                             <p className="text-slate-400 font-bold flex items-center gap-2">
                                 <span className={`w-2 h-2 bg-emerald-500 rounded-full animate-ping ${isFullscreen ? 'inline-block' : ''}`}></span>
@@ -171,14 +175,14 @@ export default function QuranicDaysDashboard() {
                     <div className="flex gap-4">
                         <button
                             onClick={toggleFullscreen}
-                            className={`${isFullscreen ? 'bg-slate-800/80 text-white px-4 py-2 text-xs' : 'bg-white text-slate-700 px-6 py-4'} rounded-2xl font-bold border-2 ${isFullscreen ? 'border-slate-700' : 'border-slate-100'} hover:border-amber-500 transition-all flex items-center gap-2 shadow-sm`}
+                            className={`${isFullscreen ? 'bg-slate-800/80 text-white px-4 py-2 text-xs' : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-6 py-4'} rounded-2xl font-bold border-2 ${isFullscreen ? 'border-slate-700' : 'border-slate-100 dark:border-slate-700'} hover:border-amber-500 transition-all flex items-center gap-2 shadow-sm`}
                         >
                             <span>{isFullscreen ? '📺 خروج' : '📺 وضع العرض (Full Screen)'}</span>
                         </button>
                         {!isFullscreen && (
                             <button
                                 onClick={exportToCSV}
-                                className="bg-white text-slate-700 px-6 py-4 rounded-2xl font-bold border-2 border-slate-100 hover:border-amber-500 transition-all flex items-center gap-2 shadow-sm"
+                                className="bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-6 py-4 rounded-2xl font-bold border-2 border-slate-100 dark:border-slate-700 hover:border-amber-500 transition-all flex items-center gap-2 shadow-sm"
                             >
                                 <span>📊</span> تصدير البيانات للـ Excel
                             </button>
@@ -214,10 +218,10 @@ export default function QuranicDaysDashboard() {
                 {/* Middle Row: Achievements & Charts */}
                 <div className={`grid grid-cols-1 lg:grid-cols-3 gap-8 ${isFullscreen ? 'mb-2 h-[35%]' : 'mb-12'}`}>
                     {/* Achievements Box */}
-                    <div className={`${isFullscreen ? 'rounded-[1.5rem] p-6' : 'rounded-[3rem] p-10'} bg-white shadow-xl shadow-slate-200/50 border border-slate-50 flex flex-col justify-center overflow-hidden relative group`}>
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-amber-50 rounded-full -translate-x-10 -translate-y-10 opacity-50 group-hover:scale-150 transition-all duration-700"></div>
+                    <div className={`${isFullscreen ? 'rounded-[1.5rem] p-6' : 'rounded-[3rem] p-10'} bg-white dark:bg-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-50 dark:border-slate-700 flex flex-col justify-center overflow-hidden relative group transition-colors`}>
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-amber-50 dark:bg-amber-900/10 rounded-full -translate-x-10 -translate-y-10 opacity-50 group-hover:scale-150 transition-all duration-700"></div>
 
-                        <h3 className={`${isFullscreen ? 'text-lg mb-4' : 'text-2xl mb-8'} font-black text-slate-800 relative z-10 flex items-center gap-3`}>
+                        <h3 className={`${isFullscreen ? 'text-lg mb-4' : 'text-2xl mb-8'} font-black text-slate-800 dark:text-white relative z-10 flex items-center gap-3`}>
                             🎯 المنجزات
                         </h3>
 
@@ -296,13 +300,13 @@ export default function QuranicDaysDashboard() {
 
 function StatCard({ label, value, icon, color, isFullscreen }) {
     return (
-        <div className={`${isFullscreen ? 'p-6 rounded-[1.5rem]' : 'p-8 rounded-[2.5rem]'} bg-white shadow-xl shadow-slate-100/80 border border-slate-50 flex items-center justify-between group hover:scale-[1.02] transition-all duration-300`}>
-            <div className={`${isFullscreen ? 'w-12 h-12 text-2xl rounded-xl' : 'w-16 h-16 text-3xl rounded-[1.5rem]'} ${color} text-white flex items-center justify-center shadow-lg ring-4 ring-slate-50`}>
+        <div className={`${isFullscreen ? 'p-6 rounded-[1.5rem]' : 'p-8 rounded-[2.5rem]'} bg-white dark:bg-slate-800 shadow-xl shadow-slate-100/80 dark:shadow-none border border-slate-50 dark:border-slate-700 flex items-center justify-between group hover:scale-[1.02] transition-all duration-300`}>
+            <div className={`${isFullscreen ? 'w-12 h-12 text-2xl rounded-xl' : 'w-16 h-16 text-3xl rounded-[1.5rem]'} ${color} text-white flex items-center justify-center shadow-lg ring-4 ring-slate-50 dark:ring-slate-700`}>
                 {icon}
             </div>
             <div className="text-left">
-                <span className={`${isFullscreen ? 'text-xs' : 'text-sm'} block font-black text-slate-400 mb-1 uppercase tracking-widest`}>{label}</span>
-                <span className={`${isFullscreen ? 'text-3xl' : 'text-4xl'} font-black text-slate-800 tabular-nums`}>
+                <span className={`${isFullscreen ? 'text-xs' : 'text-sm'} block font-black text-slate-400 dark:text-slate-500 mb-1 uppercase tracking-widest`}>{label}</span>
+                <span className={`${isFullscreen ? 'text-3xl' : 'text-4xl'} font-black text-slate-800 dark:text-white tabular-nums`}>
                     {value}
                 </span>
             </div>
@@ -312,11 +316,11 @@ function StatCard({ label, value, icon, color, isFullscreen }) {
 
 function AchievementItem({ label, value, unit, color, isMain, isFullscreen }) {
     return (
-        <div className={`flex justify-between items-end border-b border-slate-50 ${isFullscreen ? 'pb-3' : 'pb-4'}`}>
-            <span className={`${isFullscreen ? 'text-sm' : 'text-sm'} font-bold text-slate-400`}>{label}</span>
+        <div className={`flex justify-between items-end border-b border-slate-50 dark:border-slate-700 ${isFullscreen ? 'pb-3' : 'pb-4'}`}>
+            <span className={`${isFullscreen ? 'text-sm' : 'text-sm'} font-bold text-slate-400 dark:text-slate-500`}>{label}</span>
             <div className={`flex items-baseline gap-1 ${color}`}>
                 <span className={`${isMain ? (isFullscreen ? 'text-3xl' : 'text-4xl') : (isFullscreen ? 'text-2xl' : 'text-2xl')} font-black tabular-nums`}>{value}</span>
-                <span className="text-xs font-black opacity-60">{unit}</span>
+                <span className="text-[10px] font-black opacity-60 uppercase">{unit}</span>
             </div>
         </div>
     );
@@ -358,31 +362,31 @@ function RadialProgress({ percentage, label, color, isFullscreen }) {
                     <span className={`${isFullscreen ? 'text-2xl' : 'text-2xl'} font-black text-white tabular-nums group-hover:scale-110 transition-transform`}>{percentage}%</span>
                 </div>
             </div>
-            <div className={`${isFullscreen ? 'text-xs' : 'text-sm'} font-black text-slate-400 text-center uppercase tracking-widest`}>{label}</div>
+            <div className={`${isFullscreen ? 'text-xs' : 'text-sm'} font-black text-slate-400 dark:text-slate-500 text-center uppercase tracking-widest`}>{label}</div>
         </div>
     );
 }
 
 function Leaderboard({ title, icon, data, unit, dataKey, colorClass, isFullscreen }) {
     return (
-        <div className={`bg-white ${isFullscreen ? 'p-6 rounded-[2.5rem]' : 'p-10 rounded-[3rem]'} shadow-xl shadow-slate-200/50 border border-slate-50 flex flex-col h-full overflow-hidden`}>
-            <h3 className={`${isFullscreen ? 'text-lg mb-6' : 'text-2xl mb-8'} font-black text-slate-800 flex items-center gap-4`}>
-                <span className={`${isFullscreen ? 'w-10 h-10 text-xl' : 'w-12 h-12 text-xl'} ${colorClass.replace('bg-', 'text-')} bg-slate-50 rounded-2xl flex items-center justify-center`}>{icon}</span>
+        <div className={`bg-white dark:bg-slate-800 ${isFullscreen ? 'p-6 rounded-[2.5rem]' : 'p-10 rounded-[3rem]'} shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-50 dark:border-slate-700 flex flex-col h-full overflow-hidden transition-colors`}>
+            <h3 className={`${isFullscreen ? 'text-lg mb-6' : 'text-2xl mb-8'} font-black text-slate-800 dark:text-white flex items-center gap-4`}>
+                <span className={`${isFullscreen ? 'w-10 h-10 text-xl' : 'w-12 h-12 text-xl'} ${colorClass.replace('bg-', 'text-')} bg-slate-50 dark:bg-slate-900 rounded-2xl flex items-center justify-center shadow-inner`}>{icon}</span>
                 لوحة الشرف: {title}
             </h3>
 
             <div className={`${isFullscreen ? 'space-y-3' : 'space-y-4'} overflow-y-auto pr-2 custom-scrollbar`}>
                 {data.length > 0 ? data.map((item, idx) => (
-                    <div key={idx} className={`flex items-center justify-between ${isFullscreen ? 'p-4' : 'p-5'} bg-slate-50 rounded-[1.8rem] group hover:bg-white hover:shadow-lg transition-all duration-300`}>
+                    <div key={idx} className={`flex items-center justify-between ${isFullscreen ? 'p-4' : 'p-5'} bg-slate-50 dark:bg-slate-900/50 rounded-[1.8rem] group hover:bg-white dark:hover:bg-slate-700 hover:shadow-lg transition-all duration-300 border border-transparent dark:border-slate-800`}>
                         <div className="flex items-center gap-5">
-                            <span className={`${isFullscreen ? 'w-8 h-8 text-sm' : 'w-10 h-10 text-sm'} ${idx === 0 ? 'bg-amber-500' : idx === 1 ? 'bg-slate-400' : idx === 2 ? 'bg-amber-700' : 'bg-slate-200'} text-white rounded-xl flex items-center justify-center font-black shadow-sm`}>
+                            <span className={`${isFullscreen ? 'w-8 h-8 text-sm' : 'w-10 h-10 text-sm'} ${idx === 0 ? 'bg-amber-500' : idx === 1 ? 'bg-slate-400' : idx === 2 ? 'bg-amber-700' : 'bg-slate-200 dark:bg-slate-700'} text-white rounded-xl flex items-center justify-center font-black shadow-sm`}>
                                 {idx + 1}
                             </span>
-                            <span className={`${isFullscreen ? 'text-lg' : 'text-lg'} font-black text-slate-700 group-hover:text-amber-950 truncate max-w-[200px]`}>{item.name}</span>
+                            <span className={`${isFullscreen ? 'text-lg' : 'text-lg'} font-black text-slate-700 dark:text-slate-300 group-hover:text-amber-950 dark:group-hover:text-amber-100 transition-colors truncate max-w-[200px]`}>{item.name}</span>
                         </div>
                         <div className="flex items-baseline gap-1">
-                            <span className={`${isFullscreen ? 'text-2xl' : 'text-xl'} font-black text-slate-800 tabular-nums`}>{item[dataKey]}</span>
-                            <span className="text-xs font-bold text-slate-400">{unit}</span>
+                            <span className={`${isFullscreen ? 'text-2xl' : 'text-xl'} font-black text-slate-800 dark:text-white tabular-nums`}>{item[dataKey]}</span>
+                            <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase">{unit}</span>
                         </div>
                     </div>
                 )) : (

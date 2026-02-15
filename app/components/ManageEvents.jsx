@@ -223,116 +223,118 @@ export default function ManageEvents({ teachers, students }) {
     };
 
     return (
-        <div className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-slate-100 flex flex-col h-full mt-8">
-            <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-black text-slate-800 flex items-center gap-3">
-                    <span className="w-10 h-10 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center text-xl">🏆</span>
-                    إدارة الأيام القرآنية
-                </h2>
-                <button
-                    onClick={() => {
-                        setEditingId(null);
-                        setNewEvent({ name: '', startDate: '', endDate: '', isActive: false, teacherIds: [] });
-                        setShowModal(true);
-                    }}
-                    className="bg-amber-600 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg shadow-amber-100 hover:bg-amber-700 transition-all active:scale-95"
-                >
-                    + دورة جديدة
-                </button>
-            </div>
+        <>
+            <div className="bg-[var(--card-bg)] rounded-[2.5rem] p-8 shadow-sm border border-[var(--border-main)] flex flex-col h-full mt-8 reveal">
+                <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-2xl font-black text-slate-800 dark:text-white flex items-center gap-3">
+                        <span className="w-10 h-10 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-2xl flex items-center justify-center text-xl">🏆</span>
+                        إدارة الأيام القرآنية
+                    </h2>
+                    <button
+                        onClick={() => {
+                            setEditingId(null);
+                            setNewEvent({ name: '', startDate: '', endDate: '', isActive: false, teacherIds: [] });
+                            setShowModal(true);
+                        }}
+                        className="bg-amber-600 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg shadow-amber-100 hover:bg-amber-700 transition-all active:scale-95"
+                    >
+                        + دورة جديدة
+                    </button>
+                </div>
 
-            <div className="space-y-4 max-h-[500px] overflow-y-auto pl-2 custom-scrollbar flex-1">
-                {loading ? (
-                    <div className="text-center py-10 opacity-50">جاري التحميل...</div>
-                ) : events.length > 0 ? events.map((event) => (
-                    <div key={event.id} className={`group p-5 bg-slate-50 rounded-3xl border ${event.isActive ? 'border-amber-200 bg-amber-50/50' : 'border-slate-100'} hover:bg-white hover:shadow-lg transition-all duration-300`}>
-                        <div className="flex justify-between items-center">
-                            <div className="flex items-center gap-4">
-                                <div className={`w-14 h-14 ${event.isActive ? 'bg-amber-100 text-amber-600' : 'bg-white text-slate-400'} border-2 border-transparent rounded-2xl flex items-center justify-center text-2xl font-black shadow-sm`}>
-                                    📅
-                                </div>
-                                <div>
-                                    <div className="font-bold text-lg text-slate-800">{event.name}</div>
-                                    <div className="text-sm text-slate-400 font-bold">
-                                        {new Date(event.startDate).toLocaleDateString('ar-EG')} - {new Date(event.endDate).toLocaleDateString('ar-EG')}
+                <div className="space-y-4 max-h-[500px] overflow-y-auto pl-2 custom-scrollbar flex-1">
+                    {loading ? (
+                        <div className="text-center py-10 opacity-50 dark:text-slate-400">جاري التحميل...</div>
+                    ) : events.length > 0 ? events.map((event) => (
+                        <div key={event.id} className={`group p-5 bg-[var(--bg-main)] rounded-3xl border ${event.isActive ? 'border-amber-200 dark:border-amber-900 bg-amber-50/50 dark:bg-amber-900/20' : 'border-[var(--border-main)]'} hover:bg-[var(--card-bg)] hover:shadow-lg transition-all duration-300`}>
+                            <div className="flex justify-between items-center">
+                                <div className="flex items-center gap-4">
+                                    <div className={`w-14 h-14 ${event.isActive ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400' : 'bg-[var(--card-bg)] text-slate-400'} border-2 border-transparent rounded-2xl flex items-center justify-center text-2xl font-black shadow-sm`}>
+                                        📅
                                     </div>
-                                    <div className="flex gap-1 mt-1">
-                                        {event.teachers?.map(t => (
-                                            <span key={t.id} className="text-[10px] bg-white px-2 py-0.5 rounded-lg border border-slate-100 text-slate-500">{t.name}</span>
-                                        ))}
+                                    <div>
+                                        <div className="font-bold text-lg text-slate-800 dark:text-white">{event.name}</div>
+                                        <div className="text-sm text-slate-400 font-bold">
+                                            {new Date(event.startDate).toLocaleDateString('ar-EG')} - {new Date(event.endDate).toLocaleDateString('ar-EG')}
+                                        </div>
+                                        <div className="flex gap-1 mt-1">
+                                            {event.teachers?.map(t => (
+                                                <span key={t.id} className="text-[10px] bg-[var(--card-bg)] px-2 py-0.5 rounded-lg border border-[var(--border-main)] text-slate-500 dark:text-slate-400">{t.name}</span>
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <button
-                                    onClick={() => toggleActive(event.id, event.isActive)}
-                                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${event.isActive ? 'bg-amber-600 text-white shadow-lg shadow-amber-200' : 'bg-slate-200 text-slate-500 hover:bg-amber-100 hover:text-amber-600'}`}
-                                >
-                                    {event.isActive ? 'نشطة حالياً' : 'تفعيل'}
-                                </button>
-                                <button
-                                    onClick={() => openAssignments(event)}
-                                    className="px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-xl text-xs font-bold hover:bg-indigo-100"
-                                >
-                                    👥 توزيع الطلاب
-                                </button>
-                                <button onClick={() => handleEdit(event)} className="p-2 text-slate-400 hover:text-blue-600 transition-colors">✏️</button>
-                                <button onClick={() => handleDelete(event.id)} className="p-2 text-slate-400 hover:text-red-600 transition-colors">🗑️</button>
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={() => toggleActive(event.id, event.isActive)}
+                                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${event.isActive ? 'bg-amber-600 text-white shadow-lg shadow-amber-200' : 'bg-slate-200 text-slate-500 hover:bg-amber-100 hover:text-amber-600'}`}
+                                    >
+                                        {event.isActive ? 'نشطة حالياً' : 'تفعيل'}
+                                    </button>
+                                    <button
+                                        onClick={() => openAssignments(event)}
+                                        className="px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-xl text-xs font-bold hover:bg-indigo-100"
+                                    >
+                                        👥 توزيع الطلاب
+                                    </button>
+                                    <button onClick={() => handleEdit(event)} className="p-2 text-slate-400 hover:text-blue-600 transition-colors">✏️</button>
+                                    <button onClick={() => handleDelete(event.id)} className="p-2 text-slate-400 hover:text-red-600 transition-colors">🗑️</button>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                )) : (
-                    <div className="text-center py-20 bg-slate-50/50 rounded-3xl border-2 border-dashed border-slate-200">
-                        <div className="text-4xl mb-3 opacity-30">📅</div>
-                        <h3 className="text-slate-400 font-bold">لا يوجد دورات مسجلة</h3>
-                    </div>
-                )}
+                    )) : (
+                        <div className="text-center py-20 bg-slate-50/50 rounded-3xl border-2 border-dashed border-slate-200">
+                            <div className="text-4xl mb-3 opacity-30">📅</div>
+                            <h3 className="text-slate-400 font-bold">لا يوجد دورات مسجلة</h3>
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* Modal */}
             {showModal && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
-                    <div className="bg-white rounded-[2rem] p-8 w-full max-w-md shadow-2xl relative animate-fadeIn">
-                        <h3 className="text-2xl font-black text-slate-800 mb-6">{editingId ? 'تعديل الدورة' : 'إضافة دورة قرآنية'}</h3>
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+                    <div className="bg-white dark:bg-slate-800 rounded-[2rem] p-8 w-full max-w-md shadow-2xl relative animate-fadeIn">
+                        <h3 className="text-2xl font-black text-slate-800 dark:text-white mb-6">{editingId ? 'تعديل الدورة' : 'إضافة دورة قرآنية'}</h3>
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div>
-                                <label className="block text-sm font-bold text-slate-600 mb-2">اسم الدورة</label>
+                                <label className="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">اسم الدورة</label>
                                 <input
                                     type="text"
                                     required
                                     value={newEvent.name}
                                     onChange={e => setNewEvent({ ...newEvent, name: e.target.value })}
-                                    className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-amber-500 outline-none transition-all font-bold"
+                                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900/50 border-2 border-slate-100 dark:border-slate-700 rounded-xl focus:border-amber-500 outline-none transition-all font-bold dark:text-white"
                                     placeholder="مثال: الأيام القرآنية 3"
                                 />
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-bold text-slate-600 mb-2">تاريخ البدء</label>
+                                    <label className="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">تاريخ البدء</label>
                                     <input
                                         type="date"
                                         required
                                         value={newEvent.startDate}
                                         onChange={e => setNewEvent({ ...newEvent, startDate: e.target.value })}
-                                        className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-amber-500 outline-none transition-all font-bold"
+                                        className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900/50 border-2 border-slate-100 dark:border-slate-700 rounded-xl focus:border-amber-500 outline-none transition-all font-bold dark:text-white"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-bold text-slate-600 mb-2">تاريخ الانتهاء</label>
+                                    <label className="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">تاريخ الانتهاء</label>
                                     <input
                                         type="date"
                                         required
                                         value={newEvent.endDate}
                                         onChange={e => setNewEvent({ ...newEvent, endDate: e.target.value })}
-                                        className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-amber-500 outline-none transition-all font-bold"
+                                        className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900/50 border-2 border-slate-100 dark:border-slate-700 rounded-xl focus:border-amber-500 outline-none transition-all font-bold dark:text-white"
                                     />
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-sm font-bold text-slate-600 mb-2">المعلمون المشاركون</label>
-                                <div className="p-3 bg-slate-50 border-2 border-slate-100 rounded-xl max-h-40 overflow-y-auto custom-scrollbar">
+                                <label className="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">المعلمون المشاركون</label>
+                                <div className="p-3 bg-slate-50 dark:bg-slate-900/50 border-2 border-slate-100 dark:border-slate-700 rounded-xl max-h-40 overflow-y-auto custom-scrollbar">
                                     {teachers.map(t => (
-                                        <label key={t.id} className="flex items-center gap-3 p-2 hover:bg-slate-100 rounded-lg cursor-pointer transition-colors">
+                                        <label key={t.id} className="flex items-center gap-3 p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg cursor-pointer transition-colors">
                                             <input
                                                 type="checkbox"
                                                 checked={newEvent.teacherIds.includes(t.id)}
@@ -345,9 +347,9 @@ export default function ManageEvents({ teachers, students }) {
                                                     }
                                                     setNewEvent({ ...newEvent, teacherIds: current });
                                                 }}
-                                                className="w-5 h-5 rounded-md border-2 border-slate-300 text-amber-600 focus:ring-amber-500"
+                                                className="w-5 h-5 rounded-md border-2 border-slate-300 dark:border-slate-600 text-amber-600 focus:ring-amber-500"
                                             />
-                                            <span className="font-bold text-slate-700">{t.name}</span>
+                                            <span className="font-bold text-slate-700 dark:text-slate-300">{t.name}</span>
                                         </label>
                                     ))}
                                 </div>
@@ -357,13 +359,13 @@ export default function ManageEvents({ teachers, students }) {
                                     type="checkbox"
                                     checked={newEvent.isActive}
                                     onChange={e => setNewEvent({ ...newEvent, isActive: e.target.checked })}
-                                    className="w-5 h-5 rounded-md border-2 border-slate-300 text-amber-600 focus:ring-amber-500"
+                                    className="w-5 h-5 rounded-md border-2 border-slate-300 dark:border-slate-600 text-amber-600 focus:ring-amber-500"
                                 />
-                                <span className="font-bold text-slate-700">تفعيل هذه الدورة حالياً</span>
+                                <span className="font-bold text-slate-700 dark:text-slate-300">تفعيل هذه الدورة حالياً</span>
                             </label>
 
                             <div className="flex gap-4 mt-8">
-                                <button type="button" onClick={() => setShowModal(false)} className="flex-1 py-3 text-slate-500 font-bold hover:bg-slate-50 rounded-xl transition-colors">إلغاء</button>
+                                <button type="button" onClick={() => setShowModal(false)} className="flex-1 py-3 text-slate-500 dark:text-slate-400 font-bold hover:bg-slate-50 dark:hover:bg-slate-700 rounded-xl transition-colors">إلغاء</button>
                                 <button type="submit" disabled={submitting} className="flex-1 py-3 bg-amber-600 text-white rounded-xl font-bold hover:bg-amber-700 transition-colors disabled:opacity-50">
                                     {submitting ? 'جاري الحفظ...' : 'حفظ الدورة'}
                                 </button>
@@ -374,7 +376,7 @@ export default function ManageEvents({ teachers, students }) {
             )}
             {/* Assignment Modal */}
             {showAssignmentModal && selectedEvent && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
                     <div className="bg-white rounded-[2rem] p-8 w-full max-w-4xl shadow-2xl relative animate-fadeIn flex flex-col max-h-[90vh]">
                         <div className="flex justify-between items-center mb-6">
                             <div className="flex items-center gap-4">
@@ -494,7 +496,7 @@ export default function ManageEvents({ teachers, students }) {
             )}
             {/* Confirmation Modal */}
             {confirmConfig && (
-                <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+                <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-[9999] flex items-center justify-center p-4">
                     <div className="bg-white rounded-[2.5rem] p-8 w-full max-w-sm shadow-2xl animate-popIn border border-slate-100/50">
                         <div className="text-center">
                             <div className="w-20 h-20 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center text-4xl mx-auto mb-6 shadow-inner ring-8 ring-amber-50/50">
@@ -525,6 +527,6 @@ export default function ManageEvents({ teachers, students }) {
                     </div>
                 </div>
             )}
-        </div>
+        </>
     );
 }

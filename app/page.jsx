@@ -2,178 +2,304 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
-export default function Home() {
+export default function LandingPage() {
   const router = useRouter();
-  const [selectedRole, setSelectedRole] = useState('student');
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [notification, setNotification] = useState(null);
-  const [checkingAuth, setCheckingAuth] = useState(true);
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const storedUser = sessionStorage.getItem('user');
-      if (storedUser) {
-        const user = JSON.parse(storedUser);
-        router.push(`/${user.role.toLowerCase()}`);
-      } else {
-        setCheckingAuth(false);
-      }
-    }
-  }, [router]);
-
-  const roles = [
-    { id: 'student', name: 'طالب', icon: '👨‍🎓', color: 'from-blue-500 to-blue-600' },
-    { id: 'teacher', name: 'معلم', icon: '👨‍🏫', color: 'from-green-500 to-green-600' },
-    { id: 'supervisor', name: 'مشرف عام', icon: '👔', color: 'from-purple-500 to-purple-600' },
-  ];
-
-  const showNotification = (message, type = 'info') => {
-    setNotification({ message, type });
-    setTimeout(() => setNotification(null), 3000);
-  };
-
-  const handleLogin = async (e) => {
-    e.preventDefault();
-
-    if (!username || !password) {
-      showNotification('⚠️ الرجاء إدخال اسم المستخدم وكلمة المرور', 'warning');
-      return;
-    }
-
-    try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username,
-          password,
-          role: selectedRole,
-        }),
+    // Fetch public stats
+    fetch('/api/stats')
+      .then(res => res.json())
+      .then(data => {
+        setStats(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Error fetching stats:', err);
+        setLoading(false);
       });
 
-      const data = await res.json();
+    // Scroll reveal observer
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('active');
+        }
+      });
+    }, { threshold: 0.1 });
 
-      if (res.ok) {
-        showNotification('✓ تم تسجيل الدخول بنجاح', 'success');
-        // Store user info in localStorage for simple session management
-        sessionStorage.setItem('user', JSON.stringify(data));
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
-        setTimeout(() => {
-          router.push(`/${selectedRole}`);
-        }, 500);
-      } else {
-        showNotification(`✕ ${data.error}`, 'error');
-      }
-    } catch (error) {
-      showNotification('✕ حدث خطأ أثناء الاتصال بالخادم', 'error');
+    return () => observer.disconnect();
+  }, []);
+
+  const features = [
+    {
+      icon: '📊',
+      title: 'تتبع الحفظ والمراجعة',
+      description: 'سجل يومي شامل لكل طالب يتضمن الحفظ الجديد والمراجعة مع تقييم دقيق من المعلم'
+    },
+    {
+      icon: '👥',
+      title: 'إدارة الحلقات والطلاب',
+      description: 'نظام متكامل لإدارة الحلقات والمعلمين والطلاب بكل سهولة وفعالية'
+    },
+    {
+      icon: '📈',
+      title: 'تقارير وإحصائيات تفصيلية',
+      description: 'رسوم بيانية تفاعلية توضح تقدم الطالب ومستوى الأداء بشكل مرئي'
+    },
+    {
+      icon: '🏆',
+      title: 'الأيام القرآنية والمسابقات',
+      description: 'تنظيم فعاليات ومسابقات قرآنية لتحفيز الطلاب وتشجيعهم على المنافسة الإيجابية'
     }
-  };
-
-  if (checkingAuth) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-emerald-100 border-t-emerald-600 rounded-full animate-spin"></div>
-      </div>
-    );
-  }
+  ];
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
-      {/* Animated Background */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute w-96 h-96 bg-gradient-to-br from-green-400 to-blue-500 rounded-full opacity-20 blur-3xl -top-48 -right-48 animate-float"></div>
-        <div className="absolute w-80 h-80 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full opacity-20 blur-3xl -bottom-40 -left-40 animate-float" style={{ animationDelay: '-3s' }}></div>
-        <div className="absolute w-72 h-72 bg-gradient-to-br from-purple-400 to-pink-500 rounded-full opacity-20 blur-3xl top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-float" style={{ animationDelay: '-6s' }}></div>
-      </div>
-
-      {/* Notification */}
-      {notification && (
-        <div className={`fixed top-6 right-6 px-6 py-4 rounded-xl text-white font-semibold shadow-2xl z-50 animate-slide-in-right ${notification.type === 'success' ? 'bg-gradient-to-r from-green-500 to-green-600' :
-          notification.type === 'error' ? 'bg-gradient-to-r from-red-500 to-red-600' :
-            notification.type === 'warning' ? 'bg-gradient-to-r from-yellow-500 to-orange-500' :
-              'bg-gradient-to-r from-blue-500 to-blue-600'
-          }`}>
-          {notification.message}
+    <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-white transition-colors duration-300">
+      {/* Navbar */}
+      <nav className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg border-b border-slate-200 dark:border-slate-800 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <span className="text-4xl">📖</span>
+            <span className="font-amiri text-2xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+              منصة تحفيظ القرآن الكريم
+            </span>
+          </div>
+          <Link
+            href="/login"
+            className="px-6 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl font-bold hover:shadow-lg hover:shadow-emerald-200 dark:hover:shadow-none transition-all duration-300 transform hover:-translate-y-0.5"
+          >
+            تسجيل الدخول
+          </Link>
         </div>
-      )}
+      </nav>
 
-      {/* Login Card */}
-      <div className="relative z-10 flex items-center justify-center min-h-screen p-6">
-        <div className="w-full max-w-md">
-          <div className="card-premium p-8">
-            {/* Logo Section */}
-            <div className="text-center mb-8">
-              <div className="text-7xl mb-4 inline-block animate-bounce">📖</div>
-              <h1 className="font-amiri text-4xl font-bold bg-gradient-to-r from-green-600 via-green-700 to-green-800 bg-clip-text text-transparent mb-2">
-                منصة تحفيظ القرآن الكريم
-              </h1>
-              <p className="text-gray-600">نحو حفظ متقن وإنجاز مستمر</p>
-            </div>
+      {/* Hero Section */}
+      <section className="relative overflow-hidden py-20 md:py-32 reveal">
+        {/* Background Decorations */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute w-96 h-96 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-full opacity-10 dark:opacity-5 blur-3xl -top-48 -right-48 animate-float"></div>
+          <div className="absolute w-80 h-80 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-full opacity-10 dark:opacity-5 blur-3xl -bottom-40 -left-40 animate-float" style={{ animationDelay: '-3s' }}></div>
+        </div>
 
-            {/* Role Selector */}
-            <div className="grid grid-cols-3 gap-3 mb-6">
-              {roles.map((role) => (
-                <button
-                  key={role.id}
-                  onClick={() => setSelectedRole(role.id)}
-                  className={`p-4 rounded-xl border-2 transition-all duration-300 ${selectedRole === role.id
-                    ? `bg-gradient-to-br ${role.color} border-transparent text-white shadow-lg transform scale-105`
-                    : 'border-gray-200 hover:border-gray-300 hover:shadow-md'
-                    }`}
-                >
-                  <div className="text-3xl mb-2">{role.icon}</div>
-                  <div className="text-sm font-semibold">{role.name}</div>
-                </button>
-              ))}
-            </div>
+        <div className="max-w-7xl mx-auto px-6 text-center relative z-10">
+          <div className="inline-block mb-6 px-6 py-2 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-full text-sm font-bold">
+            منصتكم المتكاملة لحفظ كتاب الله
+          </div>
 
-            {/* Login Form */}
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  اسم المستخدم
-                </label>
-                <input
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="input-field"
-                  placeholder="أدخل اسم المستخدم"
-                />
-              </div>
+          <h1 className="font-amiri text-5xl md:text-7xl font-black text-slate-800 dark:text-white mb-6 leading-tight">
+            نحو حفظ متقن
+            <br />
+            <span className="bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 bg-clip-text text-transparent">
+              وإنجاز مستمر
+            </span>
+          </h1>
 
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  كلمة المرور
-                </label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="input-field"
-                  placeholder="أدخل كلمة المرور"
-                />
-              </div>
+          <p className="text-xl md:text-2xl text-slate-600 dark:text-slate-400 mb-10 max-w-3xl mx-auto leading-relaxed">
+            منصة شاملة لإدارة حلقات تحفيظ القرآن الكريم مع أدوات متقدمة لتتبع التقدم والإحصائيات
+          </p>
 
-              <button
-                type="submit"
-                className="w-full btn-primary flex items-center justify-center gap-2"
-              >
-                <span>تسجيل الدخول</span>
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-            </form>
-
-
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <Link
+              href="/login"
+              className="px-8 py-4 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-2xl font-bold text-lg hover:shadow-2xl hover:shadow-emerald-200 dark:hover:shadow-none transition-all duration-300 transform hover:-translate-y-1 flex items-center gap-2"
+            >
+              <span>ابدأ الآن</span>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </Link>
           </div>
         </div>
-      </div>
+      </section>
+
+      {/* Stats Section */}
+      <section className="py-16 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm reveal">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {loading ? (
+              // Loading skeleton
+              Array(4).fill(0).map((_, i) => (
+                <div key={i} className="bg-white dark:bg-slate-800 rounded-3xl p-8 text-center shadow-lg border border-slate-100 dark:border-slate-700 animate-pulse">
+                  <div className="h-12 bg-slate-200 dark:bg-slate-700 rounded-xl mb-4"></div>
+                  <div className="h-6 bg-slate-200 dark:bg-slate-700 rounded-lg"></div>
+                </div>
+              ))
+            ) : (
+              <>
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-3xl p-8 text-center shadow-lg border border-blue-200 dark:border-blue-900/30 hover:shadow-2xl hover:shadow-blue-100 dark:hover:shadow-none transition-all duration-300 transform hover:-translate-y-1">
+                  <div className="text-5xl font-black text-blue-600 dark:text-blue-400 mb-2">{stats?.studentsCount || 0}</div>
+                  <div className="text-blue-700 dark:text-blue-300 font-bold">طالب</div>
+                </div>
+
+                <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/20 dark:to-emerald-800/20 rounded-3xl p-8 text-center shadow-lg border border-emerald-200 dark:border-emerald-900/30 hover:shadow-2xl hover:shadow-emerald-100 dark:hover:shadow-none transition-all duration-300 transform hover:-translate-y-1">
+                  <div className="text-5xl font-black text-emerald-600 dark:text-emerald-400 mb-2">{stats?.teachersCount || 0}</div>
+                  <div className="text-emerald-700 dark:text-emerald-300 font-bold">معلم</div>
+                </div>
+
+                <div className="bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-800/20 rounded-3xl p-8 text-center shadow-lg border border-amber-200 dark:border-amber-900/30 hover:shadow-2xl hover:shadow-amber-100 dark:hover:shadow-none transition-all duration-300 transform hover:-translate-y-1">
+                  <div className="text-5xl font-black text-amber-600 dark:text-amber-400 mb-2">{stats?.totalJuz || 0}</div>
+                  <div className="text-amber-700 dark:text-amber-300 font-bold">جزء محفوظ</div>
+                </div>
+
+                <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-3xl p-8 text-center shadow-lg border border-purple-200 dark:border-purple-900/30 hover:shadow-2xl hover:shadow-purple-100 dark:hover:shadow-none transition-all duration-300 transform hover:-translate-y-1">
+                  <div className="text-5xl font-black text-purple-600 dark:text-purple-400 mb-2">{stats?.halaqatCount || 0}</div>
+                  <div className="text-purple-700 dark:text-purple-300 font-bold">حلقة نشطة</div>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section className="py-20 reveal">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className="font-amiri text-4xl md:text-5xl font-black text-slate-800 dark:text-white mb-4">
+              كل ما تحتاجه في مكان واحد
+            </h2>
+            <p className="text-xl text-slate-600 dark:text-slate-400">
+              أدوات متكاملة لإدارة وتتبع حفظ القرآن الكريم
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8">
+            {features.map((feature, index) => (
+              <div
+                key={index}
+                className="bg-white dark:bg-slate-800 rounded-3xl p-8 shadow-lg border border-slate-100 dark:border-slate-700 hover:shadow-2xl hover:shadow-emerald-50 dark:hover:shadow-none transition-all duration-300 transform hover:-translate-y-1 group reveal"
+                style={{ transitionDelay: `${index * 150}ms` }}
+              >
+                <div className="text-6xl mb-4 group-hover:scale-110 transition-transform duration-300">
+                  {feature.icon}
+                </div>
+                <h3 className="text-2xl font-black text-slate-800 dark:text-white mb-3">
+                  {feature.title}
+                </h3>
+                <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+                  {feature.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Platform Screenshots Section */}
+      <section className="py-20 bg-slate-50 dark:bg-slate-900/40 reveal">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className="font-amiri text-4xl md:text-5xl font-black text-slate-800 dark:text-white mb-4">
+              من داخل المنصة
+            </h2>
+            <p className="text-xl text-slate-600 dark:text-slate-400">
+              تعرّف على واجهة المنصة وأدواتها المتقدمة
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {/* Student Dashboard Screenshot */}
+            <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-lg border border-slate-100 dark:border-slate-700 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 reveal">
+              <div className="mb-4 rounded-2xl overflow-hidden border-2 border-slate-200 dark:border-slate-700">
+                <img
+                  src="/images/student-dashboard.png"
+                  alt="لوحة الطالب"
+                  className="w-full h-auto"
+                />
+              </div>
+              <h3 className="text-xl font-black text-slate-800 dark:text-white mb-2">لوحة الطالب</h3>
+              <p className="text-slate-600 dark:text-slate-400 text-sm">
+                تتبع تقدمك في الحفظ والمراجعة مع إحصائيات تفصيلية
+              </p>
+            </div>
+
+            {/* Teacher Dashboard Screenshot */}
+            <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-lg border border-slate-100 dark:border-slate-700 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 reveal reveal-delay-1">
+              <div className="mb-4 rounded-2xl overflow-hidden border-2 border-slate-200 dark:border-slate-700">
+                <img
+                  src="/images/teacher-dashboard.png"
+                  alt="لوحة المعلم"
+                  className="w-full h-auto"
+                />
+              </div>
+              <h3 className="text-xl font-black text-slate-800 dark:text-white mb-2">لوحة المعلم</h3>
+              <p className="text-slate-600 dark:text-slate-400 text-sm">
+                إدارة الطلاب ومتابعة تقدمهم بكل سهولة
+              </p>
+            </div>
+
+            {/* Recording Session Screenshot */}
+            <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-lg border border-slate-100 dark:border-slate-700 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 reveal reveal-delay-2">
+              <div className="mb-4 rounded-2xl overflow-hidden border-2 border-slate-200 dark:border-slate-700">
+                <img
+                  src="/images/recording-session.png"
+                  alt="تسجيل التسميع"
+                  className="w-full h-auto"
+                />
+              </div>
+              <h3 className="text-xl font-black text-slate-800 dark:text-white mb-2">تسجيل التسميع</h3>
+              <p className="text-slate-600 dark:text-slate-400 text-sm">
+                نموذج سهل وشامل لتسجيل جلسات الحفظ والمراجعة
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-20 bg-gradient-to-br from-emerald-600 to-teal-600 relative overflow-hidden reveal">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute inset-0" style={{
+            backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)',
+            backgroundSize: '30px 30px'
+          }}></div>
+        </div>
+
+        <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
+          <h2 className="font-amiri text-4xl md:text-5xl font-black text-white mb-6">
+            هل أنت مستعد لبدء رحلتك
+            <br />
+            في حفظ كتاب الله؟
+          </h2>
+          <p className="text-xl text-emerald-50 mb-10">
+            انضم الآن وابدأ في تتبع تقدمك نحو حفظ القرآن الكريم
+          </p>
+          <Link
+            href="/login"
+            className="inline-flex items-center gap-3 px-10 py-5 bg-white text-emerald-600 rounded-2xl font-black text-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
+          >
+            <span>ابدأ الآن</span>
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" />
+            </svg>
+          </Link>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-slate-100 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-12">
+        <div className="max-w-7xl mx-auto px-6 text-center">
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <span className="text-4xl">📖</span>
+            <span className="font-amiri text-2xl font-bold text-slate-800 dark:text-white">
+              منصة تحفيظ القرآن الكريم
+            </span>
+          </div>
+          <p className="text-slate-500 dark:text-slate-400">
+            نحو حفظ متقن وإنجاز مستمر
+          </p>
+          <div className="mt-6 text-sm text-slate-400 dark:text-slate-600">
+            © {new Date().getFullYear()} جميع الحقوق محفوظة
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

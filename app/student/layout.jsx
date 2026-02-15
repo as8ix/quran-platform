@@ -10,13 +10,13 @@ export default function StudentLayout({ children }) {
     useEffect(() => {
         const storedUser = sessionStorage.getItem('user');
         if (!storedUser) {
-            router.push('/');
+            router.push('/login');
             return;
         }
 
         const user = JSON.parse(storedUser);
         if (user.role.toLowerCase() !== 'student') {
-            router.push('/');
+            router.push('/login');
             return;
         }
 

@@ -56,6 +56,7 @@ model Student {
   sessions     Session[]
   notifications Notification[]
   eventAssignments EventAssignment[]
+  exams        Exam[]
 }
 
 model Attendance {
@@ -147,4 +148,19 @@ model Notification {
   // Sender info (Optional)
   senderId       Int?
   senderRole     String?  // SUPERVISOR, TEACHER
+}
+
+model Exam {
+  id          Int      @id @default(autoincrement())
+  studentId   Int
+  student     Student  @relation(fields: [studentId], references: [id])
+  stationId   Int?     // 1 to 11
+  stationName String   // "الفرع الأول: جزء واحد"
+  status      String   // PENDING, SCHEDULED, COMPLETED, CANCELLED
+  examDate    DateTime?
+  examTime    String?  // "بعد صلاة المغرب", etc.
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  grade       Float?   // Optional: result
+  notes       String?
 }
