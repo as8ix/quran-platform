@@ -26,7 +26,7 @@ export default function Footer() {
                 </a>
             </div>
             <div className="mt-1 text-xs opacity-70">
-                © {new Date().getFullYear()} منصة تحفيظ القرآن الكريم. جميع الحقوق محفوظة.
+                © {new Date().getFullYear()} منصة تحفيظ القرآن الكريم | جامع الحديقة بحي السلامة. جميع الحقوق محفوظة.
             </div>
         </footer>
     );

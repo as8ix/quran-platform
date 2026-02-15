@@ -146,11 +146,12 @@ export default function LoginPage() {
                     <div className="bg-white dark:bg-slate-800 rounded-[2.5rem] p-8 shadow-2xl border border-slate-100 dark:border-slate-700 reveal transition-all">
                         {/* Logo Section */}
                         <div className="text-center mb-8">
-                            <div className="text-7xl mb-4 inline-block animate-bounce">📖</div>
-                            <h1 className="font-amiri text-4xl font-bold bg-gradient-to-r from-green-600 via-green-700 to-green-800 dark:from-emerald-500 dark:via-emerald-600 dark:to-emerald-700 bg-clip-text text-transparent mb-2">
+                            <img src="/mosque-logo.png" alt="شعار جامع الحديقة" className="w-24 h-24 mx-auto mb-4 object-contain" />
+                            <h1 className="font-amiri text-3xl font-bold bg-gradient-to-r from-green-600 via-green-700 to-green-800 dark:from-emerald-500 dark:via-emerald-600 dark:to-emerald-700 bg-clip-text text-transparent mb-1">
                                 منصة تحفيظ القرآن الكريم
                             </h1>
-                            <p className="text-slate-500 dark:text-slate-400 font-medium">نحو حفظ متقن وإنجاز مستمر</p>
+                            <p className="text-slate-600 dark:text-slate-300 font-bold text-sm">جامع الحديقة بحي السلامة</p>
+                            <p className="text-slate-400 dark:text-slate-500 text-xs mt-1">نحو حفظ متقن وإنجاز مستمر</p>
                         </div>
 
                         {/* Role Selector */}

@@ -1,16 +1,24 @@
 {
-    "name": "منصة تحفيظ القرآن الكريم",
-    "short_name": "تحفيظ",
-    "description": "منصة رقمية متكاملة لإدارة حلقات تحفيظ القرآن الكريم",
+    "name": "منصة تحفيظ القرآن الكريم | جامع الحديقة بحي السلامة",
+    "short_name": "تحفيظ الحديقة",
+    "description": "المنصة الرقمية لإدارة حلقات تحفيظ القرآن الكريم في جامع الحديقة بحي السلامة",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#f8fafc",
     "theme_color": "#059669",
+    "orientation": "portrait-primary",
+    "lang": "ar",
+    "dir": "rtl",
+    "categories": [
+        "education",
+        "productivity"
+    ],
     "icons": [
         {
-            "src": "/favicon.ico",
-            "sizes": "64x64 32x32 24x24 16x16",
-            "type": "image/x-icon"
+            "src": "/mosque-logo.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
         }
     ]
 }
