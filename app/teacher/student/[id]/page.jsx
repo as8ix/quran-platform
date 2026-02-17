@@ -782,7 +782,7 @@ export default function StudentDetailsPage() {
                             {student?.name?.charAt(0)}
                         </div>
                         <div>
-                            <h1 className="text-4xl font-black text-slate-800 dark:text-white tracking-tight">{getFirstName(student?.name)}</h1>
+                            <h1 className="text-4xl font-black text-slate-800 dark:text-white tracking-tight">{student?.name}</h1>
                             <div className="flex items-center gap-2 mt-2">
                                 {isKhatim ? (
                                     <span className="px-4 py-2 bg-gradient-to-r from-amber-400 to-yellow-400 text-amber-900 rounded-full text-sm font-black shadow-lg shadow-amber-200 flex items-center gap-2">

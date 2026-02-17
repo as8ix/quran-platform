@@ -113,7 +113,7 @@ export default function StudentDashboard() {
 
     return (
         <div className="min-h-screen bg-[#f8fafc] text-slate-900 dark:text-white font-noto rtl transition-colors duration-300" dir="rtl">
-            <Navbar userType="student" userName={`أهلًا ${getFirstName(student.name)} 👋`} onLogout={() => router.push('/login')} />
+            <Navbar userType="student" userName={`أهلًا ${student.name} 👋`} onLogout={() => router.push('/login')} />
 
             <main className="max-w-3xl mx-auto px-4 py-8">
                 {/* Hero Header */}
