@@ -34,7 +34,8 @@ export async function POST(request) {
             hifzSurah, hifzFromPage, hifzToPage, hifzFromAyah, hifzToAyah,
             murajaahFromSurah, murajaahFromAyah, murajaahToSurah, murajaahToAyah,
             pagesCount, resultString, notes, isFinishedSurah,
-            errorsCount, alertsCount, cleanPagesCount, quranicEventId
+            errorsCount, alertsCount, cleanPagesCount, quranicEventId,
+            hifzErrors, hifzAlerts, hifzCleanPages
         } = body;
 
         const session = await prisma.session.create({
@@ -54,6 +55,9 @@ export async function POST(request) {
                 notes,
                 errorsCount: parseInt(errorsCount) || 0,
                 alertsCount: parseInt(alertsCount) || 0,
+                hifzErrors: parseInt(hifzErrors) || 0,
+                hifzAlerts: parseInt(hifzAlerts) || 0,
+                hifzCleanPages: parseInt(hifzCleanPages) || 0,
                 cleanPagesCount: parseInt(cleanPagesCount) || 0,
                 isGoalAchieved: body.isGoalAchieved || false,
                 quranicEventId: quranicEventId ? parseInt(quranicEventId) : null,

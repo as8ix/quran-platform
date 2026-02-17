@@ -90,10 +90,16 @@ model Session {
   resultString String?  // e.g. "جزء و 5 صفحات و 10 آيات"
   notes        String?
   
-  // Quality Metrics
-  errorsCount      Int @default(0)  // عدد الأخطاء
-  alertsCount      Int @default(0)  // عدد التنبيهات
+  // Quality Metrics - General or Murajaah (backward compatible)
+  errorsCount      Int @default(0)  // عدد الأخطاء (أصبح للمراجعة أو الإجمالي)
+  alertsCount      Int @default(0)  // عدد التنبيهات (أصبح للمراجعة أو الإجمالي)
   cleanPagesCount  Int @default(0)  // الصفحات النقية
+  
+  // Quality Metrics - Hifz Specific
+  hifzErrors       Int @default(0)  // أخطاء الحفظ
+  hifzAlerts       Int @default(0)  // تنبيهات الحفظ
+  hifzCleanPages   Int @default(0)  // الصفحات النقية في الحفظ
+  
   isGoalAchieved   Boolean @default(false) // هل حقق الهدف اليومي؟
 
   // Quranic Days Relation

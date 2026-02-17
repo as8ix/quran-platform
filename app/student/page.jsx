@@ -263,7 +263,7 @@ export default function StudentDashboard() {
                                                 سورة {session.hifzSurah}
                                             </div>
                                             <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 font-bold">
-                                                من ص {session.hifzFromPage} إلى {session.hifzToPage}
+                                                {session.hifzFromPage === session.hifzToPage ? `ص ${session.hifzFromPage}` : `من ص ${session.hifzFromPage} إلى ${session.hifzToPage}`}
                                             </div>
                                             {(session.hifzFromAyah || session.hifzToAyah) && (
                                                 <div className="text-[10px] text-emerald-600 dark:text-emerald-500 mt-1 font-medium bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded inline-block">
@@ -283,19 +283,51 @@ export default function StudentDashboard() {
                                     )}
                                 </div>
 
-                                {/* Quality Metrics Box */}
-                                <div className="mb-4 p-4 bg-orange-50/50 dark:bg-orange-900/10 rounded-2xl border border-orange-100 dark:border-orange-900/30">
-                                    <div className="text-[10px] font-black text-orange-600 dark:text-orange-400 mb-2 uppercase tracking-wider opacity-80">مقاييس الجودة</div>
-                                    <div className="flex gap-2 text-[10px] flex-wrap">
-                                        <span className="px-2 py-1 bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-400 rounded-lg font-bold flex items-center gap-1">
-                                            <span>❌</span> {session.errorsCount || 0} خطأ
-                                        </span>
-                                        <span className="px-2 py-1 bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-400 rounded-lg font-bold flex items-center gap-1">
-                                            <span>⚠️</span> {session.alertsCount || 0} تنبيه
-                                        </span>
-                                        <span className="px-2 py-1 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 rounded-lg font-bold flex items-center gap-1">
-                                            <span>✨</span> {session.cleanPagesCount || 0} نقية
-                                        </span>
+                                {/* Quality Metrics Box Breakdown */}
+                                <div className="mb-4 p-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-700">
+                                    <div className="text-[10px] font-black text-slate-400 dark:text-slate-500 mb-2 uppercase tracking-wider opacity-80">مقاييس الجودة</div>
+
+                                    <div className="space-y-4">
+                                        {/* Hifz Metrics */}
+                                        {session.hifzSurah && (
+                                            <div>
+                                                <div className="text-[9px] font-bold text-emerald-600 dark:text-emerald-500 mb-2">إنجاز الحفظ:</div>
+                                                <div className="flex gap-2 text-[10px] flex-wrap">
+                                                    <span className={`px-2 py-0.5 rounded-lg font-bold flex items-center gap-1 ${session.hifzErrors > 0 ? 'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-400' : 'bg-white dark:bg-slate-800 text-slate-400 dark:text-slate-500'}`}>
+                                                        <span>❌</span> {session.hifzErrors || 0} خطأ
+                                                    </span>
+                                                    <span className={`px-2 py-0.5 rounded-lg font-bold flex items-center gap-1 ${session.hifzAlerts > 0 ? 'bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-400' : 'bg-white dark:bg-slate-800 text-slate-400 dark:text-slate-500'}`}>
+                                                        <span>⚠️</span> {session.hifzAlerts || 0} تنبيه
+                                                    </span>
+                                                    <span className={`px-2 py-0.5 rounded-lg font-bold flex items-center gap-1 ${session.hifzCleanPages > 0 ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400' : 'bg-white dark:bg-slate-800 text-slate-400 dark:text-slate-500'}`}>
+                                                        <span>✨</span> {session.hifzCleanPages || 0} نقية
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Divider if both exist */}
+                                        {session.hifzSurah && session.murajaahFromSurah && (
+                                            <div className="h-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
+                                        )}
+
+                                        {/* Murajaah Metrics */}
+                                        {session.murajaahFromSurah && (
+                                            <div>
+                                                <div className="text-[9px] font-bold text-indigo-500 dark:text-indigo-400 mb-2">إنجاز المراجعة:</div>
+                                                <div className="flex gap-2 text-[10px] flex-wrap">
+                                                    <span className={`px-2 py-0.5 rounded-lg font-bold flex items-center gap-1 ${(session.errorsCount - (session.hifzErrors || 0)) > 0 ? 'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-400' : 'bg-white dark:bg-slate-800 text-slate-400 dark:text-slate-500'}`}>
+                                                        <span>❌</span> {(session.errorsCount - (session.hifzErrors || 0)) || 0} خطأ
+                                                    </span>
+                                                    <span className={`px-2 py-0.5 rounded-lg font-bold flex items-center gap-1 ${(session.alertsCount - (session.hifzAlerts || 0)) > 0 ? 'bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-400' : 'bg-white dark:bg-slate-800 text-slate-400 dark:text-slate-500'}`}>
+                                                        <span>⚠️</span> {(session.alertsCount - (session.hifzAlerts || 0)) || 0} تنبيه
+                                                    </span>
+                                                    <span className={`px-2 py-0.5 rounded-lg font-bold flex items-center gap-1 ${(session.cleanPagesCount - (session.hifzCleanPages || 0)) > 0 ? 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300' : 'bg-white dark:bg-slate-800 text-slate-400 dark:text-slate-500'}`}>
+                                                        <span>✨</span> {(session.cleanPagesCount - (session.hifzCleanPages || 0)) || 0} نقية
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 

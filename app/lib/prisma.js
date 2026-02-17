@@ -5,7 +5,7 @@ const globalForPrisma = global;
 export const prisma =
     globalForPrisma.prisma ||
     new PrismaClient({
-        log: ['query', 'error', 'warn'],
+        log: ['error', 'warn'],
     });
 
 console.log("Prisma Client Initialized:", !!prisma);
