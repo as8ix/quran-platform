@@ -122,6 +122,12 @@ export default function TeacherDashboard() {
                     </div>
                     <div className="flex flex-wrap gap-3">
                         <button
+                            onClick={() => router.push('/teacher/reports')}
+                            className="flex items-center gap-2 px-6 py-3 bg-indigo-50 dark:bg-indigo-900/30 border-2 border-indigo-100 dark:border-indigo-800 rounded-2xl font-bold text-indigo-600 dark:text-indigo-400 hover:border-indigo-400 hover:text-indigo-700 transition-all shadow-sm active:scale-95"
+                        >
+                            <span>📊</span> التقرير الأسبوعي
+                        </button>
+                        <button
                             onClick={() => router.push('/teacher/attendance')}
                             className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl font-bold text-slate-600 dark:text-slate-300 hover:border-emerald-500 hover:text-emerald-600 transition-all shadow-sm active:scale-95"
                         >

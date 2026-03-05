@@ -80,20 +80,31 @@ model Session {
   hifzFromAyah Int?
   hifzToAyah   Int?
   
-  // Murajaah
+  // Major Murajaah (المراجعة الكبرى)
   murajaahFromSurah String?
   murajaahFromAyah  Int?
   murajaahToSurah   String?
   murajaahToAyah    Int?
+  
+  // Minor Murajaah (المراجعة الصغرى)
+  minorMurajaahFromSurah String?
+  minorMurajaahFromAyah  Int?
+  minorMurajaahToSurah   String?
+  minorMurajaahToAyah    Int?
   
   pagesCount   Float?   // Total pages calculated
   resultString String?  // e.g. "جزء و 5 صفحات و 10 آيات"
   notes        String?
   
   // Quality Metrics - General or Murajaah (backward compatible)
-  errorsCount      Int @default(0)  // عدد الأخطاء (أصبح للمراجعة أو الإجمالي)
-  alertsCount      Int @default(0)  // عدد التنبيهات (أصبح للمراجعة أو الإجمالي)
-  cleanPagesCount  Int @default(0)  // الصفحات النقية
+  errorsCount      Int @default(0)  // أخطاء المراجعة الكبرى
+  alertsCount      Int @default(0)  // تنبيهات المراجعة الكبرى
+  cleanPagesCount  Int @default(0)  // الصفحات النقية في الكبرى
+
+  // Quality Metrics - Minor Murajaah
+  minorErrorsCount     Int @default(0)  // أخطاء المراجعة الصغرى
+  minorAlertsCount     Int @default(0)  // تنبيهات المراجعة الصغرى
+  minorCleanPagesCount Int @default(0)  // الصفحات النقية في الصغرى
   
   // Quality Metrics - Hifz Specific
   hifzErrors       Int @default(0)  // أخطاء الحفظ

@@ -33,9 +33,12 @@ export async function POST(request) {
             studentId,
             hifzSurah, hifzFromPage, hifzToPage, hifzFromAyah, hifzToAyah,
             murajaahFromSurah, murajaahFromAyah, murajaahToSurah, murajaahToAyah,
+            minorMurajaahFromSurah, minorMurajaahFromAyah, minorMurajaahToSurah, minorMurajaahToAyah,
             pagesCount, resultString, notes, isFinishedSurah,
-            errorsCount, alertsCount, cleanPagesCount, quranicEventId,
-            hifzErrors, hifzAlerts, hifzCleanPages
+            errorsCount, alertsCount, cleanPagesCount,
+            minorErrorsCount, minorAlertsCount, minorCleanPagesCount,
+            hifzErrors, hifzAlerts, hifzCleanPages,
+            quranicEventId
         } = body;
 
         const session = await prisma.session.create({
@@ -50,6 +53,10 @@ export async function POST(request) {
                 murajaahFromAyah: murajaahFromAyah ? parseInt(murajaahFromAyah) : null,
                 murajaahToSurah,
                 murajaahToAyah: murajaahToAyah ? parseInt(murajaahToAyah) : null,
+                minorMurajaahFromSurah,
+                minorMurajaahFromAyah: minorMurajaahFromAyah ? parseInt(minorMurajaahFromAyah) : null,
+                minorMurajaahToSurah,
+                minorMurajaahToAyah: minorMurajaahToAyah ? parseInt(minorMurajaahToAyah) : null,
                 pagesCount: parseFloat(pagesCount) || 0,
                 resultString,
                 notes,
@@ -59,6 +66,9 @@ export async function POST(request) {
                 hifzAlerts: parseInt(hifzAlerts) || 0,
                 hifzCleanPages: parseInt(hifzCleanPages) || 0,
                 cleanPagesCount: parseInt(cleanPagesCount) || 0,
+                minorErrorsCount: parseInt(minorErrorsCount) || 0,
+                minorAlertsCount: parseInt(minorAlertsCount) || 0,
+                minorCleanPagesCount: parseInt(minorCleanPagesCount) || 0,
                 isGoalAchieved: body.isGoalAchieved || false,
                 quranicEventId: quranicEventId ? parseInt(quranicEventId) : null,
                 date: new Date()

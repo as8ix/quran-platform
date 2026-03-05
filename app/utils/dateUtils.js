@@ -28,6 +28,15 @@ export const formatHijri = (dateInput, type = 'long') => {
         }).format(date);
     }
 
+    if (type === 'noYear') {
+        // e.g. "الخميس، ٩ رمضان" (no year)
+        return new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura', {
+            weekday: 'long',
+            day: 'numeric',
+            month: 'long'
+        }).format(date);
+    }
+
     if (type === 'numeric') {
         // e.g. "1447/07/02"
         return new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura', {

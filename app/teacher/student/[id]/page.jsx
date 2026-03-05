@@ -26,24 +26,35 @@ export default function StudentDetailsPage() {
     const [hifzToAyah, setHifzToAyah] = useState(1);
 
     // Form State - Murajaah
+    const [murajaahType, setMurajaahType] = useState('MAJOR'); // 'MAJOR', 'MINOR', 'BOTH'
     const [mFromSurah, setMFromSurah] = useState(1);
     const [mFromAyah, setMFromAyah] = useState(1);
     const [mToSurah, setMToSurah] = useState(1);
     const [mToAyah, setMToAyah] = useState(1);
 
+    // Minor Murajaah
+    const [minorMFromSurah, setMinorMFromSurah] = useState(1);
+    const [minorMFromAyah, setMinorMFromAyah] = useState(1);
+    const [minorMToSurah, setMinorMToSurah] = useState(1);
+    const [minorMToAyah, setMinorMToAyah] = useState(1);
+
     const [pagesCount, setPagesCount] = useState(0);
+    const [minorPagesCount, setMinorPagesCount] = useState(0);
     const [resultString, setResultString] = useState(''); // e.g. "جزء و 5 صفحات"
+    const [minorResultString, setMinorResultString] = useState('');
     const [notes, setNotes] = useState('');
     const [saving, setSaving] = useState(false);
     const [calculatedJuz, setCalculatedJuz] = useState(0);
 
-    // Quality Metrics
-    const [errorsCount, setErrorsCount] = useState(0); // For Murajaah
-    const [alertsCount, setAlertsCount] = useState(0); // For Murajaah
+    const [errorsCount, setErrorsCount] = useState(0); // For Major Murajaah
+    const [alertsCount, setAlertsCount] = useState(0); // For Major Murajaah
     const [hifzErrors, setHifzErrors] = useState(0);    // For Hifz
     const [hifzAlerts, setHifzAlerts] = useState(0);    // For Hifz
     const [hifzCleanPages, setHifzCleanPages] = useState(0); // For Hifz
-    const [cleanPagesCount, setCleanPagesCount] = useState(0); // For Murajaah
+    const [cleanPagesCount, setCleanPagesCount] = useState(0); // For Major Murajaah
+    const [minorErrors, setMinorErrors] = useState(0); // For Minor Murajaah
+    const [minorAlerts, setMinorAlerts] = useState(0); // For Minor Murajaah
+    const [minorCleanPages, setMinorCleanPages] = useState(0); // For Minor Murajaah
 
     const [showEditModal, setShowEditModal] = useState(false);
     const [deleting, setDeleting] = useState(false);
@@ -52,6 +63,7 @@ export default function StudentDetailsPage() {
     const [sessionType, setSessionType] = useState(null); // 'HIFZ', 'MURAJAAH', 'BOTH'
     const [showTypeModal, setShowTypeModal] = useState(false);
     const [isSessionActive, setIsSessionActive] = useState(false);
+    const [showCancelModal, setShowCancelModal] = useState(false);
 
     const [user, setUser] = useState(null);
 
@@ -371,22 +383,35 @@ export default function StudentDetailsPage() {
             return p + (ayahsBefore / totalAyahsOnPage);
         };
 
-        const startPos = getExactPosition(mFromSurah, mFromAyah, false);
-        const endPos = getExactPosition(mToSurah, mToAyah, true);
+        let majorVal = 0;
+        let minorVal = 0;
 
-        let val = endPos - startPos;
-        if (val < 0) val = Math.abs(val);
-
-        // Round to nearest 0.5
-        val = Math.ceil(val * 2) / 2;
-
-        if (val === 0 && (mFromSurah !== mToSurah || mFromAyah !== mToAyah)) {
-            val = 0.5;
+        if (murajaahType === 'MAJOR' || murajaahType === 'BOTH') {
+            const startPos = getExactPosition(mFromSurah, mFromAyah, false);
+            const endPos = getExactPosition(mToSurah, mToAyah, true);
+            let val = endPos - startPos;
+            if (val < 0) val = Math.abs(val);
+            if (val === 0 && (mFromSurah !== mToSurah || mFromAyah !== mToAyah)) val = 0.5;
+            majorVal += val;
         }
 
-        setPagesCount(val);
-        setResultString(`${val} صفحة`);
+        if (murajaahType === 'MINOR' || murajaahType === 'BOTH') {
+            const startPos = getExactPosition(minorMFromSurah, minorMFromAyah, false);
+            const endPos = getExactPosition(minorMToSurah, minorMToAyah, true);
+            let val = endPos - startPos;
+            if (val < 0) val = Math.abs(val);
+            if (val === 0 && (minorMFromSurah !== minorMToSurah || minorMFromAyah !== minorMToAyah)) val = 0.5;
+            minorVal += val;
+        }
 
+        majorVal = Math.ceil(majorVal * 2) / 2;
+        minorVal = Math.ceil(minorVal * 2) / 2;
+
+        setPagesCount(majorVal);
+        setResultString(`${majorVal} صفحة`);
+
+        setMinorPagesCount(minorVal);
+        setMinorResultString(`${minorVal} صفحة`);
     };
 
     const calculateTotalProgress = () => {
@@ -493,7 +518,7 @@ export default function StudentDetailsPage() {
 
     useEffect(() => {
         calculateMurajaah();
-    }, [mFromSurah, mFromAyah, mToSurah, mToAyah]);
+    }, [mFromSurah, mFromAyah, mToSurah, mToAyah, minorMFromSurah, minorMFromAyah, minorMToSurah, minorMToAyah, murajaahType]);
 
     const handleSaveSession = async (e) => {
         e.preventDefault();
@@ -507,6 +532,8 @@ export default function StudentDetailsPage() {
         try {
             const fromSurahName = quranData.find(s => s.id === parseInt(mFromSurah))?.name;
             const toSurahName = quranData.find(s => s.id === parseInt(mToSurah))?.name;
+            const minorFromSurahName = quranData.find(s => s.id === parseInt(minorMFromSurah))?.name;
+            const minorToSurahName = quranData.find(s => s.id === parseInt(minorMToSurah))?.name;
 
             // Goal Calculation
             // 1. Get Hifz Target (student.dailyTargetPages)
@@ -550,14 +577,8 @@ export default function StudentDetailsPage() {
 
             // Re-calculate Review Pages explicitly:
             let reviewDone = 0;
-            if (mFromSurah && mToSurah) {
-                // We need to know pages of Review. 
-                // Since we don't have direct page inputs for Review (only Surah/Ayah), 
-                // we rely on the helper `calculatePages` which sets `pagesCount`.
-                // `pagesCount` likely includes Hifz if `calculatePages` considers it?
-                // Let's assume `pagesCount` = Total Pages.
-                // So ReviewDone = TotalPages - HifzDone.
-                reviewDone = parseFloat(pagesCount) - hifzDone;
+            if (murajaahType) {
+                reviewDone = parseFloat(pagesCount);
                 if (reviewDone < 0) reviewDone = 0;
             }
 
@@ -587,18 +608,27 @@ export default function StudentDetailsPage() {
                     hifzFromAyah: (includesHifz && !isKhatim && !isQuranicDay) ? parseInt(hifzFromAyah) : null,
                     hifzToAyah: (includesHifz && !isKhatim && !isQuranicDay) ? parseInt(hifzToAyah) : null,
 
-                    murajaahFromSurah: includesReview ? fromSurahName : null,
-                    murajaahFromAyah: includesReview ? parseInt(mFromAyah) : null,
-                    murajaahToSurah: includesReview ? toSurahName : null,
-                    murajaahToAyah: includesReview ? parseInt(mToAyah) : null,
+                    murajaahFromSurah: (includesReview && (murajaahType === 'MAJOR' || murajaahType === 'BOTH')) ? fromSurahName : null,
+                    murajaahFromAyah: (includesReview && (murajaahType === 'MAJOR' || murajaahType === 'BOTH')) ? parseInt(mFromAyah) : null,
+                    murajaahToSurah: (includesReview && (murajaahType === 'MAJOR' || murajaahType === 'BOTH')) ? toSurahName : null,
+                    murajaahToAyah: (includesReview && (murajaahType === 'MAJOR' || murajaahType === 'BOTH')) ? parseInt(mToAyah) : null,
+
+                    minorMurajaahFromSurah: (includesReview && (murajaahType === 'MINOR' || murajaahType === 'BOTH')) ? minorFromSurahName : null,
+                    minorMurajaahFromAyah: (includesReview && (murajaahType === 'MINOR' || murajaahType === 'BOTH')) ? parseInt(minorMFromAyah) : null,
+                    minorMurajaahToSurah: (includesReview && (murajaahType === 'MINOR' || murajaahType === 'BOTH')) ? minorToSurahName : null,
+                    minorMurajaahToAyah: (includesReview && (murajaahType === 'MINOR' || murajaahType === 'BOTH')) ? parseInt(minorMToAyah) : null,
+
+                    minorErrorsCount: (includesReview && (murajaahType === 'MINOR' || murajaahType === 'BOTH')) ? (parseInt(minorErrors) || 0) : 0,
+                    minorAlertsCount: (includesReview && (murajaahType === 'MINOR' || murajaahType === 'BOTH')) ? (parseInt(minorAlerts) || 0) : 0,
+                    minorCleanPagesCount: (includesReview && (murajaahType === 'MINOR' || murajaahType === 'BOTH')) ? (parseInt(minorCleanPages) || 0) : 0,
 
                     // Summary Stats (Total of Hifz + Murajaah)
-                    pagesCount: parseFloat(pagesCount) + (includesHifz ? hifzDone : 0),
+                    pagesCount: (includesReview ? parseFloat(pagesCount) : 0) + (includesHifz ? hifzDone : 0),
                     resultString,
                     notes,
-                    errorsCount: (parseInt(errorsCount) || 0) + (includesHifz ? (parseInt(hifzErrors) || 0) : 0),
-                    alertsCount: (parseInt(alertsCount) || 0) + (includesHifz ? (parseInt(hifzAlerts) || 0) : 0),
-                    cleanPagesCount: (parseInt(cleanPagesCount) || 0) + (includesHifz ? (parseInt(hifzCleanPages) || 0) : 0),
+                    errorsCount: (includesReview ? (parseInt(errorsCount) || 0) : 0) + (includesHifz ? (parseInt(hifzErrors) || 0) : 0),
+                    alertsCount: (includesReview ? (parseInt(alertsCount) || 0) : 0) + (includesHifz ? (parseInt(hifzAlerts) || 0) : 0),
+                    cleanPagesCount: (includesReview ? (parseInt(cleanPagesCount) || 0) : 0) + (includesHifz ? (parseInt(hifzCleanPages) || 0) : 0),
 
                     // Specific Breakdowns (kept for record)
                     hifzErrors: parseInt(hifzErrors) || 0,
@@ -619,6 +649,9 @@ export default function StudentDetailsPage() {
                 setHifzAlerts(0);
                 setHifzCleanPages(0);
                 setCleanPagesCount(0);
+                setMinorErrors(0);
+                setMinorAlerts(0);
+                setMinorCleanPages(0);
                 setIsSessionActive(false); // End session
                 setSessionType(null);
                 fetchStudent();
@@ -659,6 +692,8 @@ export default function StudentDetailsPage() {
             // If current selection is not in list, default to first item
             const isFromValid = reviewableSurahs.some(s => s.id === mFromSurah);
             const isToValid = reviewableSurahs.some(s => s.id === mToSurah);
+            const isMinorFromValid = reviewableSurahs.some(s => s.id === minorMFromSurah);
+            const isMinorToValid = reviewableSurahs.some(s => s.id === minorMToSurah);
 
             if (!isFromValid) {
                 setMFromSurah(reviewableSurahs[0].id);
@@ -668,8 +703,15 @@ export default function StudentDetailsPage() {
             if (!isToValid) {
                 setMToSurah(reviewableSurahs[0].id);
             }
+            if (!isMinorFromValid) {
+                setMinorMFromSurah(reviewableSurahs[0].id);
+                setMinorMFromAyah(1);
+            }
+            if (!isMinorToValid) {
+                setMinorMToSurah(reviewableSurahs[0].id);
+            }
         }
-    }, [reviewableSurahs, mFromSurah, mToSurah]);
+    }, [reviewableSurahs, mFromSurah, mToSurah, minorMFromSurah, minorMToSurah]);
 
     // Auto-update mToAyah when mToSurah changes
     useEffect(() => {
@@ -678,6 +720,14 @@ export default function StudentDetailsPage() {
             setMToAyah(toSurah.ayahs);
         }
     }, [mToSurah]);
+
+    // Auto-update minorMToAyah when minorMToSurah changes
+    useEffect(() => {
+        const toSurah = quranData.find(s => s.id === minorMToSurah);
+        if (toSurah) {
+            setMinorMToAyah(toSurah.ayahs);
+        }
+    }, [minorMToSurah]);
 
 
     const handleDelete = () => {
@@ -849,12 +899,7 @@ export default function StudentDetailsPage() {
                                     </h2>
                                     <button
                                         type="button"
-                                        onClick={() => {
-                                            if (confirm('هل أنت متأكد من إلغاء الجلسة الحالية؟ لن يتم حفظ البيانات.')) {
-                                                setIsSessionActive(false);
-                                                setSessionType(null);
-                                            }
-                                        }}
+                                        onClick={() => setShowCancelModal(true)}
                                         className="px-4 py-2 bg-red-50 text-red-500 rounded-xl text-xs font-black hover:bg-red-100 transition-colors"
                                     >
                                         إلغاء ✕
@@ -1024,181 +1069,288 @@ export default function StudentDetailsPage() {
                                     {/* Review Section - Hidden if mode is HIFZ only (and student is not Khatim/QuranicDay) */}
                                     {(sessionType === 'MURAJAAH' || sessionType === 'BOTH' || isKhatim || isQuranicDaySession) && (
                                         <div className="p-8 bg-indigo-50/50 dark:bg-indigo-900/20 rounded-[2.5rem] border border-indigo-100 dark:border-indigo-800 shadow-inner">
-                                            <div className="flex justify-between items-center mb-4">
+                                            <div className="flex justify-between items-center mb-6">
                                                 <h3 className="text-indigo-800 dark:text-indigo-400 font-black text-xl flex items-center gap-3">
                                                     <span className="w-3 h-3 bg-indigo-500 rounded-full shadow-lg shadow-indigo-200 dark:shadow-none"></span>
                                                     المراجعة
                                                 </h3>
-                                                <span className="text-[10px] font-bold text-indigo-400 dark:text-indigo-300 bg-indigo-100/50 dark:bg-indigo-900/40 px-3 py-1 rounded-full">
-                                                    السور التي انتهى منها الطالب فقط
-                                                </span>
+                                                <div className="flex bg-indigo-100/50 dark:bg-indigo-900/40 rounded-xl p-1">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setMurajaahType('MAJOR')}
+                                                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${murajaahType === 'MAJOR' ? 'bg-indigo-500 text-white shadow-md' : 'text-indigo-600 dark:text-indigo-300 hover:bg-indigo-200/50'}`}
+                                                    >
+                                                        كبرى
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setMurajaahType('MINOR')}
+                                                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${murajaahType === 'MINOR' ? 'bg-indigo-500 text-white shadow-md' : 'text-indigo-600 dark:text-indigo-300 hover:bg-indigo-200/50'}`}
+                                                    >
+                                                        صغرى
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setMurajaahType('BOTH')}
+                                                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${murajaahType === 'BOTH' ? 'bg-indigo-500 text-white shadow-md' : 'text-indigo-600 dark:text-indigo-300 hover:bg-indigo-200/50'}`}
+                                                    >
+                                                        كلاهما
+                                                    </button>
+                                                </div>
                                             </div>
 
                                             <div className="space-y-8">
                                                 {reviewableSurahs.length > 0 ? (
                                                     <>
-                                                        {/* From Section */}
-                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                            <div>
-                                                                <label className="block text-xs font-bold text-indigo-400 mb-2 mr-2">من سورة</label>
-                                                                <select
-                                                                    value={mFromSurah}
-                                                                    onChange={e => setMFromSurah(parseInt(e.target.value))}
-                                                                    className="w-full px-6 py-4 bg-white dark:bg-slate-900 border-2 border-transparent focus:border-indigo-400 rounded-2xl outline-none transition-all font-bold dark:text-white"
-                                                                >
-                                                                    {reviewableSurahs.map(s => <option key={s.id} value={s.id} className="text-slate-900 dark:text-white dark:bg-slate-900">{s.name}</option>)}
-                                                                </select>
-                                                            </div>
-                                                            <div>
-                                                                <label className="block text-xs font-bold text-indigo-400 mb-2 mr-2">من آية</label>
-                                                                <input
-                                                                    type="number"
-                                                                    value={mFromAyah}
-                                                                    min="1"
-                                                                    max={quranData.find(s => s.id === mFromSurah)?.ayahs}
-                                                                    onFocus={() => mFromAyah === 1 && setMFromAyah('')}
-                                                                    onBlur={() => mFromAyah === '' && setMFromAyah(1)}
-                                                                    onChange={e => {
-                                                                        const val = e.target.value;
-                                                                        if (val === '') setMFromAyah('');
-                                                                        else {
-                                                                            const parsed = parseInt(val);
-                                                                            const max = quranData.find(s => s.id === mFromSurah)?.ayahs || 1;
-                                                                            if (parsed > max) setMFromAyah(max);
-                                                                            else setMFromAyah(parsed);
-                                                                        }
-                                                                    }}
-                                                                    className="w-full px-6 py-4 bg-white dark:bg-slate-900 border-2 border-transparent focus:border-indigo-400 rounded-2xl outline-none transition-all font-bold dark:text-white"
-                                                                />
-                                                            </div>
-                                                        </div>
-
-                                                        {/* To Section */}
-                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                            <div>
-                                                                <label className="block text-xs font-bold text-indigo-400 mb-2 mr-2">إلى سورة</label>
-                                                                <select
-                                                                    value={mToSurah}
-                                                                    onChange={e => {
-                                                                        const surahId = parseInt(e.target.value);
-                                                                        setMToSurah(surahId);
-                                                                        // Set default To Ayah to the last ayah of the selected surah
-                                                                        const s = quranData.find(x => x.id === surahId);
-                                                                        if (s) setMToAyah(s.ayahs);
-                                                                    }}
-                                                                    className="w-full px-6 py-4 bg-white dark:bg-slate-900 border-2 border-transparent focus:border-indigo-400 rounded-2xl outline-none transition-all font-bold dark:text-white"
-                                                                >
-                                                                    {reviewableSurahs.map(s => <option key={s.id} value={s.id} className="text-slate-900 dark:text-white dark:bg-slate-900">{s.name}</option>)}
-                                                                </select>
-                                                            </div>
-                                                            <div>
-                                                                <label className="block text-xs font-bold text-indigo-400 mb-2 mr-2">إلى آية</label>
-                                                                <input
-                                                                    type="number"
-                                                                    value={mToAyah}
-                                                                    min="1"
-                                                                    max={quranData.find(s => s.id === mToSurah)?.ayahs}
-                                                                    onFocus={() => mToAyah === 1 && setMToAyah('')}
-                                                                    onBlur={() => mToAyah === '' && setMToAyah(1)}
-                                                                    onChange={e => {
-                                                                        const val = e.target.value;
-                                                                        if (val === '') setMToAyah('');
-                                                                        else {
-                                                                            const parsed = parseInt(val);
-                                                                            const max = quranData.find(s => s.id === mToSurah)?.ayahs || 1;
-                                                                            if (parsed > max) setMToAyah(max);
-                                                                            else setMToAyah(parsed);
-                                                                        }
-                                                                    }}
-                                                                    className="w-full px-6 py-4 bg-white dark:bg-slate-900 border-2 border-transparent focus:border-indigo-400 rounded-2xl outline-none transition-all font-bold dark:text-white"
-                                                                />
-                                                            </div>
-                                                        </div>
-
-                                                        {/* Quality Metrics for Murajaah */}
-                                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-                                                            <div>
-                                                                <label className="block text-xs font-bold text-red-600 mb-2 mr-2">عدد الأخطاء</label>
-                                                                <input
-                                                                    type="number"
-                                                                    value={errorsCount}
-                                                                    onFocus={() => errorsCount === 0 && setErrorsCount('')}
-                                                                    onBlur={() => errorsCount === '' && setErrorsCount(0)}
-                                                                    onChange={e => {
-                                                                        const val = e.target.value;
-                                                                        if (val === '') setErrorsCount('');
-                                                                        else setErrorsCount(Math.max(0, parseInt(val) || 0));
-                                                                    }}
-                                                                    min="0"
-                                                                    className="w-full px-6 py-4 bg-white dark:bg-slate-900 border-2 border-transparent focus:border-red-400 rounded-2xl outline-none transition-all font-bold text-lg dark:text-white"
-                                                                    placeholder="0"
-                                                                />
-                                                            </div>
-                                                            <div>
-                                                                <label className="block text-xs font-bold text-orange-600 mb-2 mr-2">عدد التنبيهات</label>
-                                                                <input
-                                                                    type="number"
-                                                                    value={alertsCount}
-                                                                    onFocus={() => alertsCount === 0 && setAlertsCount('')}
-                                                                    onBlur={() => alertsCount === '' && setAlertsCount(0)}
-                                                                    onChange={e => {
-                                                                        const val = e.target.value;
-                                                                        if (val === '') setAlertsCount('');
-                                                                        else setAlertsCount(Math.max(0, parseInt(val) || 0));
-                                                                    }}
-                                                                    min="0"
-                                                                    className="w-full px-6 py-4 bg-white dark:bg-slate-900 border-2 border-transparent focus:border-orange-400 rounded-2xl outline-none transition-all font-bold text-lg dark:text-white"
-                                                                    placeholder="0"
-                                                                />
-                                                            </div>
-                                                            <div>
-                                                                <label className="block text-xs font-bold text-emerald-600 mb-2 mr-2">صفحات نقية</label>
-                                                                <input
-                                                                    type="number"
-                                                                    value={cleanPagesCount}
-                                                                    onFocus={() => cleanPagesCount === 0 && setCleanPagesCount('')}
-                                                                    onBlur={() => cleanPagesCount === '' && setCleanPagesCount(0)}
-                                                                    onChange={e => {
-                                                                        const val = e.target.value;
-                                                                        if (val === '') setCleanPagesCount('');
-                                                                        else setCleanPagesCount(Math.max(0, parseInt(val) || 0));
-                                                                    }}
-                                                                    min="0"
-                                                                    className="w-full px-6 py-4 bg-white dark:bg-slate-900 border-2 border-transparent focus:border-emerald-400 rounded-2xl outline-none transition-all font-bold text-lg dark:text-white"
-                                                                    placeholder="0"
-                                                                />
-                                                            </div>
-                                                        </div>
-
-                                                        {/* Auto Calculation Result */}
-                                                        <div className="bg-white/50 dark:bg-slate-800/50 p-6 rounded-3xl border-2 border-dashed border-indigo-200 dark:border-indigo-800 flex flex-col items-center">
-                                                            <span className="text-xs font-black text-indigo-300 dark:text-indigo-400 uppercase tracking-widest mb-2">النتيجة التلقائية</span>
-                                                            <div className="text-2xl font-black text-indigo-700 dark:text-indigo-300">
-                                                                {resultString}
-                                                            </div>
-                                                            <div className="mt-2 text-[10px] font-bold text-indigo-300">
-                                                                {pagesCount} صفحات فعلياً
-                                                            </div>
-                                                            {pagesCount > 0 && (
-                                                                <div className="mt-3 flex gap-2 text-xs flex-wrap justify-center">
-                                                                    {errorsCount > 0 && (
-                                                                        <span className="px-2 py-1 bg-red-100 text-red-700 rounded-lg font-bold">
-                                                                            ❌ {errorsCount} خطأ
-                                                                        </span>
-                                                                    )}
-                                                                    {alertsCount > 0 && (
-                                                                        <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded-lg font-bold">
-                                                                            ⚠️ {alertsCount} تنبيه
-                                                                        </span>
-                                                                    )}
-                                                                    {cleanPagesCount > 0 && (
-                                                                        <span className="px-2 py-1 bg-emerald-100 text-emerald-700 rounded-lg font-bold">
-                                                                            ✨ {cleanPagesCount} نقية
-                                                                        </span>
-                                                                    )}
+                                                        {(murajaahType === 'MAJOR' || murajaahType === 'BOTH') && (
+                                                            <div className="p-4 bg-white dark:bg-slate-900 rounded-2xl border border-indigo-100 dark:border-indigo-800 shadow-sm">
+                                                                <h4 className="text-sm font-black text-indigo-500 mb-4 px-2">المراجعة الكبرى</h4>
+                                                                {/* From Section */}
+                                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                                                                    <div>
+                                                                        <label className="block text-xs font-bold text-indigo-400 mb-2 mr-2">من سورة</label>
+                                                                        <select
+                                                                            value={mFromSurah}
+                                                                            onChange={e => setMFromSurah(parseInt(e.target.value))}
+                                                                            className="w-full px-6 py-4 bg-indigo-50/50 dark:bg-slate-800 border-2 border-transparent focus:border-indigo-400 rounded-2xl outline-none transition-all font-bold dark:text-white"
+                                                                        >
+                                                                            {reviewableSurahs.map(s => <option key={s.id} value={s.id} className="text-slate-900 dark:text-white dark:bg-slate-900">{s.name}</option>)}
+                                                                        </select>
+                                                                    </div>
+                                                                    <div>
+                                                                        <label className="block text-xs font-bold text-indigo-400 mb-2 mr-2">من آية</label>
+                                                                        <input
+                                                                            type="number"
+                                                                            value={mFromAyah}
+                                                                            min="1"
+                                                                            max={quranData.find(s => s.id === mFromSurah)?.ayahs}
+                                                                            onFocus={() => mFromAyah === 1 && setMFromAyah('')}
+                                                                            onBlur={() => mFromAyah === '' && setMFromAyah(1)}
+                                                                            onChange={e => {
+                                                                                const val = e.target.value;
+                                                                                if (val === '') setMFromAyah('');
+                                                                                else {
+                                                                                    const parsed = parseInt(val);
+                                                                                    const max = quranData.find(s => s.id === mFromSurah)?.ayahs || 1;
+                                                                                    if (parsed > max) setMFromAyah(max);
+                                                                                    else setMFromAyah(parsed);
+                                                                                }
+                                                                            }}
+                                                                            className="w-full px-6 py-4 bg-indigo-50/50 dark:bg-slate-800 border-2 border-transparent focus:border-indigo-400 rounded-2xl outline-none transition-all font-bold dark:text-white"
+                                                                        />
+                                                                    </div>
                                                                 </div>
-                                                            )}
-                                                        </div>
+
+                                                                {/* To Section */}
+                                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                                    <div>
+                                                                        <label className="block text-xs font-bold text-indigo-400 mb-2 mr-2">إلى سورة</label>
+                                                                        <select
+                                                                            value={mToSurah}
+                                                                            onChange={e => {
+                                                                                const surahId = parseInt(e.target.value);
+                                                                                setMToSurah(surahId);
+                                                                                // Set default To Ayah to the last ayah of the selected surah
+                                                                                const s = quranData.find(x => x.id === surahId);
+                                                                                if (s) setMToAyah(s.ayahs);
+                                                                            }}
+                                                                            className="w-full px-6 py-4 bg-indigo-50/50 dark:bg-slate-800 border-2 border-transparent focus:border-indigo-400 rounded-2xl outline-none transition-all font-bold dark:text-white"
+                                                                        >
+                                                                            {reviewableSurahs.map(s => <option key={s.id} value={s.id} className="text-slate-900 dark:text-white dark:bg-slate-900">{s.name}</option>)}
+                                                                        </select>
+                                                                    </div>
+                                                                    <div>
+                                                                        <label className="block text-xs font-bold text-indigo-400 mb-2 mr-2">إلى آية</label>
+                                                                        <input
+                                                                            type="number"
+                                                                            value={mToAyah}
+                                                                            min="1"
+                                                                            max={quranData.find(s => s.id === mToSurah)?.ayahs}
+                                                                            onFocus={() => mToAyah === 1 && setMToAyah('')}
+                                                                            onBlur={() => mToAyah === '' && setMToAyah(1)}
+                                                                            onChange={e => {
+                                                                                const val = e.target.value;
+                                                                                if (val === '') setMToAyah('');
+                                                                                else {
+                                                                                    const parsed = parseInt(val);
+                                                                                    const max = quranData.find(s => s.id === mToSurah)?.ayahs || 1;
+                                                                                    if (parsed > max) setMToAyah(max);
+                                                                                    else setMToAyah(parsed);
+                                                                                }
+                                                                            }}
+                                                                            className="w-full px-6 py-4 bg-indigo-50/50 dark:bg-slate-800 border-2 border-transparent focus:border-indigo-400 rounded-2xl outline-none transition-all font-bold dark:text-white"
+                                                                        />
+                                                                    </div>
+                                                                </div>
+
+                                                                {/* Major Quality Metrics */}
+                                                                <div className="grid grid-cols-3 gap-4 mt-4 pt-4 border-t border-indigo-100 dark:border-indigo-800">
+                                                                    <div>
+                                                                        <label className="block text-xs font-bold text-red-600 mb-2">أخطاء</label>
+                                                                        <input type="number" value={errorsCount} onFocus={() => errorsCount === 0 && setErrorsCount('')} onBlur={() => errorsCount === '' && setErrorsCount(0)} onChange={e => { const v = e.target.value; if (v === '') setErrorsCount(''); else setErrorsCount(Math.max(0, parseInt(v) || 0)); }} min="0" className="w-full px-4 py-3 bg-indigo-50/50 dark:bg-slate-800 border-2 border-transparent focus:border-red-400 rounded-2xl outline-none font-bold dark:text-white" placeholder="0" />
+                                                                    </div>
+                                                                    <div>
+                                                                        <label className="block text-xs font-bold text-orange-600 mb-2">تنبيهات</label>
+                                                                        <input type="number" value={alertsCount} onFocus={() => alertsCount === 0 && setAlertsCount('')} onBlur={() => alertsCount === '' && setAlertsCount(0)} onChange={e => { const v = e.target.value; if (v === '') setAlertsCount(''); else setAlertsCount(Math.max(0, parseInt(v) || 0)); }} min="0" className="w-full px-4 py-3 bg-indigo-50/50 dark:bg-slate-800 border-2 border-transparent focus:border-orange-400 rounded-2xl outline-none font-bold dark:text-white" placeholder="0" />
+                                                                    </div>
+                                                                    <div>
+                                                                        <label className="block text-xs font-bold text-emerald-600 mb-2">نقية</label>
+                                                                        <input type="number" value={cleanPagesCount} onFocus={() => cleanPagesCount === 0 && setCleanPagesCount('')} onBlur={() => cleanPagesCount === '' && setCleanPagesCount(0)} onChange={e => { const v = e.target.value; if (v === '') setCleanPagesCount(''); else setCleanPagesCount(Math.max(0, parseInt(v) || 0)); }} min="0" className="w-full px-4 py-3 bg-indigo-50/50 dark:bg-slate-800 border-2 border-transparent focus:border-emerald-400 rounded-2xl outline-none font-bold dark:text-white" placeholder="0" />
+                                                                    </div>
+                                                                </div>
+
+                                                                {/* Major Auto Calc */}
+                                                                <div className="bg-indigo-50/50 dark:bg-slate-800/50 p-4 rounded-2xl border-2 border-dashed border-indigo-200 dark:border-indigo-800 flex justify-between items-center mt-4">
+                                                                    <div>
+                                                                        <span className="text-xs font-black text-indigo-400 uppercase tracking-widest block mb-1">النتيجة (كبرى)</span>
+                                                                        <div className="text-lg font-black text-indigo-700 dark:text-indigo-300">
+                                                                            {resultString}
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="text-[10px] font-bold text-indigo-400 bg-white dark:bg-slate-900 px-3 py-1.5 rounded-lg border border-indigo-100 dark:border-indigo-800">
+                                                                        {pagesCount} صفحات فعلياً
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        )}
+
+                                                        {(murajaahType === 'MINOR' || murajaahType === 'BOTH') && (
+                                                            <div className="p-4 bg-white dark:bg-slate-900 rounded-2xl border border-indigo-100 dark:border-indigo-800 shadow-sm mt-4">
+                                                                <h4 className="text-sm font-black text-indigo-500 mb-4 px-2">المراجعة الصغرى</h4>
+                                                                {/* From Section */}
+                                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                                                                    <div>
+                                                                        <label className="block text-xs font-bold text-indigo-400 mb-2 mr-2">من سورة</label>
+                                                                        <select
+                                                                            value={minorMFromSurah}
+                                                                            onChange={e => setMinorMFromSurah(parseInt(e.target.value))}
+                                                                            className="w-full px-6 py-4 bg-indigo-50/50 dark:bg-slate-800 border-2 border-transparent focus:border-indigo-400 rounded-2xl outline-none transition-all font-bold dark:text-white"
+                                                                        >
+                                                                            {reviewableSurahs.map(s => <option key={s.id} value={s.id} className="text-slate-900 dark:text-white dark:bg-slate-900">{s.name}</option>)}
+                                                                        </select>
+                                                                    </div>
+                                                                    <div>
+                                                                        <label className="block text-xs font-bold text-indigo-400 mb-2 mr-2">من آية</label>
+                                                                        <input
+                                                                            type="number"
+                                                                            value={minorMFromAyah}
+                                                                            min="1"
+                                                                            max={quranData.find(s => s.id === minorMFromSurah)?.ayahs}
+                                                                            onFocus={() => minorMFromAyah === 1 && setMinorMFromAyah('')}
+                                                                            onBlur={() => minorMFromAyah === '' && setMinorMFromAyah(1)}
+                                                                            onChange={e => {
+                                                                                const val = e.target.value;
+                                                                                if (val === '') setMinorMFromAyah('');
+                                                                                else {
+                                                                                    const parsed = parseInt(val);
+                                                                                    const max = quranData.find(s => s.id === minorMFromSurah)?.ayahs || 1;
+                                                                                    if (parsed > max) setMinorMFromAyah(max);
+                                                                                    else setMinorMFromAyah(parsed);
+                                                                                }
+                                                                            }}
+                                                                            className="w-full px-6 py-4 bg-indigo-50/50 dark:bg-slate-800 border-2 border-transparent focus:border-indigo-400 rounded-2xl outline-none transition-all font-bold dark:text-white"
+                                                                        />
+                                                                    </div>
+                                                                </div>
+
+                                                                {/* To Section */}
+                                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                                    <div>
+                                                                        <label className="block text-xs font-bold text-indigo-400 mb-2 mr-2">إلى سورة</label>
+                                                                        <select
+                                                                            value={minorMToSurah}
+                                                                            onChange={e => {
+                                                                                const surahId = parseInt(e.target.value);
+                                                                                setMinorMToSurah(surahId);
+                                                                                // Set default To Ayah to the last ayah of the selected surah
+                                                                                const s = quranData.find(x => x.id === surahId);
+                                                                                if (s) setMinorMToAyah(s.ayahs);
+                                                                            }}
+                                                                            className="w-full px-6 py-4 bg-indigo-50/50 dark:bg-slate-800 border-2 border-transparent focus:border-indigo-400 rounded-2xl outline-none transition-all font-bold dark:text-white"
+                                                                        >
+                                                                            {reviewableSurahs.map(s => <option key={s.id} value={s.id} className="text-slate-900 dark:text-white dark:bg-slate-900">{s.name}</option>)}
+                                                                        </select>
+                                                                    </div>
+                                                                    <div>
+                                                                        <label className="block text-xs font-bold text-indigo-400 mb-2 mr-2">إلى آية</label>
+                                                                        <input
+                                                                            type="number"
+                                                                            value={minorMToAyah}
+                                                                            min="1"
+                                                                            max={quranData.find(s => s.id === minorMToSurah)?.ayahs}
+                                                                            onFocus={() => minorMToAyah === 1 && setMinorMToAyah('')}
+                                                                            onBlur={() => minorMToAyah === '' && setMinorMToAyah(1)}
+                                                                            onChange={e => {
+                                                                                const val = e.target.value;
+                                                                                if (val === '') setMinorMToAyah('');
+                                                                                else {
+                                                                                    const parsed = parseInt(val);
+                                                                                    const max = quranData.find(s => s.id === minorMToSurah)?.ayahs || 1;
+                                                                                    if (parsed > max) setMinorMToAyah(max);
+                                                                                    else setMinorMToAyah(parsed);
+                                                                                }
+                                                                            }}
+                                                                            className="w-full px-6 py-4 bg-indigo-50/50 dark:bg-slate-800 border-2 border-transparent focus:border-indigo-400 rounded-2xl outline-none transition-all font-bold dark:text-white"
+                                                                        />
+                                                                    </div>
+                                                                </div>
+                                                                {/* Minor Murajaah Quality Metrics */}
+                                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 pt-4 border-t border-indigo-100 dark:border-indigo-800">
+                                                                    <div>
+                                                                        <label className="block text-xs font-bold text-red-500 mb-2 mr-2">أخطاء الصغرى</label>
+                                                                        <input
+                                                                            type="number"
+                                                                            value={minorErrors}
+                                                                            onFocus={() => minorErrors === 0 && setMinorErrors('')}
+                                                                            onBlur={() => minorErrors === '' && setMinorErrors(0)}
+                                                                            onChange={e => { const v = e.target.value; if (v === '') setMinorErrors(''); else setMinorErrors(Math.max(0, parseInt(v) || 0)); }}
+                                                                            min="0"
+                                                                            className="w-full px-4 py-3 bg-indigo-50/50 dark:bg-slate-800 border-2 border-transparent focus:border-red-400 rounded-2xl outline-none font-bold dark:text-white"
+                                                                            placeholder="0"
+                                                                        />
+                                                                    </div>
+                                                                    <div>
+                                                                        <label className="block text-xs font-bold text-orange-500 mb-2 mr-2">تنبيهات الصغرى</label>
+                                                                        <input
+                                                                            type="number"
+                                                                            value={minorAlerts}
+                                                                            onFocus={() => minorAlerts === 0 && setMinorAlerts('')}
+                                                                            onBlur={() => minorAlerts === '' && setMinorAlerts(0)}
+                                                                            onChange={e => { const v = e.target.value; if (v === '') setMinorAlerts(''); else setMinorAlerts(Math.max(0, parseInt(v) || 0)); }}
+                                                                            min="0"
+                                                                            className="w-full px-4 py-3 bg-indigo-50/50 dark:bg-slate-800 border-2 border-transparent focus:border-orange-400 rounded-2xl outline-none font-bold dark:text-white"
+                                                                            placeholder="0"
+                                                                        />
+                                                                    </div>
+                                                                    <div>
+                                                                        <label className="block text-xs font-bold text-emerald-500 mb-2 mr-2">نقية الصغرى</label>
+                                                                        <input
+                                                                            type="number"
+                                                                            value={minorCleanPages}
+                                                                            onFocus={() => minorCleanPages === 0 && setMinorCleanPages('')}
+                                                                            onBlur={() => minorCleanPages === '' && setMinorCleanPages(0)}
+                                                                            onChange={e => { const v = e.target.value; if (v === '') setMinorCleanPages(''); else setMinorCleanPages(Math.max(0, parseInt(v) || 0)); }}
+                                                                            min="0"
+                                                                            className="w-full px-4 py-3 bg-indigo-50/50 dark:bg-slate-800 border-2 border-transparent focus:border-emerald-400 rounded-2xl outline-none font-bold dark:text-white"
+                                                                            placeholder="0"
+                                                                        />
+                                                                    </div>
+                                                                </div>
+
+                                                                {/* Minor Auto Calc */}
+                                                                <div className="bg-indigo-50/50 dark:bg-slate-800/50 p-4 rounded-2xl border-2 border-dashed border-indigo-200 dark:border-indigo-800 flex justify-between items-center mt-4">
+                                                                    <div>
+                                                                        <span className="text-xs font-black text-indigo-400 uppercase tracking-widest block mb-1">النتيجة (صغرى)</span>
+                                                                        <div className="text-lg font-black text-indigo-700 dark:text-indigo-300">
+                                                                            {minorResultString}
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="text-[10px] font-bold text-indigo-400 bg-white dark:bg-slate-900 px-3 py-1.5 rounded-lg border border-indigo-100 dark:border-indigo-800">
+                                                                        {minorPagesCount} صفحات فعلياً
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        )}
                                                     </>
                                                 ) : (
                                                     <div className="text-center py-10 bg-white/50 dark:bg-slate-800/50 rounded-3xl border-2 border-dashed border-indigo-200 dark:border-indigo-800">
@@ -1242,123 +1394,174 @@ export default function StudentDetailsPage() {
                                 سجل الإنجاز
                             </h3>
                             <div className="space-y-6 max-h-[calc(100vh-350px)] overflow-y-auto pl-2 custom-scrollbar rtl-scroll">
-                                {history.length > 0 ? history.map((session, idx) => (
-                                    <div key={idx} className="p-6 bg-slate-50 dark:bg-slate-900/30 rounded-3xl border border-slate-100 dark:border-slate-800 hover:border-emerald-200 dark:hover:border-emerald-800 hover:bg-white dark:hover:bg-slate-800 hover:shadow-lg hover:shadow-emerald-50 dark:hover:shadow-none transition-all cursor-default group relative overflow-hidden">
-                                        {session.hifzSurah && (
-                                            <div className="absolute top-0 right-0 w-1 h-full bg-emerald-500"></div>
-                                        )}
-                                        <div className="flex justify-between items-start mb-4">
-                                            <span className="text-[10px] font-black text-slate-400 bg-slate-200 px-2 py-1 rounded-lg">
-                                                {formatHijri(session.date, 'long')}
-                                            </span>
-                                            <span className="text-xs bg-emerald-100 text-emerald-700 font-black px-3 py-1 rounded-full">
-                                                {session.pagesCount} ص
-                                            </span>
-                                        </div>
+                                {history.length > 0 ? history.map((session, idx) => {
+                                    const currentDateFormatted = formatHijri(session.date, 'long');
+                                    const prevDateFormatted = idx > 0 ? formatHijri(history[idx - 1].date, 'long') : null;
+                                    const showDateSeparator = currentDateFormatted !== prevDateFormatted;
 
-                                        {/* Goal Status Badge */}
-                                        <div className="mb-3">
-                                            {session.isGoalAchieved ? (
-                                                <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-50 text-green-700 text-[10px] font-black rounded-lg border border-green-100">
-                                                    <span>🎯</span> حقق الهدف اليومي
-                                                </span>
-                                            ) : (
-                                                <span className="inline-flex items-center gap-1 px-2 py-1 bg-slate-50 text-slate-400 text-[10px] font-bold rounded-lg border border-slate-100">
-                                                    <span>➖</span> لم يحقق الهدف
-                                                </span>
+                                    return (
+                                        <div key={idx} className="space-y-6">
+                                            {showDateSeparator && (
+                                                <div className="flex items-center gap-4 py-2 mt-4 first:mt-0">
+                                                    <div className="h-px bg-slate-200 dark:bg-slate-700 flex-1"></div>
+                                                    <div className="text-xs font-black text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-4 py-2 rounded-full border border-slate-200 dark:border-slate-700 shadow-sm">
+                                                        📅 {currentDateFormatted}
+                                                    </div>
+                                                    <div className="h-px bg-slate-200 dark:bg-slate-700 flex-1"></div>
+                                                </div>
                                             )}
-                                        </div>
-
-                                        {session.hifzSurah ? (
-                                            <div className="mb-4">
-                                                <div className="text-xs font-black text-emerald-600 dark:text-emerald-500 mb-1 uppercase tracking-tighter">الحفظ الجديد</div>
-                                                <div className="text-md font-bold text-slate-800 dark:text-slate-200">
-                                                    سورة {session.hifzSurah} {session.hifzFromPage === session.hifzToPage ? `(ص ${session.hifzFromPage})` : `(من ص ${session.hifzFromPage} إلى ${session.hifzToPage})`}
-                                                </div>
-                                                {(session.hifzFromAyah || session.hifzToAyah) && (
-                                                    <div className="text-xs text-emerald-600 mt-1 font-medium">
-                                                        الآيات: {session.hifzFromAyah || '?'} - {session.hifzToAyah || '?'}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        ) : (session.hifzToPage === 604 || isKhatim) ? (
-                                            <div className="mb-4">
-                                                <div className="px-3 py-2 bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-100 rounded-xl flex items-center gap-2">
-                                                    <span className="text-lg">🏆</span>
-                                                    <span className="text-xs font-bold text-amber-800">خاتم للقرآن الكريم</span>
-                                                </div>
-                                            </div>
-                                        ) : null}
-
-                                        {session.murajaahFromSurah && (
-                                            <div className="mb-4">
-                                                <div className="text-xs font-black text-indigo-500 dark:text-indigo-400 mb-1 uppercase tracking-tighter">المراجعة</div>
-                                                <div className="text-sm font-medium text-slate-600 dark:text-slate-300 leading-relaxed">
-                                                    <div className="mb-1 text-slate-800 dark:text-slate-200 font-bold">
-                                                        من سورة {session.murajaahFromSurah} <span className="text-xs text-slate-500 font-normal">(آية {session.murajaahFromAyah})</span> إلى سورة {session.murajaahToSurah} <span className="text-xs text-slate-500 font-normal">(آية {session.murajaahToAyah})</span>
-                                                    </div>
-                                                    <div className="text-xs text-slate-400 font-bold">
-                                                        {session.resultString}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {/* Quality Metrics Breakdown */}
-                                        <div className="mb-4 p-4 bg-slate-100/50 dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700">
-                                            <div className="text-[10px] font-black text-slate-400 mb-3 uppercase tracking-wider">مقاييس الجودة</div>
-
-                                            <div className="space-y-4">
-                                                {/* Hifz Metrics */}
+                                            <div className="p-6 bg-slate-50 dark:bg-slate-900/30 rounded-3xl border border-slate-100 dark:border-slate-800 hover:border-emerald-200 dark:hover:border-emerald-800 hover:bg-white dark:hover:bg-slate-800 hover:shadow-lg hover:shadow-emerald-50 dark:hover:shadow-none transition-all cursor-default group relative overflow-hidden">
                                                 {session.hifzSurah && (
-                                                    <div>
-                                                        <div className="text-[9px] font-bold text-emerald-600 dark:text-emerald-500 mb-2">إنجاز الحفظ:</div>
-                                                        <div className="flex gap-2 text-[11px] flex-wrap">
-                                                            <span className={`px-2 py-0.5 rounded-lg font-bold ${session.hifzErrors > 0 ? 'bg-red-50 text-red-600' : 'bg-white/50 dark:bg-slate-900/50 text-slate-300'}`}>
-                                                                ❌ {session.hifzErrors || 0} خطأ
-                                                            </span>
-                                                            <span className={`px-2 py-0.5 rounded-lg font-bold ${session.hifzAlerts > 0 ? 'bg-orange-50 text-orange-600' : 'bg-white/50 dark:bg-slate-900/50 text-slate-300'}`}>
-                                                                ⚠️ {session.hifzAlerts || 0} تنبيه
-                                                            </span>
-                                                            <span className={`px-2 py-0.5 rounded-lg font-bold ${session.hifzCleanPages > 0 ? 'bg-emerald-50 text-emerald-600' : 'bg-white/50 dark:bg-slate-900/50 text-slate-300'}`}>
-                                                                ✨ {session.hifzCleanPages || 0} نقية
-                                                            </span>
+                                                    <div className="absolute top-0 right-0 w-1 h-full bg-emerald-500"></div>
+                                                )}
+                                                <div className="flex justify-between items-start mb-4">
+                                                    <span className="text-[10px] font-black text-slate-400 bg-slate-200 dark:bg-slate-800 px-2 py-1 rounded-lg">
+                                                        {new Date(session.date).toLocaleTimeString('ar-SA', { hour: 'numeric', minute: '2-digit' })}
+                                                    </span>
+                                                    <span className="text-xs bg-emerald-100 text-emerald-700 font-black px-3 py-1 rounded-full">
+                                                        {session.pagesCount} ص
+                                                    </span>
+                                                </div>
+
+                                                {/* Goal Status Badge */}
+                                                <div className="mb-3">
+                                                    {session.isGoalAchieved ? (
+                                                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-50 text-green-700 text-[10px] font-black rounded-lg border border-green-100">
+                                                            <span>🎯</span> حقق الهدف اليومي
+                                                        </span>
+                                                    ) : (
+                                                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-slate-50 text-slate-400 text-[10px] font-bold rounded-lg border border-slate-100">
+                                                            <span>➖</span> لم يحقق الهدف
+                                                        </span>
+                                                    )}
+                                                </div>
+
+                                                {session.hifzSurah ? (
+                                                    <div className="mb-4">
+                                                        <div className="text-xs font-black text-emerald-600 dark:text-emerald-500 mb-1 uppercase tracking-tighter">الحفظ الجديد</div>
+                                                        <div className="text-md font-bold text-slate-800 dark:text-slate-200">
+                                                            سورة {session.hifzSurah} {session.hifzFromPage === session.hifzToPage ? `(ص ${session.hifzFromPage})` : `(من ص ${session.hifzFromPage} إلى ${session.hifzToPage})`}
+                                                        </div>
+                                                        {(session.hifzFromAyah || session.hifzToAyah) && (
+                                                            <div className="text-xs text-emerald-600 mt-1 font-medium">
+                                                                الآيات: {session.hifzFromAyah || '?'} - {session.hifzToAyah || '?'}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ) : (session.hifzToPage === 604 || isKhatim) ? (
+                                                    <div className="mb-4">
+                                                        <div className="px-3 py-2 bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-100 rounded-xl flex items-center gap-2">
+                                                            <span className="text-lg">🏆</span>
+                                                            <span className="text-xs font-bold text-amber-800">خاتم للقرآن الكريم</span>
+                                                        </div>
+                                                    </div>
+                                                ) : null}
+
+                                                {session.murajaahFromSurah && (
+                                                    <div className="mb-4">
+                                                        <div className="text-xs font-black text-indigo-500 dark:text-indigo-400 mb-1 uppercase tracking-tighter">المراجعة الكبرى</div>
+                                                        <div className="text-sm font-medium text-slate-600 dark:text-slate-300 leading-relaxed">
+                                                            <div className="mb-1 text-slate-800 dark:text-slate-200 font-bold">
+                                                                من سورة {session.murajaahFromSurah} <span className="text-xs text-slate-500 font-normal">(آية {session.murajaahFromAyah})</span> إلى سورة {session.murajaahToSurah} <span className="text-xs text-slate-500 font-normal">(آية {session.murajaahToAyah})</span>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 )}
 
-                                                {/* Divider if both exist */}
-                                                {session.hifzSurah && session.murajaahFromSurah && (
-                                                    <div className="h-px bg-slate-200 dark:bg-slate-700 mx-2"></div>
+                                                {session.minorMurajaahFromSurah && (
+                                                    <div className="mb-4">
+                                                        <div className="text-xs font-black text-indigo-500 dark:text-indigo-400 mb-1 uppercase tracking-tighter">المراجعة الصغرى</div>
+                                                        <div className="text-sm font-medium text-slate-600 dark:text-slate-300 leading-relaxed">
+                                                            <div className="mb-1 text-slate-800 dark:text-slate-200 font-bold">
+                                                                من سورة {session.minorMurajaahFromSurah} <span className="text-xs text-slate-500 font-normal">(آية {session.minorMurajaahFromAyah})</span> إلى سورة {session.minorMurajaahToSurah} <span className="text-xs text-slate-500 font-normal">(آية {session.minorMurajaahToAyah})</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 )}
 
-                                                {/* Murajaah Metrics */}
-                                                {session.murajaahFromSurah && (
-                                                    <div>
-                                                        <div className="text-[9px] font-bold text-indigo-500 dark:text-indigo-400 mb-2">إنجاز المراجعة:</div>
-                                                        <div className="flex gap-2 text-[11px] flex-wrap">
-                                                            <span className={`px-2 py-0.5 rounded-lg font-bold ${(session.errorsCount - (session.hifzErrors || 0)) > 0 ? 'bg-red-50 text-red-600' : 'bg-white/50 dark:bg-slate-900/50 text-slate-300'}`}>
-                                                                ❌ {(session.errorsCount - (session.hifzErrors || 0)) || 0} خطأ
-                                                            </span>
-                                                            <span className={`px-2 py-0.5 rounded-lg font-bold ${(session.alertsCount - (session.hifzAlerts || 0)) > 0 ? 'bg-orange-50 text-orange-600' : 'bg-white/50 dark:bg-slate-900/50 text-slate-300'}`}>
-                                                                ⚠️ {(session.alertsCount - (session.hifzAlerts || 0)) || 0} تنبيه
-                                                            </span>
-                                                            <span className={`px-2 py-0.5 rounded-lg font-bold ${(session.cleanPagesCount - (session.hifzCleanPages || 0)) > 0 ? 'bg-indigo-50 text-indigo-600' : 'bg-white/50 dark:bg-slate-900/50 text-slate-300'}`}>
-                                                                ✨ {(session.cleanPagesCount - (session.hifzCleanPages || 0)) || 0} نقية
-                                                            </span>
+                                                {(session.murajaahFromSurah || session.minorMurajaahFromSurah) && (
+                                                    <div className="mb-4">
+                                                        <div className="text-xs text-slate-400 font-bold">
+                                                            {session.resultString}
                                                         </div>
+                                                    </div>
+                                                )}
+
+                                                {/* Quality Metrics Breakdown */}
+                                                <div className="mb-4 p-4 bg-slate-100/50 dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700">
+                                                    <div className="text-[10px] font-black text-slate-400 mb-3 uppercase tracking-wider">مقاييس الجودة</div>
+
+                                                    <div className="space-y-4">
+                                                        {/* Hifz Metrics */}
+                                                        {session.hifzSurah && (
+                                                            <div>
+                                                                <div className="text-[9px] font-bold text-emerald-600 dark:text-emerald-500 mb-2">إنجاز الحفظ:</div>
+                                                                <div className="flex gap-2 text-[11px] flex-wrap">
+                                                                    <span className={`px-2 py-0.5 rounded-lg font-bold ${session.hifzErrors > 0 ? 'bg-red-50 text-red-600' : 'bg-white/50 dark:bg-slate-900/50 text-slate-300'}`}>
+                                                                        ❌ {session.hifzErrors || 0} خطأ
+                                                                    </span>
+                                                                    <span className={`px-2 py-0.5 rounded-lg font-bold ${session.hifzAlerts > 0 ? 'bg-orange-50 text-orange-600' : 'bg-white/50 dark:bg-slate-900/50 text-slate-300'}`}>
+                                                                        ⚠️ {session.hifzAlerts || 0} تنبيه
+                                                                    </span>
+                                                                    <span className={`px-2 py-0.5 rounded-lg font-bold ${session.hifzCleanPages > 0 ? 'bg-emerald-50 text-emerald-600' : 'bg-white/50 dark:bg-slate-900/50 text-slate-300'}`}>
+                                                                        ✨ {session.hifzCleanPages || 0} نقية
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        )}
+
+                                                        {/* Divider if both exist */}
+                                                        {session.hifzSurah && session.murajaahFromSurah && (
+                                                            <div className="h-px bg-slate-200 dark:bg-slate-700 mx-2"></div>
+                                                        )}
+
+                                                        {/* Murajaah Metrics (Major) */}
+                                                        {session.murajaahFromSurah && (
+                                                            <div>
+                                                                <div className="text-[9px] font-bold text-indigo-500 dark:text-indigo-400 mb-2">إنجاز المراجعة الكبرى:</div>
+                                                                <div className="flex gap-2 text-[11px] flex-wrap">
+                                                                    <span className={`px-2 py-0.5 rounded-lg font-bold ${session.errorsCount > 0 ? 'bg-red-50 text-red-600' : 'bg-white/50 dark:bg-slate-900/50 text-slate-300'}`}>
+                                                                        ❌ {session.errorsCount || 0} خطأ
+                                                                    </span>
+                                                                    <span className={`px-2 py-0.5 rounded-lg font-bold ${session.alertsCount > 0 ? 'bg-orange-50 text-orange-600' : 'bg-white/50 dark:bg-slate-900/50 text-slate-300'}`}>
+                                                                        ⚠️ {session.alertsCount || 0} تنبيه
+                                                                    </span>
+                                                                    <span className={`px-2 py-0.5 rounded-lg font-bold ${session.cleanPagesCount > 0 ? 'bg-indigo-50 text-indigo-600' : 'bg-white/50 dark:bg-slate-900/50 text-slate-300'}`}>
+                                                                        ✨ {session.cleanPagesCount || 0} نقية
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        )}
+
+                                                        {/* Murajaah Metrics (Minor) */}
+                                                        {session.minorMurajaahFromSurah && (
+                                                            <div>
+                                                                <div className="text-[9px] font-bold text-blue-500 dark:text-blue-400 mb-2">إنجاز المراجعة الصغرى:</div>
+                                                                <div className="flex gap-2 text-[11px] flex-wrap">
+                                                                    <span className={`px-2 py-0.5 rounded-lg font-bold ${(session.minorErrorsCount || 0) > 0 ? 'bg-red-50 text-red-600' : 'bg-white/50 dark:bg-slate-900/50 text-slate-300'}`}>
+                                                                        ❌ {session.minorErrorsCount || 0} خطأ
+                                                                    </span>
+                                                                    <span className={`px-2 py-0.5 rounded-lg font-bold ${(session.minorAlertsCount || 0) > 0 ? 'bg-orange-50 text-orange-600' : 'bg-white/50 dark:bg-slate-900/50 text-slate-300'}`}>
+                                                                        ⚠️ {session.minorAlertsCount || 0} تنبيه
+                                                                    </span>
+                                                                    <span className={`px-2 py-0.5 rounded-lg font-bold ${(session.minorCleanPagesCount || 0) > 0 ? 'bg-blue-50 text-blue-600' : 'bg-white/50 dark:bg-slate-900/50 text-slate-300'}`}>
+                                                                        ✨ {session.minorCleanPagesCount || 0} نقية
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                {session.notes && (
+                                                    <div className="mt-4 pt-4 border-t border-slate-200 text-xs text-slate-400 italic">
+                                                        " {session.notes} "
                                                     </div>
                                                 )}
                                             </div>
                                         </div>
-
-                                        {session.notes && (
-                                            <div className="mt-4 pt-4 border-t border-slate-200 text-xs text-slate-400 italic">
-                                                " {session.notes} "
-                                            </div>
-                                        )}
-                                    </div>
-                                )) : (
+                                    )
+                                }) : (
                                     <div className="text-center py-20">
                                         <div className="text-6xl mb-4 opacity-20">📭</div>
                                         <div className="text-slate-300 font-black">لا يوجد سجلات بعد</div>
@@ -1391,6 +1594,39 @@ export default function StudentDetailsPage() {
                     animation: pulse-slow 3s ease-in-out infinite;
                 }
             `}</style>
+
+            {/* Cancel Session Modal */}
+            {showCancelModal && (
+                <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
+                    <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-3xl p-8 shadow-2xl animate-in zoom-in-95 duration-200 border border-slate-100 dark:border-slate-800 text-center">
+                        <div className="w-20 h-20 bg-red-100 dark:bg-red-900/30 text-red-500 rounded-full flex items-center justify-center text-4xl mx-auto mb-6">
+                            ⚠️
+                        </div>
+                        <h3 className="text-2xl font-black text-slate-800 dark:text-white mb-3">هل أنت متأكد من إلغاء الجلسة؟</h3>
+                        <p className="text-slate-500 dark:text-slate-400 mb-8 font-medium">لن يتم حفظ أي بيانات قمت بإدخالها حتى الآن.</p>
+
+                        <div className="flex gap-4">
+                            <button
+                                onClick={() => {
+                                    setIsSessionActive(false);
+                                    setSessionType(null);
+                                    setShowCancelModal(false);
+                                }}
+                                className="flex-1 py-4 bg-red-500 text-white rounded-2xl font-bold hover:bg-red-600 transition-colors shadow-lg shadow-red-200 dark:shadow-none"
+                            >
+                                نعم، إلغاء
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setShowCancelModal(false)}
+                                className="flex-1 py-4 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                            >
+                                تراجع
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Exam Modal */}
             {showExamModal && (
