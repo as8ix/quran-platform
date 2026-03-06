@@ -582,17 +582,30 @@ export default function StudentDetailsPage() {
                 if (reviewDone < 0) reviewDone = 0;
             }
 
-            // 4. Compare
-            // Goal Achieved logic:
-            // - If Session is Hifz Only: Must meet Hifz target. Review target is ignored for THIS session's status.
-            // - If Session is Review Only: Must meet Review target. Hifz target is ignored.
-            // - If Session is Both: Must meet both.
+            // 3.5 Calculate Today's Past Sessions
+            const todayStr = new Date().toISOString().split('T')[0];
+            const todaysSessions = history.filter(s => new Date(s.date).toISOString().split('T')[0] === todayStr);
 
+            let pastHifz = 0;
+            let pastReview = 0;
+            todaysSessions.forEach(s => {
+                if (s.hifzFromPage && s.hifzToPage) {
+                    pastHifz += (s.hifzToPage - s.hifzFromPage) + 1;
+                }
+                const sessionReview = (s.pagesCount || 0) - (s.hifzFromPage && s.hifzToPage ? (s.hifzToPage - s.hifzFromPage + 1) : 0);
+                pastReview += Math.max(0, sessionReview);
+            });
+
+            const totalHifzToday = hifzDone + pastHifz;
+            const totalReviewToday = reviewDone + pastReview;
+
+            // 4. Compare Daily Goal
+            // Evaluate against the student's daily target across all sessions done today.
             const includesHifz = sessionType === 'HIFZ' || sessionType === 'BOTH';
             const includesReview = sessionType === 'MURAJAAH' || sessionType === 'BOTH';
 
-            const hifzMet = (isKhatim || isQuranicDay || !includesHifz) ? true : (hifzTarget > 0 ? hifzDone >= hifzTarget : true);
-            const reviewMet = (!includesReview || reviewTarget <= 0) ? true : (reviewDone >= reviewTarget);
+            const hifzMet = (isKhatim || isQuranicDay || hifzTarget <= 0) ? true : (totalHifzToday >= hifzTarget);
+            const reviewMet = (reviewTarget <= 0) ? true : (totalReviewToday >= reviewTarget);
 
             const isGoalAchieved = hifzMet && reviewMet;
 
@@ -1399,13 +1412,27 @@ export default function StudentDetailsPage() {
                                     const prevDateFormatted = idx > 0 ? formatHijri(history[idx - 1].date, 'long') : null;
                                     const showDateSeparator = currentDateFormatted !== prevDateFormatted;
 
+                                    // Check if ANY session on this day achieved the goal
+                                    let dayAchieved = false;
+                                    if (showDateSeparator) {
+                                        const sessionsOnThisDay = history.filter(s => formatHijri(s.date, 'long') === currentDateFormatted);
+                                        dayAchieved = sessionsOnThisDay.some(s => s.isGoalAchieved);
+                                    }
+
                                     return (
                                         <div key={idx} className="space-y-6">
                                             {showDateSeparator && (
-                                                <div className="flex items-center gap-4 py-2 mt-4 first:mt-0">
+                                                <div className="flex items-center gap-4 py-2 mt-4 first:mt-0 relative">
                                                     <div className="h-px bg-slate-200 dark:bg-slate-700 flex-1"></div>
-                                                    <div className="text-xs font-black text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-4 py-2 rounded-full border border-slate-200 dark:border-slate-700 shadow-sm">
-                                                        📅 {currentDateFormatted}
+                                                    <div className="flex flex-col items-center gap-2">
+                                                        <div className="text-xs font-black text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-4 py-2 rounded-full border border-slate-200 dark:border-slate-700 shadow-sm">
+                                                            📅 {currentDateFormatted}
+                                                        </div>
+                                                        {dayAchieved && (
+                                                            <div className="inline-flex items-center gap-1 px-3 py-1 bg-green-50 text-green-700 text-[10px] font-black rounded-lg border border-green-200 shadow-sm z-10">
+                                                                <span>🎯</span> حقق هدف اليوم
+                                                            </div>
+                                                        )}
                                                     </div>
                                                     <div className="h-px bg-slate-200 dark:bg-slate-700 flex-1"></div>
                                                 </div>
@@ -1421,19 +1448,6 @@ export default function StudentDetailsPage() {
                                                     <span className="text-xs bg-emerald-100 text-emerald-700 font-black px-3 py-1 rounded-full">
                                                         {session.pagesCount} ص
                                                     </span>
-                                                </div>
-
-                                                {/* Goal Status Badge */}
-                                                <div className="mb-3">
-                                                    {session.isGoalAchieved ? (
-                                                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-50 text-green-700 text-[10px] font-black rounded-lg border border-green-100">
-                                                            <span>🎯</span> حقق الهدف اليومي
-                                                        </span>
-                                                    ) : (
-                                                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-slate-50 text-slate-400 text-[10px] font-bold rounded-lg border border-slate-100">
-                                                            <span>➖</span> لم يحقق الهدف
-                                                        </span>
-                                                    )}
                                                 </div>
 
                                                 {session.hifzSurah ? (
