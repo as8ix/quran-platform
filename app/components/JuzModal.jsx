@@ -48,43 +48,37 @@ export default function JuzModal({ juz, onClose }) {
     };
 
     return (
-        <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[9999] dir-rtl"
-            onClick={onClose}
-        >
-            <div
-                className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl transform transition-all"
-                onClick={(e) => e.stopPropagation()}
-            >
+        <div className="modal-overlay animate-fadeIn" onClick={onClose}>
+            <div className="modal-content animate-slideUp max-w-lg" onClick={(e) => e.stopPropagation()}>
                 {/* Header */}
-                <div className="flex justify-between items-center mb-6">
+                <div className="modal-header">
                     <div>
-                        <h3 className="text-2xl font-bold text-gray-800">تفاصيل اليوم {juz}</h3>
-                        <p className="text-sm text-gray-500 mt-1">
+                        <h3 className="text-2xl font-bold text-slate-800 dark:text-white">تفاصيل اليوم {juz}</h3>
+                        <p className="text-sm text-slate-500 mt-1 font-bold">
                             {new Intl.DateTimeFormat('ar', { day: 'numeric', month: 'long', weekday: 'long' }).format(new Date())}
                         </p>
                     </div>
-                    <div className={`px-4 py-2 rounded-full font-bold text-sm ${getStatusColor()}`}>
+                    <div className={`px-4 py-2 rounded-xl font-black text-sm shadow-sm ${getStatusColor()}`}>
                         {getStatusText()}
                     </div>
                 </div>
 
-                {/* Content Grid */}
-                <div className="space-y-4 mb-8">
+                {/* Body */}
+                <div className="modal-body space-y-4">
                     {/* Memorization Section */}
-                    <div className="bg-gray-50 rounded-xl p-4">
-                        <h4 className="font-bold text-gray-700 mb-3 flex items-center gap-2">
-                            <span>📖</span> الحفظ الجديد
+                    <div className="bg-slate-50 dark:bg-slate-900/40 rounded-[1.5rem] p-5 border border-slate-100 dark:border-slate-800">
+                        <h4 className="font-black text-slate-700 dark:text-slate-300 mb-4 flex items-center gap-2">
+                            <span className="w-8 h-8 bg-white dark:bg-slate-800 rounded-lg flex items-center justify-center shadow-sm">📖</span> الحفظ الجديد
                         </h4>
                         <div className="grid grid-cols-2 gap-4 text-sm">
-                            <div>
-                                <p className="text-gray-400 text-xs mb-1">المطلوب</p>
-                                <p className="font-semibold text-gray-800">{mockData.required.mem}</p>
-                                <p className="text-xs text-blue-600 mt-1">{mockData.required.memDetails}</p>
+                            <div className="p-3 bg-white dark:bg-slate-800/50 rounded-xl border border-slate-50 dark:border-slate-700">
+                                <p className="text-slate-400 text-[10px] font-black mb-1 uppercase tracking-wider">المطلوب</p>
+                                <p className="font-bold text-slate-800 dark:text-white">{mockData.required.mem}</p>
+                                <p className="text-[10px] text-amber-600 dark:text-amber-400 font-bold mt-1.5">{mockData.required.memDetails}</p>
                             </div>
-                            <div>
-                                <p className="text-gray-400 text-xs mb-1">المنجز</p>
-                                <p className={`font-semibold ${status === 'red' ? 'text-red-500' : 'text-gray-800'}`}>
+                            <div className="p-3 bg-white dark:bg-slate-800/50 rounded-xl border border-slate-50 dark:border-slate-700">
+                                <p className="text-slate-400 text-[10px] font-black mb-1 uppercase tracking-wider">المنجز</p>
+                                <p className={`font-black text-sm ${status === 'red' ? 'text-red-500' : 'text-slate-800 dark:text-white'}`}>
                                     {mockData.completed.mem}
                                 </p>
                             </div>
@@ -92,19 +86,19 @@ export default function JuzModal({ juz, onClose }) {
                     </div>
 
                     {/* Review Section */}
-                    <div className="bg-gray-50 rounded-xl p-4">
-                        <h4 className="font-bold text-gray-700 mb-3 flex items-center gap-2">
-                            <span>🔄</span> المراجعة
+                    <div className="bg-slate-50 dark:bg-slate-900/40 rounded-[1.5rem] p-5 border border-slate-100 dark:border-slate-800">
+                        <h4 className="font-black text-slate-700 dark:text-slate-300 mb-4 flex items-center gap-2">
+                            <span className="w-8 h-8 bg-white dark:bg-slate-800 rounded-lg flex items-center justify-center shadow-sm">🔄</span> المراجعة
                         </h4>
                         <div className="grid grid-cols-2 gap-4 text-sm">
-                            <div>
-                                <p className="text-gray-400 text-xs mb-1">المطلوب</p>
-                                <p className="font-semibold text-gray-800">{mockData.required.rev}</p>
-                                <p className="text-xs text-blue-600 mt-1">{mockData.required.revDetails}</p>
+                            <div className="p-3 bg-white dark:bg-slate-800/50 rounded-xl border border-slate-50 dark:border-slate-700">
+                                <p className="text-slate-400 text-[10px] font-black mb-1 uppercase tracking-wider">المطلوب</p>
+                                <p className="font-bold text-slate-800 dark:text-white">{mockData.required.rev}</p>
+                                <p className="text-[10px] text-amber-600 dark:text-amber-400 font-bold mt-1.5">{mockData.required.revDetails}</p>
                             </div>
-                            <div>
-                                <p className="text-gray-400 text-xs mb-1">المنجز</p>
-                                <p className={`font-semibold ${status === 'red' ? 'text-red-500' : 'text-gray-800'}`}>
+                            <div className="p-3 bg-white dark:bg-slate-800/50 rounded-xl border border-slate-50 dark:border-slate-700">
+                                <p className="text-slate-400 text-[10px] font-black mb-1 uppercase tracking-wider">المنجز</p>
+                                <p className={`font-black text-sm ${status === 'red' ? 'text-red-500' : 'text-slate-800 dark:text-white'}`}>
                                     {mockData.completed.rev}
                                 </p>
                             </div>
@@ -112,11 +106,11 @@ export default function JuzModal({ juz, onClose }) {
                     </div>
                 </div>
 
-                {/* Actions */}
-                <div className="flex gap-3">
+                {/* Footer */}
+                <div className="modal-footer">
                     <button
                         onClick={onClose}
-                        className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition-colors"
+                        className="w-full py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-2xl font-black hover:bg-slate-200 dark:hover:bg-slate-700 transition-all active:scale-95 shadow-sm"
                     >
                         إغلاق
                     </button>

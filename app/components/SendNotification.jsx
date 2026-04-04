@@ -164,12 +164,14 @@ export default function SendNotification({ senderRole, senderId, students = [], 
             </button>
 
             {isOpen && mounted && createPortal(
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
-                    <div className="bg-white dark:bg-slate-800 rounded-[2rem] p-8 w-full max-w-4xl max-h-[90vh] shadow-2xl relative animate-fadeIn flex flex-col overflow-hidden">
-                        <h3 className="text-2xl font-black text-slate-800 dark:text-white mb-6">إرسال إشعار جديد</h3>
+                <div className="modal-overlay animate-fadeIn" onClick={() => setIsOpen(false)}>
+                    <div className="modal-content animate-slideUp max-w-4xl" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-header bg-gradient-to-r from-emerald-600 to-teal-600 text-white relative">
+                            <h3 className="text-xl sm:text-2xl font-black mb-1">📢 إرسال إشعار جديد</h3>
+                            <p className="text-emerald-50/80 text-xs sm:text-sm font-bold">تواصل مباشرة مع الطلاب أو المعلمين</p>
+                        </div>
 
-                        {/* Scrollable Body */}
-                        <div className="flex-1 overflow-y-auto custom-scrollbar">
+                        <div className="modal-body">
                             <form id="notification-form" onSubmit={handleSubmit} className="space-y-8">
                                 {/* Type Selection */}
                                 <div className="grid grid-cols-3 gap-4">
@@ -207,7 +209,7 @@ export default function SendNotification({ senderRole, senderId, students = [], 
                                             type="text"
                                             value={title}
                                             onChange={(e) => setTitle(e.target.value)}
-                                            className="w-full px-6 py-4 bg-slate-50 dark:bg-slate-900/50 border-2 border-slate-100 dark:border-slate-700 rounded-2xl focus:border-indigo-500 outline-none transition-all font-bold dark:text-white"
+                                            className="w-full px-4 sm:px-6 py-3 sm:py-4 bg-slate-50 dark:bg-slate-900/50 border-2 border-slate-100 dark:border-slate-700 rounded-2xl focus:border-indigo-500 outline-none transition-all font-bold dark:text-white text-sm sm:text-base"
                                             placeholder="مثال: موعد الاختبار القادم"
                                             required
                                         />
@@ -217,7 +219,7 @@ export default function SendNotification({ senderRole, senderId, students = [], 
                                         <textarea
                                             value={message}
                                             onChange={(e) => setMessage(e.target.value)}
-                                            className="w-full px-6 py-4 bg-slate-50 dark:bg-slate-900/50 border-2 border-slate-100 dark:border-slate-700 rounded-2xl focus:border-indigo-500 outline-none transition h-40 resize-none font-bold dark:text-white"
+                                            className="w-full px-4 sm:px-6 py-3 sm:py-4 bg-slate-50 dark:bg-slate-900/50 border-2 border-slate-100 dark:border-slate-700 rounded-2xl focus:border-indigo-500 outline-none transition h-32 sm:h-40 resize-none font-bold dark:text-white text-sm sm:text-base"
                                             placeholder="اكتب تفاصيل الإشعار هنا..."
                                             required
                                         ></textarea>
@@ -304,7 +306,7 @@ export default function SendNotification({ senderRole, senderId, students = [], 
                                             )}
                                         </div>
 
-                                        <div className="border-2 border-slate-100 dark:border-slate-700 rounded-2xl overflow-hidden flex flex-col h-[180px]">
+                                        <div className="border-2 border-slate-100 dark:border-slate-700 rounded-2xl overflow-hidden flex flex-col h-[200px]">
                                             <div className="overflow-y-auto p-3 space-y-1 custom-scrollbar flex-1 bg-white dark:bg-transparent">
                                                 {(targetType === 'STUDENT' ? students : teachers).map(item => (
                                                     <label key={item.id} className="flex items-center gap-3 p-2.5 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-xl cursor-pointer transition-colors group">
@@ -321,12 +323,12 @@ export default function SendNotification({ senderRole, senderId, students = [], 
                                                     <div className="p-8 text-center text-xs text-slate-400 font-bold italic">لا يوجد مستلمين متاحين</div>
                                                 )}
                                             </div>
-                                            <div className="bg-slate-50 dark:bg-slate-900/50 p-3 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between">
+                                            <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-700">
                                                 <div className="flex items-center gap-2">
                                                     <input id="select-all" type="checkbox" checked={selectAll} onChange={(e) => handleSelectAll(e.target.checked)} className="w-5 h-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer" />
                                                     <label htmlFor="select-all" className="text-xs font-bold text-slate-500 cursor-pointer">تحديد الكل</label>
                                                 </div>
-                                                <span className="text-[10px] bg-white dark:bg-slate-800 px-2 py-1 rounded-lg border border-slate-100 text-indigo-600 font-bold">{selectedRecipients.length} محدد</span>
+                                                <span className="text-xs bg-white dark:bg-slate-800 px-2 py-1 rounded-lg border border-slate-100 text-indigo-600 font-bold">{selectedRecipients.length} محدد</span>
                                             </div>
                                         </div>
                                     </div>
@@ -334,8 +336,7 @@ export default function SendNotification({ senderRole, senderId, students = [], 
                             </form>
                         </div>
 
-                        {/* Footer */}
-                        <div className="flex gap-4 mt-8">
+                        <div className="modal-footer flex gap-3 sm:gap-4">
                             <button
                                 type="button"
                                 onClick={() => {

@@ -10,6 +10,7 @@ import { formatHijri } from '../utils/dateUtils';
 import SendNotification from '../components/SendNotification';
 import ManageEvents from '../components/ManageEvents';
 import { useTheme } from '../components/ThemeProvider';
+import DevStats from '../components/DevStats';
 
 
 export default function SupervisorDashboard() {
@@ -140,7 +141,7 @@ export default function SupervisorDashboard() {
                 setNewTeacher({ name: '', username: '', password: '' });
                 setIsEditingTeacher(false);
                 setEditTeacherId(null);
-                fetchData();
+                fetchAllData();
             } else {
                 const data = await res.json();
                 toast.error(data.error || 'خطأ في العملية');
@@ -183,7 +184,7 @@ export default function SupervisorDashboard() {
                 setNewHalaqa({ name: '', teacherId: '', assistantTeacherIds: [] });
                 setIsEditingHalaqa(false);
                 setEditHalaqaId(null);
-                fetchData();
+                fetchAllData();
             } else {
                 const data = await res.json();
                 toast.error(data.error || 'خطأ في العملية');
@@ -262,7 +263,7 @@ export default function SupervisorDashboard() {
             const res = await fetch(`/api/teachers?id=${id}`, { method: 'DELETE' });
             if (res.ok) {
                 toast.success('تم حذف المعلم بنجاح');
-                fetchData();
+                fetchAllData();
             } else {
                 toast.error('لم يتم الحذف (قد يكون مرتبطاً بحلقات)');
             }
@@ -308,7 +309,7 @@ export default function SupervisorDashboard() {
             const res = await fetch(`/api/halaqas?id=${id}`, { method: 'DELETE' });
             if (res.ok) {
                 toast.success('تم حذف الحلقة بنجاح');
-                fetchData();
+                fetchAllData();
             } else {
                 toast.error('حدث خطأ أثناء الحذف');
             }
@@ -594,152 +595,171 @@ export default function SupervisorDashboard() {
 
             {/* Modals */}
             {showTeacherModal && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white dark:bg-slate-800 rounded-[2rem] p-8 w-full max-w-md shadow-2xl relative animate-fadeIn">
-                        <h3 className="text-2xl font-black text-slate-800 dark:text-white mb-6">
-                            {isEditingTeacher ? 'تعديل بيانات المعلم' : 'إضافة معلم جديد'}
-                        </h3>
-                        <form onSubmit={handleCreateTeacher} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">الاسم الثلاثي</label>
-                                <input
-                                    type="text"
-                                    required
-                                    value={newTeacher.name}
-                                    onChange={e => setNewTeacher({ ...newTeacher, name: e.target.value })}
-                                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900/50 border-2 border-slate-100 dark:border-slate-700 rounded-xl focus:border-emerald-500 outline-none transition-all font-bold dark:text-white"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">اسم المستخدم</label>
-                                <input
-                                    type="text"
-                                    required
-                                    value={newTeacher.username}
-                                    onChange={e => setNewTeacher({ ...newTeacher, username: e.target.value })}
-                                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900/50 border-2 border-slate-100 dark:border-slate-700 rounded-xl focus:border-emerald-500 outline-none transition-all font-bold dark:text-white"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">كلمة المرور</label>
-                                <input
-                                    type="text"
-                                    required
-                                    value={newTeacher.password}
-                                    onChange={e => setNewTeacher({ ...newTeacher, password: e.target.value })}
-                                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900/50 border-2 border-slate-100 dark:border-slate-700 rounded-xl focus:border-emerald-500 outline-none transition-all font-bold dark:text-white"
-                                />
-                            </div>
-                            <div className="flex gap-4 mt-8">
-                                <button type="button" onClick={() => {
-                                    setShowTeacherModal(false);
-                                    setIsEditingTeacher(false);
-                                    setEditTeacherId(null);
-                                    setNewTeacher({ name: '', username: '', password: '' });
-                                }} className="flex-1 py-3 text-slate-500 dark:text-slate-400 font-bold hover:bg-slate-50 dark:hover:bg-slate-700 rounded-xl transition-colors">إلغاء</button>
-                                <button type="submit" disabled={submitting} className={`flex-1 py-3 ${isEditingTeacher ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-slate-900 dark:bg-emerald-600 hover:bg-black dark:hover:bg-emerald-700'} text-white rounded-xl font-bold transition-colors shadow-lg disabled:opacity-50`}>
-                                    {submitting ? 'جاري التنفيذ...' : (isEditingTeacher ? 'حفظ التعديلات' : 'إضافة المعلم')}
-                                </button>
-                            </div>
-                        </form>
+                <div className="modal-overlay animate-fadeIn" onClick={() => {
+                    setShowTeacherModal(false);
+                    setIsEditingTeacher(false);
+                    setEditTeacherId(null);
+                    setNewTeacher({ name: '', username: '', password: '' });
+                }}>
+                    <div className="modal-content animate-slideUp max-w-md" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h3 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-white">
+                                {isEditingTeacher ? 'تعديل بيانات المعلم' : 'إضافة معلم جديد'}
+                            </h3>
+                        </div>
+                        <div className="modal-body">
+                            <form id="teacher-form" onSubmit={handleCreateTeacher} className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">الاسم الثلاثي</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={newTeacher.name}
+                                        onChange={e => setNewTeacher({ ...newTeacher, name: e.target.value })}
+                                        className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900/50 border-2 border-slate-100 dark:border-slate-700 rounded-xl focus:border-emerald-500 outline-none transition-all font-bold dark:text-white"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">اسم المستخدم</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={newTeacher.username}
+                                        onChange={e => setNewTeacher({ ...newTeacher, username: e.target.value })}
+                                        className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900/50 border-2 border-slate-100 dark:border-slate-700 rounded-xl focus:border-emerald-500 outline-none transition-all font-bold dark:text-white"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">كلمة المرور</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={newTeacher.password}
+                                        onChange={e => setNewTeacher({ ...newTeacher, password: e.target.value })}
+                                        className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900/50 border-2 border-slate-100 dark:border-slate-700 rounded-xl focus:border-emerald-500 outline-none transition-all font-bold dark:text-white"
+                                    />
+                                </div>
+                            </form>
+                        </div>
+                        <div className="modal-footer flex gap-4">
+                            <button type="button" onClick={() => {
+                                setShowTeacherModal(false);
+                                setIsEditingTeacher(false);
+                                setEditTeacherId(null);
+                                setNewTeacher({ name: '', username: '', password: '' });
+                            }} className="flex-1 py-3 text-slate-500 dark:text-slate-400 font-bold hover:bg-slate-50 dark:hover:bg-slate-700 rounded-xl transition-colors">إلغاء</button>
+                            <button type="submit" form="teacher-form" disabled={submitting} className={`flex-1 py-3 ${isEditingTeacher ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-slate-900 dark:bg-emerald-600 hover:bg-black dark:hover:bg-emerald-700'} text-white rounded-xl font-bold transition-colors shadow-lg disabled:opacity-50`}>
+                                {submitting ? 'جاري التنفيذ...' : (isEditingTeacher ? 'حفظ التعديلات' : 'إضافة المعلم')}
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
+
 
             {showHalaqaModal && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white dark:bg-slate-800 rounded-[2rem] p-8 w-full max-w-md shadow-2xl relative animate-fadeIn">
-                        <h3 className="text-2xl font-black text-slate-800 dark:text-white mb-6">
-                            {isEditingHalaqa ? 'تعديل بيانات الحلقة' : 'إنشاء حلقة جديدة'}
-                        </h3>
-                        <form onSubmit={handleCreateHalaqa} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">اسم الحلقة</label>
-                                <input
-                                    type="text"
-                                    required
-                                    placeholder="مثال: حلقة أبو بكر الصديق"
-                                    value={newHalaqa.name}
-                                    onChange={e => setNewHalaqa({ ...newHalaqa, name: e.target.value })}
-                                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900/50 border-2 border-slate-100 dark:border-slate-700 rounded-xl focus:border-indigo-500 outline-none transition-all font-bold dark:text-white"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">المعلم المسؤول (المشرف الأساسي)</label>
-                                <select
-                                    required
-                                    value={newHalaqa.teacherId}
-                                    onChange={e => setNewHalaqa({ ...newHalaqa, teacherId: e.target.value })}
-                                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900/50 border-2 border-slate-100 dark:border-slate-700 rounded-xl focus:border-indigo-500 outline-none transition-all font-bold dark:text-white"
-                                >
-                                    <option value="">اختر المعلم المسؤول...</option>
-                                    {teachers.map(t => (
-                                        <option key={t.id} value={t.id}>{t.name}</option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">المعلمين المساعدين (اختياري)</label>
-                                <div className="p-3 bg-slate-50 dark:bg-slate-900/50 border-2 border-slate-100 dark:border-slate-700 rounded-xl max-h-40 overflow-y-auto custom-scrollbar">
-                                    {teachers.filter(t => t.id !== parseInt(newHalaqa.teacherId)).length > 0 ? (
-                                        teachers.filter(t => t.id !== parseInt(newHalaqa.teacherId)).map(t => (
-                                            <label key={t.id} className="flex items-center gap-3 p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg cursor-pointer transition-colors">
-                                                <input
-                                                    type="checkbox"
-                                                    value={t.id}
-                                                    checked={newHalaqa.assistantTeacherIds?.includes(t.id.toString())}
-                                                    onChange={e => {
-                                                        const id = e.target.value;
-                                                        const currentIds = newHalaqa.assistantTeacherIds || [];
-                                                        if (e.target.checked) {
-                                                            setNewHalaqa({ ...newHalaqa, assistantTeacherIds: [...currentIds, id] });
-                                                        } else {
-                                                            setNewHalaqa({ ...newHalaqa, assistantTeacherIds: currentIds.filter(tid => tid !== id) });
-                                                        }
-                                                    }}
-                                                    className="w-5 h-5 rounded-md border-2 border-slate-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-500"
-                                                />
-                                                <span className="font-bold text-slate-700 dark:text-slate-300">{t.name}</span>
-                                            </label>
-                                        ))
-                                    ) : (
-                                        <p className="text-slate-400 text-sm text-center py-2">لا يوجد معلمين آخرين للإختيار</p>
-                                    )}
+                <div className="modal-overlay animate-fadeIn" onClick={() => {
+                    setShowHalaqaModal(false);
+                    setIsEditingHalaqa(false);
+                    setEditHalaqaId(null);
+                    setNewHalaqa({ name: '', teacherId: '', assistantTeacherIds: [] });
+                }}>
+                    <div className="modal-content animate-slideUp max-w-md" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h3 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-white">
+                                {isEditingHalaqa ? 'تعديل بيانات الحلقة' : 'إنشاء حلقة جديدة'}
+                            </h3>
+                        </div>
+                        <div className="modal-body">
+                            <form id="halaqa-form" onSubmit={handleCreateHalaqa} className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">اسم الحلقة</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        placeholder="مثال: حلقة أبو بكر الصديق"
+                                        value={newHalaqa.name}
+                                        onChange={e => setNewHalaqa({ ...newHalaqa, name: e.target.value })}
+                                        className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900/50 border-2 border-slate-100 dark:border-slate-700 rounded-xl focus:border-indigo-500 outline-none transition-all font-bold dark:text-white"
+                                    />
                                 </div>
-                                <p className="text-xs text-slate-400 mt-2 font-bold">يمكنك اختيار أكثر من معلم مساعد</p>
-                            </div>
 
-                            <div className="flex gap-4 mt-8">
-                                <button type="button" onClick={() => {
-                                    setShowHalaqaModal(false);
-                                    setIsEditingHalaqa(false);
-                                    setEditHalaqaId(null);
-                                    setNewHalaqa({ name: '', teacherId: '', assistantTeacherIds: [] });
-                                }} className="flex-1 py-3 text-slate-500 dark:text-slate-400 font-bold hover:bg-slate-50 dark:hover:bg-slate-700 rounded-xl transition-colors">إلغاء</button>
-                                <button type="submit" disabled={submitting} className="flex-1 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-colors disabled:opacity-50 shadow-lg shadow-indigo-200 dark:shadow-none">
-                                    {submitting ? 'جاري الإنشاء...' : (isEditingHalaqa ? 'حفظ التعديلات' : 'إنشاء الحلقة')}
-                                </button>
-                            </div>
-                        </form>
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">المعلم المسؤول (المشرف الأساسي)</label>
+                                    <select
+                                        required
+                                        value={newHalaqa.teacherId}
+                                        onChange={e => setNewHalaqa({ ...newHalaqa, teacherId: e.target.value })}
+                                        className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900/50 border-2 border-slate-100 dark:border-slate-700 rounded-xl focus:border-indigo-500 outline-none transition-all font-bold dark:text-white"
+                                    >
+                                        <option value="">اختر المعلم المسؤول...</option>
+                                        {teachers.map(t => (
+                                            <option key={t.id} value={t.id}>{t.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">المعلمين المساعدين (اختياري)</label>
+                                    <div className="p-3 bg-slate-50 dark:bg-slate-900/50 border-2 border-slate-100 dark:border-slate-700 rounded-xl max-h-40 overflow-y-auto custom-scrollbar">
+                                        {teachers.filter(t => t.id !== parseInt(newHalaqa.teacherId)).length > 0 ? (
+                                            teachers.filter(t => t.id !== parseInt(newHalaqa.teacherId)).map(t => (
+                                                <label key={t.id} className="flex items-center gap-3 p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg cursor-pointer transition-colors">
+                                                    <input
+                                                        type="checkbox"
+                                                        value={t.id}
+                                                        checked={newHalaqa.assistantTeacherIds?.includes(t.id.toString())}
+                                                        onChange={e => {
+                                                            const id = e.target.value;
+                                                            const currentIds = newHalaqa.assistantTeacherIds || [];
+                                                            if (e.target.checked) {
+                                                                setNewHalaqa({ ...newHalaqa, assistantTeacherIds: [...currentIds, id] });
+                                                            } else {
+                                                                setNewHalaqa({ ...newHalaqa, assistantTeacherIds: currentIds.filter(tid => tid !== id) });
+                                                            }
+                                                        }}
+                                                        className="w-5 h-5 rounded-md border-2 border-slate-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-500"
+                                                    />
+                                                    <span className="font-bold text-slate-700 dark:text-slate-300">{t.name}</span>
+                                                </label>
+                                            ))
+                                        ) : (
+                                            <p className="text-slate-400 text-sm text-center py-2">لا يوجد معلمين آخرين للإختيار</p>
+                                        )}
+                                    </div>
+                                    <p className="text-xs text-slate-400 mt-2 font-bold">يمكنك اختيار أكثر من معلم مساعد</p>
+                                </div>
+                            </form>
+                        </div>
+                        <div className="modal-footer flex gap-4">
+                            <button type="button" onClick={() => {
+                                setShowHalaqaModal(false);
+                                setIsEditingHalaqa(false);
+                                setEditHalaqaId(null);
+                                setNewHalaqa({ name: '', teacherId: '', assistantTeacherIds: [] });
+                            }} className="flex-1 py-3 text-slate-500 dark:text-slate-400 font-bold hover:bg-slate-50 dark:hover:bg-slate-700 rounded-xl transition-colors">إلغاء</button>
+                            <button type="submit" form="halaqa-form" disabled={submitting} className="flex-1 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-colors disabled:opacity-50 shadow-lg shadow-indigo-200 dark:shadow-none">
+                                {submitting ? 'جاري الإنشاء...' : (isEditingHalaqa ? 'حفظ التعديلات' : 'إنشاء الحلقة')}
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
+
 
             {/* Students List Modal */}
             {showStudentsModal && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white dark:bg-slate-800 rounded-[2rem] p-8 w-full max-w-2xl shadow-2xl relative animate-fadeIn max-h-[800px] flex flex-col">
-                        <div className="flex justify-between items-center mb-6">
+                <div className="modal-overlay animate-fadeIn" onClick={() => setShowStudentsModal(false)}>
+                    <div className="modal-content animate-slideUp max-w-2xl" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-header border-b border-slate-50 dark:border-slate-700">
                             <div>
-                                <h3 className="text-2xl font-black text-slate-800 dark:text-white">طلاب {selectedHalaqaName}</h3>
-                                <p className="text-slate-500 dark:text-slate-400 font-bold text-sm">قائمة الطلاب المسجلين في هذه الحلقة</p>
+                                <h3 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-white">طلاب {selectedHalaqaName}</h3>
+                                <p className="text-slate-500 dark:text-slate-400 font-bold text-xs sm:text-sm">قائمة الطلاب المسجلين في هذه الحلقة</p>
                             </div>
                             <button onClick={() => setShowStudentsModal(false)} className="w-10 h-10 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center text-slate-400 dark:text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-600 hover:text-slate-600 dark:hover:text-slate-300 transition-all font-bold">✕</button>
                         </div>
 
-                        <div className="flex-1 overflow-y-auto custom-scrollbar p-1">
+                        <div className="modal-body">
                             {loadingStudents ? (
                                 <div className="py-20 flex flex-col items-center justify-center">
                                     <div className="w-10 h-10 border-4 border-indigo-100 dark:border-indigo-900 border-t-indigo-600 rounded-full animate-spin"></div>
@@ -768,9 +788,14 @@ export default function SupervisorDashboard() {
                                 </div>
                             )}
                         </div>
+                        <div className="modal-footer">
+                            <button onClick={() => setShowStudentsModal(false)} className="w-full py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-2xl font-black hover:bg-slate-200 transition-all shadow-sm">إغلاق</button>
+                        </div>
                     </div>
                 </div>
             )}
+
+            <DevStats />
         </div>
     );
 }

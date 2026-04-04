@@ -1547,194 +1547,211 @@ export default function StudentDetailsPage() {
                                                             </div>
                                                         )}
 
-                                                        {/* Murajaah Metrics (Minor) */}
                                                         {session.minorMurajaahFromSurah && (
                                                             <div>
                                                                 <div className="text-[9px] font-bold text-blue-500 dark:text-blue-400 mb-2">إنجاز المراجعة الصغرى:</div>
-                                                                <div className="flex gap-2 text-[11px] flex-wrap">
-                                                                    <span className={`px-2 py-0.5 rounded-lg font-bold ${(session.minorErrorsCount || 0) > 0 ? 'bg-red-50 text-red-600' : 'bg-white/50 dark:bg-slate-900/50 text-slate-300'}`}>
-                                                                        ❌ {session.minorErrorsCount || 0} خطأ
-                                                                    </span>
-                                                                    <span className={`px-2 py-0.5 rounded-lg font-bold ${(session.minorAlertsCount || 0) > 0 ? 'bg-orange-50 text-orange-600' : 'bg-white/50 dark:bg-slate-900/50 text-slate-300'}`}>
-                                                                        ⚠️ {session.minorAlertsCount || 0} تنبيه
-                                                                    </span>
-                                                                    <span className={`px-2 py-0.5 rounded-lg font-bold ${(session.minorCleanPagesCount || 0) > 0 ? 'bg-blue-50 text-blue-600' : 'bg-white/50 dark:bg-slate-900/50 text-slate-300'}`}>
-                                                                        ✨ {session.minorCleanPagesCount || 0} نقية
-                                                                    </span>
-                                                                </div>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </div>
-
-                                                {session.notes && (
-                                                    <div className="mt-4 pt-4 border-t border-slate-200 text-xs text-slate-400 italic">
-                                                        " {session.notes} "
+                                                        <div className="flex gap-2 text-[11px] flex-wrap">
+                                                            <span className={`px-2 py-0.5 rounded-lg font-bold ${(session.minorErrorsCount || 0) > 0 ? 'bg-red-50 text-red-600' : 'bg-white/50 dark:bg-slate-900/50 text-slate-300'}`}>
+                                                                ❌ {session.minorErrorsCount || 0} خطأ
+                                                            </span>
+                                                            <span className={`px-2 py-0.5 rounded-lg font-bold ${(session.minorAlertsCount || 0) > 0 ? 'bg-orange-50 text-orange-600' : 'bg-white/50 dark:bg-slate-900/50 text-slate-300'}`}>
+                                                                ⚠️ {session.minorAlertsCount || 0} تنبيه
+                                                            </span>
+                                                            <span className={`px-2 py-0.5 rounded-lg font-bold ${(session.minorCleanPagesCount || 0) > 0 ? 'bg-blue-50 text-blue-600' : 'bg-white/50 dark:bg-slate-900/50 text-slate-300'}`}>
+                                                                ✨ {session.minorCleanPagesCount || 0} نقية
+                                                            </span>
+                                                        </div>
                                                     </div>
                                                 )}
                                             </div>
                                         </div>
-                                    )
-                                }) : (
-                                    <div className="text-center py-20">
-                                        <div className="text-6xl mb-4 opacity-20">📭</div>
-                                        <div className="text-slate-300 font-black">لا يوجد سجلات بعد</div>
+
+                                        {session.notes && (
+                                            <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 text-xs text-slate-400 italic">
+                                                " {session.notes} "
+                                            </div>
+                                        )}
                                     </div>
-                                )}
+                                </div>
+                            )
+                        }) : (
+                            <div className="text-center py-20">
+                                <div className="text-6xl mb-4 opacity-20">📭</div>
+                                <div className="text-slate-300 font-black">لا يوجد سجلات بعد</div>
                             </div>
-                        </div>
+                        )}
                     </div>
                 </div>
-            </main>
-
-            {student && (
-                <AddStudentModal
-                    isOpen={showEditModal}
-                    onClose={() => setShowEditModal(false)}
-                    onAdd={() => {
-                        setShowEditModal(false);
-                        fetchStudent();
-                    }}
-                    halaqaId={student.halaqaId}
-                    student={student}
-                />
-            )}
-            <style jsx global>{`
-                @keyframes pulse-slow {
-                    0%, 100% { opacity: 1; transform: scale(1); }
-                    50% { opacity: 0.9; transform: scale(0.995); }
-                }
-                .animate-pulse-slow {
-                    animation: pulse-slow 3s ease-in-out infinite;
-                }
-            `}</style>
-
-            {/* Cancel Session Modal */}
-            {showCancelModal && (
-                <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
-                    <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-3xl p-8 shadow-2xl animate-in zoom-in-95 duration-200 border border-slate-100 dark:border-slate-800 text-center">
-                        <div className="w-20 h-20 bg-red-100 dark:bg-red-900/30 text-red-500 rounded-full flex items-center justify-center text-4xl mx-auto mb-6">
-                            ⚠️
-                        </div>
-                        <h3 className="text-2xl font-black text-slate-800 dark:text-white mb-3">هل أنت متأكد من إلغاء الجلسة؟</h3>
-                        <p className="text-slate-500 dark:text-slate-400 mb-8 font-medium">لن يتم حفظ أي بيانات قمت بإدخالها حتى الآن.</p>
-
-                        <div className="flex gap-4">
-                            <button
-                                onClick={() => {
-                                    setIsSessionActive(false);
-                                    setSessionType(null);
-                                    setShowCancelModal(false);
-                                }}
-                                className="flex-1 py-4 bg-red-500 text-white rounded-2xl font-bold hover:bg-red-600 transition-colors shadow-lg shadow-red-200 dark:shadow-none"
-                            >
-                                نعم، إلغاء
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setShowCancelModal(false)}
-                                className="flex-1 py-4 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-2xl font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-                            >
-                                تراجع
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Exam Modal */}
-            {showExamModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-                    <div className="bg-white dark:bg-slate-800 w-full max-w-lg rounded-3xl p-8 shadow-2xl animate-in fade-in zoom-in duration-200">
-                        <h3 className="text-2xl font-black text-slate-800 dark:text-white mb-6">📅 تحديد موعد الاختبار</h3>
-
-                        <div className="space-y-6">
-                            <div>
-                                <label className="block text-sm font-bold text-slate-500 mb-2">تاريخ الاختبار</label>
-                                <input
-                                    type="date"
-                                    value={examDate}
-                                    onChange={e => setExamDate(e.target.value)}
-                                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 rounded-xl font-bold text-slate-800 dark:text-white border-2 border-transparent focus:border-indigo-500 outline-none transition-colors"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-bold text-slate-500 mb-2">وقت الاختبار (مثال: بعد المغرب)</label>
-                                <input
-                                    type="text"
-                                    value={examTime}
-                                    onChange={e => setExamTime(e.target.value)}
-                                    placeholder="مثال: بعد صلاة العشاء"
-                                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 rounded-xl font-bold text-slate-800 dark:text-white border-2 border-transparent focus:border-indigo-500 outline-none transition-colors"
-                                />
-                            </div>
-
-                            <div className="flex gap-3 pt-4">
-                                <button
-                                    onClick={handleScheduleExam}
-                                    className="flex-1 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200"
-                                >
-                                    حفظ الموعد
-                                </button>
-                                <button
-                                    onClick={() => setShowExamModal(false)}
-                                    className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition-colors"
-                                >
-                                    إلغاء
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-            {/* Session Type Selection Modal */}
-            {showTypeModal && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
-                    <div className="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-[3rem] p-10 shadow-3xl animate-in zoom-in-95 duration-300 relative border border-slate-100 dark:border-slate-800">
-                        <div className="text-center mb-12">
-                            <div className="w-24 h-24 bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/30 dark:to-teal-900/30 text-emerald-600 rounded-[2rem] flex items-center justify-center text-5xl mx-auto mb-6 shadow-lg shadow-emerald-100 dark:shadow-none">✨</div>
-                            <h3 className="text-4xl font-black text-slate-800 dark:text-white mb-3">ماذا سنسمع اليوم؟</h3>
-                            <p className="text-slate-500 dark:text-slate-400 font-bold text-lg">اختر نوع الجلسة للبدء في التسجيل</p>
-                        </div>
-
-                        <div className={`grid grid-cols-1 ${isKhatim || isQuranicDaySession ? 'md:grid-cols-1 max-w-xs mx-auto' : 'md:grid-cols-3'} gap-6`}>
-                            {[
-                                { id: 'HIFZ', label: 'حفظ جديد', icon: '📖', color: 'emerald', desc: 'تسميع المقدار اليومي', bg: 'bg-emerald-50 dark:bg-emerald-900/20', hidden: isKhatim || isQuranicDaySession },
-                                { id: 'MURAJAAH', label: 'مراجعة فقط', icon: '🔄', color: 'indigo', desc: 'تثبيت السور السابقة', bg: 'bg-indigo-50 dark:bg-indigo-900/20' },
-                                { id: 'BOTH', label: 'الاثنين معاً', icon: '💎', color: 'amber', desc: 'حفظ ومراجعة شاملة', bg: 'bg-amber-50 dark:bg-amber-900/20', hidden: isKhatim || isQuranicDaySession },
-                            ].filter(t => !t.hidden).map((type) => (
-                                <button
-                                    key={type.id}
-                                    onClick={() => {
-                                        setSessionType(type.id);
-                                        setIsSessionActive(true);
-                                        setShowTypeModal(false);
-                                    }}
-                                    className={`group p-8 rounded-[2.5rem] border-2 border-slate-50 dark:border-slate-800 hover:border-${type.color}-500 transition-all text-center flex flex-col items-center gap-4 ${type.bg} relative overflow-hidden`}
-                                >
-                                    <div className={`absolute top-0 right-0 w-24 h-24 bg-${type.color}-500/5 rounded-full -translate-y-12 translate-x-12`}></div>
-                                    <div className={`w-20 h-20 bg-white dark:bg-slate-800 shadow-xl shadow-${type.color}-100 dark:shadow-none text-${type.color}-600 rounded-3xl flex items-center justify-center text-4xl group-hover:scale-110 group-active:scale-90 transition-all relative z-10`}>
-                                        {type.icon}
-                                    </div>
-                                    <div className="relative z-10">
-                                        <div className="font-black text-slate-800 dark:text-white text-xl mb-1">{type.label}</div>
-                                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{type.desc}</div>
-                                    </div>
-                                </button>
-                            ))}
-                        </div>
-
-                        <button
-                            onClick={() => setShowTypeModal(false)}
-                            className="w-full mt-12 py-4 text-slate-400 font-black hover:text-red-500 transition-colors flex items-center justify-center gap-2"
-                        >
-                            <span>إغلاق</span>
-                            <span>✕</span>
-                        </button>
-                    </div>
-                </div>
-            )}
+            </div>
         </div>
-    );
-}
+    </main>
 
+    {student && (
+        <AddStudentModal
+            isOpen={showEditModal}
+            onClose={() => setShowEditModal(false)}
+            onAdd={() => {
+                setShowEditModal(false);
+                fetchStudent();
+            }}
+            halaqaId={student.halaqaId}
+            student={student}
+        />
+    )}
+    <style jsx global>{`
+        @keyframes pulse-slow {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.9; transform: scale(0.995); }
+        }
+        .animate-pulse-slow {
+            animation: pulse-slow 3s ease-in-out infinite;
+        }
+    `}</style>
+
+    {/* Cancel Session Modal */}
+    {showCancelModal && (
+        <div className="modal-overlay animate-fadeIn z-[110]" onClick={() => setShowCancelModal(false)}>
+            <div className="modal-content animate-slideUp max-w-md text-center" onClick={(e) => e.stopPropagation()}>
+                <div className="modal-body py-8">
+                    <div className="w-20 h-20 bg-red-100 dark:bg-red-900/30 text-red-500 rounded-full flex items-center justify-center text-4xl mx-auto mb-6 shadow-inner ring-8 ring-red-50/50 dark:ring-red-900/10">
+                        ⚠️
+                    </div>
+                    <h3 className="text-2xl font-black text-slate-800 dark:text-white mb-3">هل أنت متأكد من إلغاء الجلسة؟</h3>
+                    <p className="text-slate-500 dark:text-slate-400 mb-2 font-bold">لن يتم حفظ أي بيانات قمت بإدخالها حتى الآن.</p>
+                </div>
+
+                <div className="modal-footer flex gap-4">
+                    <button
+                        onClick={() => {
+                            setIsSessionActive(false);
+                            setSessionType(null);
+                            setShowCancelModal(false);
+                        }}
+                        className="flex-1 py-4 bg-red-500 text-white rounded-2xl font-black hover:bg-red-600 transition-all active:scale-95 shadow-lg shadow-red-100 dark:shadow-none"
+                    >
+                        نعم، إلغاء
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setShowCancelModal(false)}
+                        className="flex-1 py-4 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-2xl font-black hover:bg-slate-200 dark:hover:bg-slate-600 transition-all active:scale-95"
+                    >
+                        تراجع
+                    </button>
+                </div>
+            </div>
+        </div>
+    )}
+
+    {/* Exam Modal */}
+    {showExamModal && (
+        <div className="modal-overlay animate-fadeIn z-[100]" onClick={() => setShowExamModal(false)}>
+            <div className="modal-content animate-slideUp max-w-md" onClick={(e) => e.stopPropagation()}>
+                <div className="modal-header">
+                    <h3 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-white">📅 تحديد موعد الاختبار</h3>
+                </div>
+
+                <div className="modal-body space-y-6">
+                    <div>
+                        <label className="block text-sm font-bold text-slate-500 dark:text-slate-400 mb-2">تاريخ الاختبار</label>
+                        <input
+                            type="date"
+                            value={examDate}
+                            onChange={e => setExamDate(e.target.value)}
+                            className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border-2 border-transparent focus:border-indigo-500 outline-none transition-all font-bold dark:text-white rounded-xl"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-bold text-slate-500 dark:text-slate-400 mb-2">وقت الاختبار (مثال: بعد المغرب)</label>
+                        <input
+                            type="text"
+                            value={examTime}
+                            onChange={e => setExamTime(e.target.value)}
+                            placeholder="مثال: بعد صلاة العشاء"
+                            className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border-2 border-transparent focus:border-indigo-500 outline-none transition-all font-bold dark:text-white rounded-xl"
+                        />
+                    </div>
+                </div>
+
+                <div className="modal-footer flex gap-3">
+                    <button
+                        onClick={() => setShowExamModal(false)}
+                        className="flex-1 py-4 bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 rounded-2xl font-black hover:bg-slate-200 dark:hover:bg-slate-600 transition-all active:scale-95"
+                    >
+                        إلغاء
+                    </button>
+                    <button
+                        onClick={handleScheduleExam}
+                        className="flex-1 py-4 bg-indigo-600 text-white rounded-2xl font-black hover:bg-indigo-700 transition-all active:scale-95 shadow-lg shadow-indigo-100 dark:shadow-none"
+                    >
+                        حفظ الموعد
+                    </button>
+                </div>
+            </div>
+        </div>
+    )}
+    {/* Session Type Selection Modal */}
+    {showTypeModal && (
+        <div className="modal-overlay animate-fadeIn z-[100]" onClick={() => setShowTypeModal(false)}>
+            <div className="modal-content animate-slideUp max-w-2xl" onClick={(e) => e.stopPropagation()}>
+                <div className="modal-header flex flex-col items-center text-center py-6">
+                    <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/30 dark:to-teal-900/30 text-emerald-600 rounded-2xl sm:rounded-[2rem] flex items-center justify-center text-3xl sm:text-4xl mb-4 sm:mb-6 shadow-lg shadow-emerald-100 dark:shadow-none">✨</div>
+                    <h3 className="text-2xl sm:text-3xl font-black text-slate-800 dark:text-white mb-2 sm:mb-3 uppercase tracking-tight">ماذا سنسمع اليوم؟</h3>
+                    <p className="text-slate-500 dark:text-slate-400 font-black text-base sm:text-lg">اختر نوع الجلسة للبدء في التسجيل</p>
+                </div>
+
+                <div className="modal-body">
+                    <div className={`grid grid-cols-1 ${isKhatim || isQuranicDaySession ? 'max-w-xs mx-auto' : 'sm:grid-cols-3'} gap-4 sm:gap-6`}>
+                        {[
+                            { id: 'HIFZ', label: 'حفظ جديد', icon: '📖', color: 'emerald', desc: 'تسميع المقدار اليومي', bg: 'bg-emerald-50 dark:bg-emerald-900/20', hidden: isKhatim || isQuranicDaySession },
+                            { id: 'MURAJAAH', label: 'مراجعة فقط', icon: '🔄', color: 'indigo', desc: 'تثبيت السور السابقة', bg: 'bg-indigo-50 dark:bg-indigo-900/20' },
+                            { id: 'BOTH', label: 'الاثنين معاً', icon: '💎', color: 'amber', desc: 'حفظ ومراجعة شاملة', bg: 'bg-amber-50 dark:bg-amber-900/20', hidden: isKhatim || isQuranicDaySession },
+                        ].filter(t => !t.hidden).map((type) => (
+                            <button
+                                key={type.id}
+                                onClick={() => {
+                                    setSessionType(type.id);
+                                    setIsSessionActive(true);
+                                    setShowTypeModal(false);
+                                }}
+                                className={`group p-6 sm:p-8 rounded-[2.5rem] border-2 border-slate-50 dark:border-slate-800 hover:border-emerald-500 transition-all text-center flex flex-col items-center gap-4 ${type.bg} relative overflow-hidden active:scale-95`}
+                            >
+                                <div className={`w-14 h-14 sm:w-16 sm:h-16 bg-white dark:bg-slate-800 shadow-xl text-slate-800 dark:text-white rounded-2xl flex items-center justify-center text-2xl sm:text-3xl group-hover:scale-110 transition-all relative z-10`}>
+                                    {type.icon}
+                                </div>
+                                <div className="relative z-10">
+                                    <div className="font-black text-slate-800 dark:text-white text-lg sm:text-xl mb-1">{type.label}</div>
+                                    <div className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">{type.desc}</div>
+                                </div>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                <button
+                    onClick={() => setShowTypeModal(false)}
+                    className="w-full mt-6 sm:mt-12 py-3 sm:py-4 text-slate-400 font-black hover:text-red-500 transition-colors flex items-center justify-center gap-2 flex-shrink-0"
+                >
+                    <span>إغلاق</span>
+                    <span>✕</span>
+                </button>
+            </div>
+        </div>
+    )}
+
+    {student && (
+        <AddStudentModal
+            isOpen={showEditModal}
+            onClose={() => setShowEditModal(false)}
+            onAdd={() => {
+                setShowEditModal(false);
+                fetchStudent();
+            }}
+            halaqaId={student.halaqaId}
+            student={student}
+        />
+    )}
+    
+</div>
+);
+}
