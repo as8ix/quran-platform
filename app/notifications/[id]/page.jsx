@@ -24,16 +24,9 @@ export default function NotificationDetails() {
 
     const fetchNotification = async (id) => {
         try {
-            // Note: In a real app we should have a get-by-id endpoint to limit what is returned 
-            // but for now we filter locally if we fetch all? No we need single fetch.
-            // But we don't have a single GET endpoint yet except checking permissions.
-            // Let's rely on finding it in the array or better, use the patch endpoint logic/create new get.
-            // Actually, I can update GET to accept 'id' or just fetch all and find. 
-            // Given the complexity, let's just create a GET by ID or simpler, just handle it here.
+            const storedUser = JSON.parse(sessionStorage.getItem('user'));
+            if (!storedUser) return;
 
-            // Wait, I only have GET all for user. I should filter the one I want.
-            // Or better, let's assume the user has access.
-            const storedUser = JSON.parse(localStorage.getItem('user'));
             const param = (storedUser.role === 'STUDENT')
                 ? `studentId=${storedUser.id}`
                 : `userId=${storedUser.id}`;
@@ -44,12 +37,9 @@ export default function NotificationDetails() {
                 const found = data.find(n => n.id === parseInt(id));
                 if (found) {
                     setNotification(found);
-                    // Mark as read if not already
                     if (!found.isRead) {
                         await fetch(`/api/notifications/${id}`, { method: 'PATCH' });
                     }
-                } else {
-                    console.error("Notification not found");
                 }
             }
         } catch (error) {
@@ -59,83 +49,93 @@ export default function NotificationDetails() {
         }
     };
 
-    if (loading) return <div className="p-10 text-center">جاري التحميل...</div>;
-    if (!notification) return <div className="p-10 text-center text-red-500">لم يتم العثور على الإشعار</div>;
+    if (loading) return <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center text-slate-500">جاري التحميل...</div>;
+    if (!notification) return (
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-10">
+            <h1 className="text-2xl font-bold text-red-500 mb-4">لم يتم العثور على الإشعار</h1>
+            <button onClick={() => router.back()} className="px-6 py-2 bg-emerald-600 text-white rounded-xl">عودة</button>
+        </div>
+    );
 
     const getTypeColor = (type) => {
         switch (type) {
-            case 'WARNING': return 'bg-red-50 border-red-200 text-red-800'; // تنبيه
-            case 'PROPOSAL': return 'bg-green-50 border-green-200 text-green-800'; // مقترح
-            default: return 'bg-blue-50 border-blue-200 text-blue-800'; // إشعار
+            case 'WARNING': return 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-800 dark:text-red-400';
+            case 'PROPOSAL': return 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-800 dark:text-green-400';
+            default: return 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-400';
         }
     };
 
     const getTypeLabel = (type) => {
         switch (type) {
-            case 'WARNING': return '⚠️ تنبيه';
-            case 'PROPOSAL': return '💡 مقترح';
-            default: return '📢 إشعار';
+            case 'WARNING': return '⚠️ تنبيه مهم';
+            case 'PROPOSAL': return '💡 مقترح جديد';
+            default: return '📢 إشعار رسمي';
         }
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 rtl" dir="rtl">
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 rtl transition-colors duration-300" dir="rtl">
             <Navbar userType={user?.role?.toLowerCase() || 'student'} userName={user?.name} onLogout={() => router.push('/login')} />
 
             <main className="max-w-2xl mx-auto px-4 md:px-6 py-6 md:py-10">
                 <button
                     onClick={() => router.back()}
-                    className="mb-8 flex items-center gap-3 text-slate-600 hover:text-indigo-600 transition-all group"
+                    className="mb-8 flex items-center gap-3 text-slate-600 dark:text-slate-400 hover:text-emerald-600 transition-all group"
                 >
                     <span className="font-bold text-sm md:text-base">عودة للقائمة الرئيسية</span>
-                    <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-white shadow-md flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-white dark:bg-slate-800 shadow-md flex items-center justify-center group-hover:scale-110 transition-transform border border-slate-100 dark:border-slate-700">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 md:h-5 md:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
                         </svg>
                     </div>
                 </button>
 
-                <div className={`bg-white rounded-2xl md:rounded-3xl shadow-xl overflow-hidden border-t-8 ${notification.type === 'WARNING' ? 'border-red-500' : notification.type === 'PROPOSAL' ? 'border-green-500' : 'border-blue-500'}`}>
+                <div className={`bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl overflow-hidden border-t-8 transition-all ${
+                    notification.type === 'WARNING' ? 'border-red-500' : 
+                    notification.type === 'PROPOSAL' ? 'border-green-500' : 'border-blue-500'
+                }`}>
 
-                    <div className="p-5 md:p-8">
-                        <div className="flex flex-col md:flex-row justify-between items-start gap-4 mb-6">
+                    <div className="p-6 md:p-10">
+                        <div className="flex flex-col md:flex-row justify-between items-start gap-4 mb-8">
                             <div>
-                                <span className={`inline-block px-3 py-1 rounded-full text-[10px] md:text-xs font-bold mb-2 md:mb-3 ${getTypeColor(notification.type)}`}>
+                                <span className={`inline-block px-4 py-1 rounded-full text-[10px] md:text-xs font-black mb-3 border ${getTypeColor(notification.type)}`}>
                                     {getTypeLabel(notification.type)}
                                 </span>
-                                <h1 className="text-xl md:text-3xl font-black text-slate-800 leading-tight">
+                                <h1 className="text-2xl md:text-4xl font-black text-slate-800 dark:text-white leading-tight tracking-tight">
                                     {notification.title}
                                 </h1>
                             </div>
-                            <span className="text-xs md:text-sm text-slate-400 font-medium whitespace-nowrap">
+                            <span className="text-xs md:text-sm text-slate-400 dark:text-slate-500 font-bold whitespace-nowrap bg-slate-50 dark:bg-slate-800/50 px-3 py-1 rounded-lg">
                                 {new Date(notification.createdAt).toLocaleDateString('ar-SA', {
-                                    year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                                    year: 'numeric', month: 'long', day: 'numeric'
                                 })}
                             </span>
                         </div>
 
                         {notification.attachmentUrl && (
-                            <div className="mb-6 md:mb-8 -mx-5 md:mx-0">
+                            <div className="mb-8 md:mb-10 -mx-6 md:mx-0">
                                 {notification.attachmentType === 'IMAGE' ? (
-                                    <img
-                                        src={notification.attachmentUrl}
-                                        alt="مرفق"
-                                        className="w-full h-auto md:rounded-3xl shadow-lg max-h-[400px] md:max-h-[600px] object-contain bg-white border-y md:border border-slate-100"
-                                        onError={(e) => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/400x200?text=Error+Loading+Image'; }}
-                                    />
+                                    <div className="relative group">
+                                        <img
+                                            src={notification.attachmentUrl}
+                                            alt="مرفق"
+                                            className="w-full h-auto md:rounded-[2rem] shadow-2xl max-h-[500px] object-contain bg-slate-50 dark:bg-slate-800 border-y md:border border-slate-100 dark:border-slate-800 transition-transform duration-300"
+                                            onError={(e) => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/800x400?text=Error+Loading+Image'; }}
+                                        />
+                                    </div>
                                 ) : (
-                                    <div className="px-5 md:px-0">
+                                    <div className="px-6 md:px-0">
                                         <a
                                             href={notification.attachmentUrl}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="flex items-center gap-4 p-4 md:p-5 bg-indigo-50 rounded-2xl border border-indigo-100 hover:shadow-md transition-all text-indigo-700 font-bold group"
+                                            className="flex items-center gap-5 p-5 md:p-6 bg-emerald-50 dark:bg-emerald-900/20 rounded-[2rem] border-2 border-emerald-100 dark:border-emerald-800/50 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 hover:shadow-xl transition-all text-emerald-700 dark:text-emerald-400 font-black group"
                                             download
                                         >
-                                            <span className="text-xl md:text-2xl group-hover:scale-110 transition-transform">📂</span>
+                                            <span className="text-3xl md:text-4xl group-hover:scale-125 transition-transform duration-300 drop-shadow-md">📂</span>
                                             <div className="flex flex-col">
-                                                <span className="text-xs md:text-sm">تحميل المرفق</span>
-                                                <span className="text-[9px] md:text-[10px] text-indigo-400 font-normal">اضغط للفتح أو التحميل</span>
+                                                <span className="text-sm md:text-lg">تحميل المرفق الرسمي</span>
+                                                <span className="text-[10px] md:text-xs text-emerald-500/70 font-bold">اضغط للمعاينة أو الحفظ للجهاز</span>
                                             </div>
                                         </a>
                                     </div>
@@ -143,13 +143,13 @@ export default function NotificationDetails() {
                             </div>
                         )}
 
-                        <div className="prose prose-sm md:prose-lg max-w-none text-slate-600 leading-relaxed whitespace-pre-line mb-6 md:mb-8 px-1 md:px-2">
+                        <div className="prose prose-sm md:prose-xl max-w-none text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-line mb-8 md:mb-10 px-1 font-medium">
                             {notification.message}
                         </div>
                     </div>
 
-                    <div className="bg-slate-50 p-4 border-t border-slate-100 text-center text-xs text-slate-400">
-                        {notification.senderRole ? `المرسل: ${notification.senderRole === 'SUPERVISOR' ? 'الإدارة' : 'المعلم'}` : 'نظام المنصة'}
+                    <div className="bg-slate-50 dark:bg-slate-900/50 p-5 border-t border-slate-100 dark:border-slate-800 text-center text-xs md:text-sm text-slate-400 dark:text-slate-500 font-bold">
+                        {notification.senderRole ? `جهة الإصدار: ${notification.senderRole === 'SUPERVISOR' ? 'الإدارة العامة' : 'المعلم المشرف'}` : 'نظام التنبيهات الآمن'}
                     </div>
                 </div>
             </main>

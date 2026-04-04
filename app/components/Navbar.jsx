@@ -150,11 +150,11 @@ export default function Navbar({ userType, userName, onLogout }) {
                                                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${n.type === 'WARNING' ? 'bg-orange-100 text-orange-600' : n.type === 'PROPOSAL' ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-blue-600'}`}>
                                                             {n.type === 'WARNING' ? 'تنبيه' : n.type === 'PROPOSAL' ? 'مقترح' : 'إشعار'}
                                                         </span>
-                                                        <span className="text-[10px] text-slate-400">
+                                                        <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold">
                                                             {new Date(n.createdAt).toLocaleDateString()}
                                                         </span>
                                                     </div>
-                                                    <p className={`text-sm ${!n.isRead ? 'font-bold text-slate-800' : 'text-slate-600'}`}>
+                                                    <p className={`text-sm ${!n.isRead ? 'font-bold text-slate-800 dark:text-white' : 'text-slate-600 dark:text-slate-400'}`}>
                                                         {n.message}
                                                     </p>
                                                 </div>
