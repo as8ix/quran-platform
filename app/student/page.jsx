@@ -6,12 +6,14 @@ import Navbar from '../components/Navbar';
 import { formatHijri } from '../utils/dateUtils';
 import { useTheme } from '../components/ThemeProvider';
 import { quranData } from '../data/quranData';
+import ProfileModal from '../components/ProfileModal';
 
 export default function StudentDashboard() {
     const router = useRouter();
     const [student, setStudent] = useState(null);
     const [sessions, setSessions] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [showProfileModal, setShowProfileModal] = useState(false);
 
     const getFirstName = (fullName) => {
         if (!fullName) return '';
@@ -185,9 +187,28 @@ export default function StudentDashboard() {
         <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white font-noto rtl transition-colors duration-300" dir="rtl">
             <Navbar userType="student" userName={`أهلًا ${student.name} 👋`} onLogout={() => router.push('/login')} />
 
+            {showProfileModal && (
+                <ProfileModal 
+                    student={student} 
+                    onClose={() => setShowProfileModal(false)} 
+                    onUpdate={(updated) => setStudent(updated)} 
+                />
+            )}
+
             <main className="max-w-2xl mx-auto px-4 py-8">
                 {/* Hero Header */}
-                <div className={`relative overflow-hidden bg-gradient-to-br ${isKhatim ? 'from-amber-500 to-yellow-700' : 'from-emerald-600 to-teal-700'} rounded-[2.5rem] p-8 md:p-12 text-white mb-8 shadow-2xl ${isKhatim ? 'shadow-amber-100' : 'shadow-emerald-100'} reveal`}>
+                <div className={`relative overflow-hidden bg-gradient-to-br ${isKhatim ? 'from-amber-500 to-yellow-700' : 'from-emerald-600 to-teal-700'} rounded-[2.5rem] p-8 md:p-12 text-white mb-8 shadow-2xl ${isKhatim ? 'shadow-amber-100' : 'shadow-emerald-100'} reveal group`}>
+                    {/* Profile Settings Button */}
+                    <button 
+                        onClick={() => setShowProfileModal(true)}
+                        className="absolute top-6 left-6 z-20 p-3 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 text-white hover:bg-white/20 transition-all hover:scale-110 active:scale-95 group/btn overflow-hidden"
+                        title="إعدادات الحساب"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6 group-hover/btn:rotate-45 transition-transform">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0m-9.75 0h9.75" />
+                        </svg>
+                    </button>
+
                     <div className="absolute top-0 right-0 p-12 opacity-10 pointer-events-none">
                         <span className="text-9xl">{isKhatim ? '🏆' : '📖'}</span>
                     </div>
