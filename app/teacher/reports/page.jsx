@@ -167,9 +167,9 @@ export default function WeeklyReport() {
                             <tbody className="divide-y divide-slate-50 print:divide-slate-200">
                                 {reportData.map((student, idx) => {
                                     const att = getAttendanceStats(student.attendance);
-                                    const hifzDays = student.sessions.filter(s => s.hifzSurah).length;
-                                    const majorDays = student.sessions.filter(s => s.murajaahFromSurah).length;
-                                    const minorDays = student.sessions.filter(s => s.minorMurajaahFromSurah).length;
+                                    const hifzDays = new Set(student.sessions.filter(s => s.hifzSurah).map(s => new Date(s.date).toISOString().split('T')[0])).size;
+                                    const majorDays = new Set(student.sessions.filter(s => s.murajaahFromSurah).map(s => new Date(s.date).toISOString().split('T')[0])).size;
+                                    const minorDays = new Set(student.sessions.filter(s => s.minorMurajaahFromSurah).map(s => new Date(s.date).toISOString().split('T')[0])).size;
                                     const totalStudentPages = student.sessions.reduce((sum, s) => sum + (s.pagesCount || 0), 0);
                                     const absTotal = att.absentExcused + att.absentUnexcused;
 
