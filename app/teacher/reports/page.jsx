@@ -13,10 +13,20 @@ export default function WeeklyReport() {
 
     const [startDate, setStartDate] = useState(() => {
         const d = new Date();
-        d.setDate(d.getDate() - 7);
-        return d.toISOString().split('T')[0];
+        const day = d.getDay(); // 0 (Sun) to 6 (Sat)
+        const sun = new Date(d);
+        sun.setDate(d.getDate() - day);
+        return sun.toISOString().split('T')[0];
     });
-    const [endDate, setEndDate] = useState(() => new Date().toISOString().split('T')[0]);
+    const [endDate, setEndDate] = useState(() => {
+        const d = new Date();
+        const day = d.getDay();
+        const sun = new Date(d);
+        sun.setDate(d.getDate() - day);
+        const wed = new Date(sun);
+        wed.setDate(sun.getDate() + 3);
+        return wed.toISOString().split('T')[0];
+    });
 
     useEffect(() => {
         const storedUser = sessionStorage.getItem('user');
@@ -49,16 +59,21 @@ export default function WeeklyReport() {
     };
 
     const getAttendanceStats = (records) => {
-        let present = 0, absentExcused = 0, absentUnexcused = 0;
+        let present = 0, late = 0, absentExcused = 0, absentUnexcused = 0;
         records.forEach(r => {
-            if (r.status === 'PRESENT' || r.status === 'LATE') present++;
+            if (r.status === 'PRESENT') present++;
+            else if (r.status === 'LATE') {
+                present++;
+                late++;
+            }
             else if (r.status === 'ABSENT_EXCUSED') absentExcused++;
             else if (r.status === 'ABSENT_UNEXCUSED') absentUnexcused++;
         });
-        return { present, absentExcused, absentUnexcused, total: present + absentExcused + absentUnexcused };
+        return { present, late, absentExcused, absentUnexcused, total: present + absentExcused + absentUnexcused };
     };
 
     const totalPresent = reportData.reduce((sum, s) => sum + getAttendanceStats(s.attendance).present, 0);
+    const totalLate = reportData.reduce((sum, s) => sum + getAttendanceStats(s.attendance).late, 0);
     const totalAbsent = reportData.reduce((sum, s) => {
         const { absentExcused, absentUnexcused } = getAttendanceStats(s.attendance);
         return sum + absentExcused + absentUnexcused;
@@ -76,21 +91,21 @@ export default function WeeklyReport() {
             <div className="no-print flex flex-wrap justify-between items-center gap-4 mb-8 bg-slate-50 rounded-3xl p-6 border border-slate-100 shadow-sm">
                 <div className="flex gap-4 items-end flex-wrap">
                     <div>
-                        <label className="block text-xs font-bold text-slate-400 mb-2">من تاريخ</label>
+                        <label className="block text-xs font-bold text-slate-600 mb-2">من تاريخ</label>
                         <input
                             type="date"
                             value={startDate}
                             onChange={(e) => setStartDate(e.target.value)}
-                            className="px-4 py-2 bg-white border border-slate-200 rounded-xl font-bold outline-none focus:border-emerald-500 shadow-sm"
+                            className="px-4 py-2 bg-white border border-slate-200 rounded-xl font-bold text-slate-900 outline-none focus:border-emerald-500 shadow-sm"
                         />
                     </div>
                     <div>
-                        <label className="block text-xs font-bold text-slate-400 mb-2">إلى تاريخ</label>
+                        <label className="block text-xs font-bold text-slate-600 mb-2">إلى تاريخ</label>
                         <input
                             type="date"
                             value={endDate}
                             onChange={(e) => setEndDate(e.target.value)}
-                            className="px-4 py-2 bg-white border border-slate-200 rounded-xl font-bold outline-none focus:border-emerald-500 shadow-sm"
+                            className="px-4 py-2 bg-white border border-slate-200 rounded-xl font-bold text-slate-900 outline-none focus:border-emerald-500 shadow-sm"
                         />
                     </div>
                 </div>
@@ -140,6 +155,10 @@ export default function WeeklyReport() {
                         <span className="text-2xl font-black text-rose-500">{totalAbsent}</span>
                     </div>
                     <div className="bg-white px-6 py-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center min-w-[110px] print:border-slate-300">
+                        <span className="text-slate-400 text-xs font-bold mb-1">إجمالي التأخر</span>
+                        <span className="text-2xl font-black text-amber-500">{totalLate}</span>
+                    </div>
+                    <div className="bg-white px-6 py-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center min-w-[110px] print:border-slate-300">
                         <span className="text-slate-400 text-xs font-bold mb-1">الأوجه المقروءة</span>
                         <span className="text-2xl font-black text-indigo-600">{totalPages}</span>
                     </div>
@@ -158,6 +177,7 @@ export default function WeeklyReport() {
                                     <th className="p-4 font-black text-slate-600 text-right min-w-[200px]">الطالب</th>
                                     <th className="p-4 font-black text-slate-600 text-center border-r border-slate-100 print:border-slate-300">الحضور</th>
                                     <th className="p-4 font-black text-slate-600 text-center border-r border-slate-100 print:border-slate-300">الغياب</th>
+                                    <th className="p-4 font-black text-slate-600 text-center border-r border-slate-100 print:border-slate-300">التأخر</th>
                                     <th className="p-4 font-black text-slate-600 text-center border-r border-slate-100 print:border-slate-300">أيام الحفظ</th>
                                     <th className="p-4 font-black text-slate-600 text-center border-r border-slate-100 print:border-slate-300">المراجعة الكبرى</th>
                                     <th className="p-4 font-black text-slate-600 text-center border-r border-slate-100 print:border-slate-300">المراجعة الصغرى</th>
@@ -187,6 +207,11 @@ export default function WeeklyReport() {
                                             <td className="p-4 text-center border-r border-slate-50 print:border-slate-200">
                                                 <span className={`inline-flex items-center justify-center min-w-[2rem] h-8 px-2 font-black rounded-lg text-sm print:bg-transparent ${absTotal > 0 ? 'bg-rose-50 text-rose-600' : 'bg-slate-50 text-slate-400'}`}>
                                                     {absTotal > 0 ? absTotal : '—'}
+                                                </span>
+                                            </td>
+                                            <td className="p-4 text-center border-r border-slate-50 print:border-slate-200">
+                                                <span className={`inline-flex items-center justify-center min-w-[2rem] h-8 px-2 font-black rounded-lg text-sm print:bg-transparent ${att.late > 0 ? 'bg-amber-50 text-amber-600' : 'bg-slate-50 text-slate-400'}`}>
+                                                    {att.late > 0 ? att.late : '—'}
                                                 </span>
                                             </td>
                                             <td className="p-4 text-center border-r border-slate-50 print:border-slate-200">
