@@ -6,6 +6,7 @@ import Navbar from '../components/Navbar';
 import { formatHijri } from '../utils/dateUtils';
 import { useTheme } from '../components/ThemeProvider';
 import { quranData } from '../data/quranData';
+import { pageAyahMap } from '../data/pageAyahMap';
 import ProfileModal from '../components/ProfileModal';
 
 export default function StudentDashboard() {
@@ -112,29 +113,118 @@ export default function StudentDashboard() {
         { juz: 31, startPage: 605 }
     ];
 
+    const getSurahPages = (surahId) => {
+        const surah = quranData.find(s => s.id === surahId);
+        if (!surah) return [];
+        const nextSurah = quranData.find(s => s.id === surahId + 1);
+        let endPage = nextSurah ? nextSurah.startPage : 604;
+        
+        if (pageAyahMap && pageAyahMap[endPage]) {
+            if (!pageAyahMap[endPage][surahId]) {
+                endPage = endPage - 1;
+            }
+        }
+        const pages = [];
+        for (let i = surah.startPage; i <= endPage; i++) pages.push(i);
+        return pages;
+    };
+
     const calculateIntelligence = () => {
-        if (!student || !sessions || sessions.length === 0) return { hifz: 'ابدأ من الص 1', review: student?.reviewPlan || 'جزء كامل', status: 'green', label: 'جاهز للانطلاق' };
-        
-        const latestSession = sessions[0];
-        const targetPages = student.dailyTargetPages || 1;
-        const hifzStart = latestSession.hifzToPage ? latestSession.hifzToPage + 1 : 1;
-        const hifzTarget = hifzStart + (targetPages > 1 ? targetPages - 1 : 0);
-        
-        const lastSurahName = latestSession.murajaahToSurah || student.hifzProgress || 'الفاتحة';
-        const lastSurah = quranData.find(s => s.name === lastSurahName) || quranData[0];
-        const nextSurah = quranData.find(s => s.id === lastSurah.id + 1) || lastSurah;
-        
-        let reviewGoal = `من سورة ${nextSurah.name}`;
-        if (student.reviewPlan?.includes('جزء')) {
-            const currentJuz = juzData.findIndex(j => j.startPage > (lastSurah.startPage || 1)) || 1;
-            const targetJuzIdx = student.reviewPlan.includes('جزئين') ? currentJuz + 1 : currentJuz;
-            const targetSurah = quranData.find(s => s.startPage >= juzData[Math.min(targetJuzIdx, 30)].startPage) || quranData[113];
-            reviewGoal = `من ${nextSurah.name} إلى ${targetSurah.name}`;
+        if (!student) return null;
+
+        // --- Logic synced with Teacher Dashboard ---
+        const currentSurahId = student.currentHifzSurahId || 114;
+        const surah = quranData.find(s => s.id === currentSurahId) || quranData[113];
+        const allowedPages = getSurahPages(currentSurahId);
+
+        // Find last session for THIS SPECIFIC SURAH in history
+        // Note: 'sessions' are already sorted by date desc
+        const lastSessionForSurah = sessions.find(s => s.hifzSurah === surah.name);
+
+        let hifzFromPage = surah.startPage;
+        let hifzToPage = surah.startPage;
+        let hifzFromAyah = 1;
+        let hifzToAyah = surah.ayahs;
+
+        if (lastSessionForSurah && lastSessionForSurah.hifzToPage) {
+            const lastPage = lastSessionForSurah.hifzToPage;
+            const nextPage = lastPage + 1;
+
+            if (allowedPages.includes(nextPage)) {
+                hifzFromPage = nextPage;
+                
+                // Get Start Ayah for nextPage
+                if (pageAyahMap && pageAyahMap[nextPage] && pageAyahMap[nextPage][currentSurahId]) {
+                    const pageData = pageAyahMap[nextPage][currentSurahId];
+                    hifzFromAyah = (typeof pageData === 'object') ? pageData.start : 1;
+                }
+
+                // Calculate ToPage based on target
+                const target = student.dailyTargetPages || 1;
+                let potentialToPage = hifzFromPage + (Math.ceil(target) - 1);
+                const lastAllowed = allowedPages[allowedPages.length - 1];
+                if (potentialToPage > lastAllowed) potentialToPage = lastAllowed;
+                
+                hifzToPage = potentialToPage;
+
+                // Get End Ayah for hifzToPage
+                if (pageAyahMap && pageAyahMap[hifzToPage] && pageAyahMap[hifzToPage][currentSurahId]) {
+                    const pageData = pageAyahMap[hifzToPage][currentSurahId];
+                    hifzToAyah = (typeof pageData === 'object') ? pageData.end : pageData;
+                }
+            } else {
+                // Finished Surah or edge case, stay at last
+                hifzFromPage = allowedPages[allowedPages.length - 1];
+                hifzToPage = hifzFromPage;
+                if (pageAyahMap && pageAyahMap[hifzFromPage] && pageAyahMap[hifzFromPage][currentSurahId]) {
+                    const pageData = pageAyahMap[hifzFromPage][currentSurahId];
+                    hifzFromAyah = (typeof pageData === 'object') ? pageData.start : 1;
+                    hifzToAyah = (typeof pageData === 'object') ? pageData.end : pageData;
+                }
+            }
+        } else {
+            // Fresh start for this surah
+            hifzFromPage = surah.startPage;
+            const target = student.dailyTargetPages || 1;
+            let potentialToPage = hifzFromPage + (Math.ceil(target) - 1);
+            const lastAllowed = allowedPages[allowedPages.length - 1];
+            if (potentialToPage > lastAllowed) potentialToPage = lastAllowed;
+            
+            hifzToPage = potentialToPage;
+
+            // Set From/To Ayahs
+            if (pageAyahMap && pageAyahMap[hifzFromPage] && pageAyahMap[hifzFromPage][currentSurahId]) {
+                const pageData = pageAyahMap[hifzFromPage][currentSurahId];
+                hifzFromAyah = (typeof pageData === 'object') ? pageData.start : 1;
+            }
+            if (pageAyahMap && pageAyahMap[hifzToPage] && pageAyahMap[hifzToPage][currentSurahId]) {
+                const pageData = pageAyahMap[hifzToPage][currentSurahId];
+                hifzToAyah = (typeof pageData === 'object') ? pageData.end : pageData;
+            }
         }
 
-        const lastDate = new Date(latestSession.date);
+        // --- Review Logic ---
+        const latestSessionOverall = sessions[0];
+        const lastReviewSurahName = latestSessionOverall?.murajaahToSurah || student.hifzProgress || 'الفاتحة';
+        const lastReviewSurah = quranData.find(s => s.name === lastReviewSurahName) || quranData[0];
+        const nextReviewStartSurah = quranData.find(s => s.id === lastReviewSurah.id + 1) || lastReviewSurah;
+        
+        let reviewGoal = `من سورة ${nextReviewStartSurah.name}`;
+        if (student.reviewPlan?.includes('جزء')) {
+            const currentJuzIdx = juzData.findIndex(j => j.startPage > (lastReviewSurah.startPage || 1));
+            const targetJuzIncrement = student.reviewPlan.includes('جزئين') ? 2 : (student.reviewPlan.includes('ثلاث') ? 3 : 1);
+            const targetJuzIdx = Math.min(currentJuzIdx + targetJuzIncrement - 1, 30);
+            const targetSurah = quranData.find(s => s.startPage >= juzData[targetJuzIdx].startPage) || quranData[113];
+            reviewGoal = `من ${nextReviewStartSurah.name} إلى ${targetSurah.name}`;
+        } else {
+            reviewGoal = student.reviewPlan || 'مراجعة عامة';
+        }
+
+        // --- Lag Status Logic ---
+        const lastDate = sessions.length > 0 ? new Date(sessions[0].date) : null;
         const today = new Date();
         const getPlanDaysBetween = (start, end) => {
+            if (!start) return 5;
             let count = 0; let cur = new Date(start); cur.setHours(0,0,0,0);
             let targetEnd = new Date(end); targetEnd.setHours(0,0,0,0);
             cur.setDate(cur.getDate() + 1);
@@ -144,14 +234,25 @@ export default function StudentDashboard() {
             }
             return count;
         };
+
         const missedDays = getPlanDaysBetween(lastDate, today);
         let status = 'green'; let label = 'أنت مبدع ومستمر!';
         if (missedDays === 1) { status = 'orange'; label = 'متأخر يوماً واحداً'; }
         else if (missedDays > 1) { status = 'red'; label = `متأخر ${missedDays} أيام!`; }
         
         return {
-            hifz: hifzStart === hifzTarget ? `ص ${hifzStart}` : `من ص ${hifzStart} إلى ${Math.floor(hifzTarget)}`,
-            review: reviewGoal, status, label
+            hifz: {
+                surah: surah.name,
+                fromPage: hifzFromPage,
+                toPage: hifzToPage,
+                fromAyah: hifzFromAyah,
+                toAyah: hifzToAyah,
+                range: `ص ${hifzFromPage} - ص ${hifzToPage}`,
+                surahPages: `${allowedPages[0]} - ${allowedPages[allowedPages.length - 1]}`
+            },
+            review: reviewGoal,
+            status,
+            label
         };
     };
 
@@ -230,65 +331,82 @@ export default function StudentDashboard() {
                     </div>
                 </div>
 
-                {/* Next Assignment Card (الورد القادم) */}
+                {/* Next Assignment Card (الورد القادم) - Improved Design */}
                 <div className="mb-10 reveal reveal-delay-1">
-                    <div className={`p-8 rounded-[2.5rem] border-2 relative overflow-hidden transition-all duration-500 ${
-                        intel.status === 'green' ? 'bg-emerald-500/10 border-emerald-500/20 dark:border-emerald-500/30' : 
-                        intel.status === 'orange' ? 'bg-amber-500/10 border-amber-500/20 dark:border-amber-500/30' : 
-                        'bg-red-500/10 border-red-500/20 dark:border-red-500/30'
-                    }`}>
-                       <div className="absolute top-4 left-4 text-4xl opacity-20 transform -rotate-12">🎯</div>
-                       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-                           <h3 className={`text-xl font-black flex items-center gap-3 ${
-                               intel.status === 'green' ? 'text-emerald-700 dark:text-emerald-400' : 
-                               intel.status === 'orange' ? 'text-amber-700 dark:text-amber-400' : 
-                               'text-red-700 dark:text-red-400'
-                           }`}>
-                               <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm shadow-lg ${
-                                   intel.status === 'green' ? 'bg-emerald-500' : 
-                                   intel.status === 'orange' ? 'bg-amber-500' : 
-                                   'bg-red-500'
-                               } text-white`}>📌</span>
-                               الورد القادم (للتحضير)
-                           </h3>
-                           <span className={`px-4 py-1.5 rounded-full text-xs font-black border backdrop-blur-sm ${
-                               intel.status === 'green' ? 'bg-emerald-100/50 dark:bg-emerald-900/40 border-emerald-200 text-emerald-700 dark:text-emerald-400' : 
-                               intel.status === 'orange' ? 'bg-amber-100/50 dark:bg-amber-900/40 border-amber-200 text-amber-700 dark:text-amber-400' : 
-                               'bg-red-100/50 dark:bg-red-900/40 border-red-200 text-red-700 dark:text-red-400'
-                           }`}>
-                               {intel.label}
-                           </span>
-                       </div>
-                       
-                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                           {/* Next Hifz */}
-                           <div className="p-6 bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm transition-all group hover:border-emerald-500/50">
-                               <div className="text-[10px] font-black text-emerald-600 dark:text-emerald-500 mb-1 uppercase tracking-widest flex items-center gap-2">
-                                   <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
-                                   الحفظ القادم
-                               </div>
-                               <div className="text-xl font-bold text-slate-800 dark:text-white leading-tight">
-                                   سورة {student.hifzProgress || 'الفاتحة'}
-                               </div>
-                               <div className="text-sm text-slate-500 dark:text-slate-400 mt-2 font-bold">
-                                   {intel.hifz}
-                               </div>
-                           </div>
-                           
-                           {/* Next Review */}
-                           <div className="p-6 bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm transition-all group hover:border-amber-500/50">
-                               <div className="text-[10px] font-black text-amber-600 dark:text-amber-500 mb-1 uppercase tracking-widest flex items-center gap-2">
-                                   <span className="w-2 h-2 bg-amber-500 rounded-full"></span>
-                                   المراجعة القادمة
-                               </div>
-                               <div className="text-xl font-bold text-slate-800 dark:text-white leading-tight">
-                                   {intel.review}
-                               </div>
-                               <div className="text-sm text-slate-500 dark:text-slate-400 mt-2 font-bold italic opacity-80">
-                                   المراجعة حياة الحفظ 🔄
-                               </div>
-                           </div>
-                       </div>
+                    <div className="bg-[#0f172a] rounded-[3rem] p-1 shadow-2xl shadow-red-500/10 border border-red-500/20 relative group overflow-hidden">
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-red-500/5 blur-[100px] pointer-events-none rounded-full"></div>
+                        
+                        <div className="p-8 md:p-10">
+                            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
+                                <h3 className="text-3xl font-black text-white flex items-center gap-4">
+                                    <span className="w-12 h-12 rounded-2xl bg-red-500 flex items-center justify-center text-xl shadow-[0_0_20px_rgba(239,68,68,0.4)] animate-pulse-slow">
+                                        📌
+                                    </span>
+                                    الورد القادم (للتحضير)
+                                </h3>
+                                <div className={`px-6 py-2 rounded-2xl text-sm font-black border backdrop-blur-md transition-all ${
+                                    intel.status === 'green' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 
+                                    intel.status === 'orange' ? 'bg-amber-500/10 border-amber-500/30 text-amber-400' : 
+                                    'bg-red-500/10 border-red-500/30 text-red-400 animate-pulse'
+                                }`}>
+                                    {intel.label}
+                                </div>
+                            </div>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                {/* Next Hifz - Form Style */}
+                                <div className="p-8 bg-slate-900/50 rounded-[2.5rem] border border-emerald-500/20 shadow-inner group/card hover:bg-slate-900 transition-all text-right" dir="rtl">
+                                    <div className="flex justify-between items-center mb-6">
+                                        <div className="text-sm font-black text-emerald-400 flex items-center gap-3">
+                                            <span className="w-2.5 h-2.5 bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
+                                            الحفظ القادم (سورة {intel.hifz.surah})
+                                        </div>
+                                        <span className="text-[10px] font-bold text-emerald-500/60 bg-emerald-500/5 px-3 py-1 rounded-full border border-emerald-500/10">
+                                            صفحات السورة: {intel.hifz.surahPages}
+                                        </span>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <span className="block text-[10px] font-black text-emerald-400/60 mr-2 uppercase tracking-wide text-right">من الصفحة</span>
+                                            <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 text-center font-black text-xl text-white">
+                                                {intel.hifz.fromPage}
+                                                <span className="block text-[8px] text-slate-500 mt-1 uppercase">آية {intel.hifz.fromAyah}</span>
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <span className="block text-[10px] font-black text-emerald-400/60 mr-2 uppercase tracking-wide text-right">إلى الصفحة</span>
+                                            <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 text-center font-black text-xl text-white">
+                                                {intel.hifz.toPage}
+                                                <span className="block text-[8px] text-slate-500 mt-1 uppercase">آية {intel.hifz.toAyah}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <p className="mt-6 text-xs text-slate-400 font-bold italic opacity-60 text-center">
+                                        "إِنَّ هَذَا الْقُرْآنَ يَهْدِي لِلَّتِي هِيَ أَقْوَمُ"
+                                    </p>
+                                </div>
+                                
+                                {/* Next Review */}
+                                <div className="p-8 bg-slate-900/50 rounded-[2.5rem] border border-amber-500/20 shadow-inner group/card hover:bg-slate-900 transition-all flex flex-col justify-between text-right" dir="rtl">
+                                    <div>
+                                        <div className="text-sm font-black text-amber-500 flex items-center gap-3 mb-6">
+                                            <span className="w-2.5 h-2.5 bg-amber-500 rounded-full shadow-[0_0_8px_rgba(245,158,11,0.5)]"></span>
+                                            المراجعة القادمة
+                                        </div>
+                                        <div className="text-2xl font-black text-white leading-tight mb-2 text-right">
+                                            {intel.review}
+                                        </div>
+                                        <div className="text-sm text-slate-400 font-bold italic bg-amber-500/5 p-3 rounded-xl border border-amber-500/10 inline-block mt-2">
+                                            المراجعة حياة الحفظ 🔄
+                                        </div>
+                                    </div>
+                                    <div className="mt-8 flex items-center gap-2 text-[10px] font-black text-amber-500/40 uppercase tracking-widest">
+                                        <span>تثبيت اليوم .. طمأنينة الغد</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -384,142 +502,163 @@ export default function StudentDashboard() {
                     </div>
                 </div>
 
-                {/* Achievement Log - سجل الإنجاز (نسخة المعلم) */}
-                <div className="bg-white dark:bg-slate-800 rounded-[2rem] md:rounded-[3rem] p-5 md:p-8 shadow-xl shadow-slate-200/50 dark:shadow-none border border-white dark:border-slate-700 mb-20 max-w-2xl mx-auto reveal reveal-delay-3">
-                    <h3 className="text-xl md:text-2xl font-black text-slate-800 dark:text-white mb-6 md:mb-8 flex items-center gap-3">
-                        <span className="p-2 bg-slate-100 dark:bg-slate-700 rounded-xl text-md md:text-lg">📜</span>
-                        سجل الإنجاز
-                    </h3>
-                    <div className="space-y-5 md:space-y-6 max-h-[800px] overflow-y-auto pl-2 custom-scrollbar rtl-scroll">
-                        {sessions.length > 0 ? sessions.map((session, idx) => {
-                            const currentDateFormatted = formatHijri(new Date(session.date), 'long');
-                            const prevDateFormatted = idx > 0 ? formatHijri(new Date(sessions[idx - 1].date), 'long') : null;
-                            const showDateSeparator = currentDateFormatted !== prevDateFormatted;
+                    {/* Achievement Log - Detailed View like Teacher's Recording Form */}
+                    <div className="bg-[#0f172a] rounded-[3rem] p-6 md:p-10 shadow-2xl border border-slate-800/60 mb-20 max-w-2xl mx-auto reveal reveal-delay-3 relative overflow-hidden text-right" dir="rtl">
+                        <div className="absolute top-0 left-0 w-32 h-32 bg-indigo-500/5 blur-[80px] rounded-full"></div>
+                        
+                        <h3 className="text-2xl font-black text-white mb-10 flex justify-between items-center relative z-10 text-right">
+                            <span className="flex items-center gap-4">
+                                <span className="p-3 bg-slate-800 rounded-2xl text-xl shadow-lg border border-slate-700">📜</span>
+                                سجل الإنجاز
+                            </span>
+                            <span className="text-xs font-bold text-slate-500 bg-slate-800/50 px-4 py-2 rounded-xl border border-slate-700/50">
+                                {sessions.length} جلسة مؤخراً
+                            </span>
+                        </h3>
 
-                            return (
-                                <div key={session.id} className="space-y-5 md:space-y-6">
-                                    {showDateSeparator && (
-                                        <div className="flex items-center gap-3 py-2 mt-2 first:mt-0 relative">
-                                            <div className="h-px bg-slate-100 dark:bg-slate-700 flex-1"></div>
-                                            <div className="flex flex-col items-center gap-1.5 text-center">
-                                                <div className="text-[9px] md:text-[10px] font-black text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-slate-900/50 px-4 py-1.5 rounded-full border border-slate-100 dark:border-slate-800 shadow-sm">
+                        <div className="space-y-12 max-h-[1000px] overflow-y-auto pl-2 custom-scrollbar rtl-scroll relative z-10">
+                            {sessions.length > 0 ? sessions.map((session, idx) => {
+                                const currentDateFormatted = formatHijri(new Date(session.date), 'long');
+                                const prevDateFormatted = idx > 0 ? formatHijri(new Date(sessions[idx - 1].date), 'long') : null;
+                                const showDateSeparator = currentDateFormatted !== prevDateFormatted;
+
+                                return (
+                                    <div key={session.id || idx} className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500" style={{ animationDelay: `${idx * 100}ms` }}>
+                                        {showDateSeparator && (
+                                            <div className="flex items-center gap-4 py-4 mt-8 first:mt-0">
+                                                <div className="h-px bg-slate-800 flex-1"></div>
+                                                <div className="text-xs font-black text-slate-400 bg-slate-900 px-6 py-2 rounded-2xl border border-slate-800 shadow-[0_0_15px_rgba(0,0,0,0.5)]">
                                                     📅 {currentDateFormatted}
                                                 </div>
+                                                <div className="h-px bg-slate-800 flex-1"></div>
                                             </div>
-                                            <div className="h-px bg-slate-100 dark:bg-slate-700 flex-1"></div>
-                                        </div>
-                                    )}
-                                    <div className="p-4 md:p-6 bg-slate-950/40 dark:bg-slate-950/60 rounded-[1.8rem] md:rounded-[2.5rem] border border-slate-800/60 hover:border-slate-700 transition-all cursor-default group relative overflow-hidden mb-4">
-                                        {/* Vertical line indicator */}
-                                        <div className="absolute top-4 bottom-4 right-0 w-1.5 bg-slate-700/80 rounded-l-full"></div>
+                                        )}
                                         
-                                        <div className="flex justify-between items-center mb-5 md:mb-6">
-                                            <div className="flex items-center gap-2">
-                                                <div className="bg-emerald-500/10 text-emerald-400 px-3 md:px-4 py-1 md:py-1.5 rounded-full text-xs md:text-sm font-black border border-emerald-500/20">
-                                                    {session.pagesCount || 0} ص
+                                        <div className="bg-slate-900/40 rounded-[3rem] p-8 border border-white/5 backdrop-blur-sm relative group hover:border-indigo-500/30 transition-all duration-500 shadow-xl overflow-hidden text-right">
+                                            {/* Header Section */}
+                                            <div className="flex justify-between items-center mb-8 pb-6 border-b border-white/5 text-right">
+                                                <div className="flex items-center gap-4 text-right">
+                                                    <div className="w-14 h-14 bg-indigo-500/10 text-indigo-400 rounded-2xl flex flex-col items-center justify-center border border-indigo-500/20 shadow-inner">
+                                                        <span className="text-xl font-black">{session.pagesCount || 0}</span>
+                                                        <span className="text-[8px] font-bold uppercase tracking-widest">صفحة</span>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <div className="text-xs font-black text-slate-500 uppercase tracking-widest text-right">توقيت الجلسة</div>
+                                                        <div className="text-white font-black text-sm text-right">
+                                                            {new Date(session.date).toLocaleTimeString('ar-SA', { hour: 'numeric', minute: '2-digit' })}
+                                                        </div>
+                                                    </div>
                                                 </div>
                                                 {session.isGoalAchieved && (
-                                                    <span className="bg-green-500/10 text-green-400 px-3 py-1 rounded-lg text-[9px] font-black border border-green-500/20 flex items-center gap-1 shadow-sm">
-                                                        <span>🎯</span>
-                                                        <span className="hidden sm:inline">حقق الهدف</span>
-                                                    </span>
-                                                )}
-                                            </div>
-                                            <div className="bg-slate-800/60 text-slate-400 px-3 md:px-4 py-1 md:py-1.5 rounded-xl text-[10px] md:text-xs font-bold border border-slate-700/50">
-                                                {new Date(session.date).toLocaleTimeString('ar-SA', { hour: 'numeric', minute: '2-digit' })}
-                                            </div>
-                                        </div>
-
-                                        {session.hifzSurah && (
-                                            <div className="mb-6 mr-4">
-                                                <div className="text-sm font-black text-emerald-400 mb-1">الحفظ الجديد</div>
-                                                <div className="text-lg font-bold text-white mb-1">
-                                                    من سورة {session.hifzSurah} (آية {session.hifzFromAyah || 1}) إلى سورة {session.hifzSurah} (آية {session.hifzToAyah || '؟'})
-                                                </div>
-                                                <div className="text-sm text-slate-400 font-bold">
-                                                    {(session.hifzToPage - session.hifzFromPage) + 1} صفحة
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {session.murajaahToSurah && (
-                                            <div className="mb-6 mr-4">
-                                                <div className="text-sm font-black text-indigo-400 mb-1">المراجعة الكبرى</div>
-                                                <div className="text-lg font-bold text-white mb-1 leading-relaxed">
-                                                    من سورة {session.murajaahFromSurah} ({session.murajaahFromAyah ? `آية ${session.murajaahFromAyah}` : 'بداية السورة'}) إلى سورة {session.murajaahToSurah} ({session.murajaahToAyah ? `آية ${session.murajaahToAyah}` : 'نهاية السورة'})
-                                                </div>
-                                                <div className="text-sm text-slate-400 font-black mt-2">
-                                                    {session.pagesCount - (session.hifzPages || 0) - (session.murajaahSughraPages || 0)} صفحة
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {session.minorMurajaahToSurah && (
-                                            <div className="mb-6 mr-4">
-                                                <div className="text-sm font-black text-amber-500 mb-1">المراجعة الصغرى</div>
-                                                <div className="text-lg font-bold text-white mb-1 leading-relaxed">
-                                                    من سورة {session.minorMurajaahFromSurah} إلى سورة {session.minorMurajaahToSurah}
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {/* Quality Metrics Box (Exactly like image) */}
-                                        <div className="bg-slate-800/30 rounded-[2rem] p-6 border border-slate-700/50 mt-4 mr-4">
-                                            <div className="text-[11px] font-black text-slate-500 mb-4 text-center">مقاييس الجودة</div>
-                                            
-                                            <div className="space-y-6">
-                                                {session.murajaahToSurah && (
-                                                    <div className="flex flex-col items-center">
-                                                        <div className="text-[10px] font-black text-indigo-400 mb-3 tracking-tighter">إنجاز المراجعة الكبرى:</div>
-                                                        <div className="flex flex-wrap justify-center gap-2 mb-3">
-                                                            <div className="bg-slate-900/60 px-4 py-1.5 rounded-xl border border-slate-700 text-xs font-black text-white flex items-center gap-2">
-                                                                <span className="text-red-500">❌</span> {session.errorsCount || 0} خطأ
-                                                            </div>
-                                                            <div className="bg-slate-900/60 px-4 py-1.5 rounded-xl border border-slate-700 text-xs font-black text-white flex items-center gap-2">
-                                                                <span className="text-amber-500">⚠️</span> {session.alertsCount || 0} تنبيه
-                                                            </div>
-                                                        </div>
-                                                        <div className="bg-white px-6 py-1.5 rounded-xl text-xs font-black text-indigo-700 flex items-center gap-2 shadow-lg shadow-indigo-500/10">
-                                                            <span className="text-indigo-500 font-bold">✨</span> {session.cleanPagesCount || 0} نقية
-                                                        </div>
-                                                    </div>
-                                                )}
-
-                                                {session.hifzSurah && (
-                                                    <div className="flex flex-col items-center pt-4 border-t border-slate-700/30">
-                                                        <div className="text-[10px] font-black text-emerald-400 mb-3 tracking-tighter">إنجاز الحفظ:</div>
-                                                        <div className="flex flex-wrap justify-center gap-2 mb-3">
-                                                            <div className="bg-slate-900/60 px-4 py-1.5 rounded-xl border border-slate-700 text-xs font-black text-white flex items-center gap-2">
-                                                                <span className="text-red-500">❌</span> {session.hifzErrors || 0} خطأ
-                                                            </div>
-                                                            <div className="bg-slate-900/60 px-4 py-1.5 rounded-xl border border-slate-700 text-xs font-black text-white flex items-center gap-2">
-                                                                <span className="text-amber-500">⚠️</span> {session.hifzAlerts || 0} تنبيه
-                                                            </div>
-                                                        </div>
-                                                        <div className="bg-white px-6 py-1.5 rounded-xl text-xs font-black text-emerald-700 flex items-center gap-2 shadow-lg shadow-emerald-500/10">
-                                                            <span className="text-emerald-500 font-bold">✨</span> {session.hifzCleanPages || 0} نقية
-                                                        </div>
+                                                    <div className="bg-emerald-500/10 text-emerald-400 px-4 py-2 rounded-2xl text-[10px] font-black border border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.1)] flex items-center gap-2">
+                                                        <span>🎯</span> حقق الهدف
                                                     </div>
                                                 )}
                                             </div>
-                                        </div>
 
-                                        {session.notes && (
-                                            <div className="mt-6 pt-4 border-t border-slate-800 text-xs text-slate-500 italic mr-4">
-                                                " {session.notes} "
-                                            </div>
-                                        )}
+                                            {/* Hifz Details (Detailed Layout like Image 2) */}
+                                            {session.hifzSurah && (
+                                                <div className="mb-10 animate-in fade-in slide-in-from-right-2 duration-700 text-right">
+                                                    <div className="flex justify-between items-center mb-6">
+                                                        <h4 className="text-lg font-black text-emerald-400 flex items-center gap-3 text-right">
+                                                            <span className="w-2.5 h-2.5 bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
+                                                            الحفظ الجديد (سورة {session.hifzSurah})
+                                                        </h4>
+                                                    </div>
+                                                    
+                                                    <div className="grid grid-cols-2 gap-4 mb-6">
+                                                        <div className="space-y-2 text-right">
+                                                            <span className="block text-[10px] font-black text-slate-500 mr-2 uppercase tracking-wide text-right">من الصفحة</span>
+                                                            <div className="bg-slate-950/80 p-5 rounded-3xl border border-slate-800 text-center relative">
+                                                                <div className="text-2xl font-black text-white">{session.hifzFromPage}</div>
+                                                                <div className="text-[10px] font-bold text-emerald-500 uppercase mt-1">آية {session.hifzFromAyah || 1}</div>
+                                                            </div>
+                                                        </div>
+                                                        <div className="space-y-2 text-right">
+                                                            <span className="block text-[10px] font-black text-slate-500 mr-2 uppercase tracking-wide text-right">إلى الصفحة</span>
+                                                            <div className="bg-slate-950/80 p-5 rounded-3xl border border-slate-800 text-center relative">
+                                                                <div className="text-2xl font-black text-white">{session.hifzToPage}</div>
+                                                                <div className="text-[10px] font-bold text-emerald-500 uppercase mt-1">آية {session.hifzToAyah || '؟'}</div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Quality Stats Grid for Hifz */}
+                                                    <div className="grid grid-cols-3 gap-3">
+                                                        <div className="bg-slate-950/60 p-4 rounded-2xl border border-slate-800 text-center">
+                                                            <div className="text-[9px] font-black text-red-500 mb-2 uppercase">أخطاء</div>
+                                                            <div className="text-xl font-black text-white">{session.hifzErrors || 0}</div>
+                                                        </div>
+                                                        <div className="bg-slate-950/60 p-4 rounded-2xl border border-slate-800 text-center">
+                                                            <div className="text-[9px] font-black text-amber-500 mb-2 uppercase">تنبيهات</div>
+                                                            <div className="text-xl font-black text-white">{session.hifzAlerts || 0}</div>
+                                                        </div>
+                                                        <div className="bg-slate-950/60 p-4 rounded-2xl border border-slate-800 text-center">
+                                                            <div className="text-[9px] font-black text-emerald-500 mb-2 uppercase">نقية</div>
+                                                            <div className="text-xl font-black text-white">{session.hifzCleanPages || 0}</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Murajaah Details */}
+                                            {session.murajaahToSurah && (
+                                                <div className="mb-8 pt-8 border-t border-white/5 animate-in fade-in slide-in-from-right-2 duration-700 text-right">
+                                                    <h4 className="text-lg font-black text-indigo-400 flex items-center gap-3 mb-6 text-right">
+                                                        <span className="w-2.5 h-2.5 bg-indigo-500 rounded-full shadow-[0_0_8px_rgba(99,102,241,0.5)]"></span>
+                                                        المراجعة الكبرى
+                                                    </h4>
+                                                    <div className="bg-slate-950/80 p-6 rounded-3xl border border-slate-800 mb-4">
+                                                        <div className="flex justify-between items-center">
+                                                            <div className="text-center flex-1">
+                                                                <div className="text-[10px] text-slate-500 font-bold mb-1">من سورة</div>
+                                                                <div className="text-lg font-black text-white">{session.murajaahFromSurah}</div>
+                                                                <div className="text-[9px] text-indigo-400 font-bold uppercase mt-1">آية {session.murajaahFromAyah || 1}</div>
+                                                            </div>
+                                                            <div className="px-4 text-slate-700">←</div>
+                                                            <div className="text-center flex-1">
+                                                                <div className="text-[10px] text-slate-500 font-bold mb-1">إلى سورة</div>
+                                                                <div className="text-lg font-black text-white">{session.murajaahToSurah}</div>
+                                                                <div className="text-[9px] text-indigo-400 font-bold uppercase mt-1">آية {session.murajaahToAyah || '؟'}</div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    {/* Quality Stats Grid for Murajaah */}
+                                                    <div className="grid grid-cols-3 gap-3">
+                                                        <div className="bg-slate-950/60 p-4 rounded-2xl border border-slate-800 text-center">
+                                                            <div className="text-[9px] font-black text-red-500 mb-2 uppercase">أخطاء</div>
+                                                            <div className="text-xl font-black text-white">{session.errorsCount || 0}</div>
+                                                        </div>
+                                                        <div className="bg-slate-950/60 p-4 rounded-2xl border border-slate-800 text-center">
+                                                            <div className="text-[9px] font-black text-amber-500 mb-2 uppercase">تنبيهات</div>
+                                                            <div className="text-xl font-black text-white">{session.alertsCount || 0}</div>
+                                                        </div>
+                                                        <div className="bg-slate-950/60 p-4 rounded-2xl border border-slate-800 text-center">
+                                                            <div className="text-[9px] font-black text-indigo-500 mb-2 uppercase">نقية</div>
+                                                            <div className="text-xl font-black text-white">{session.cleanPagesCount || 0}</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {session.notes && (
+                                                <div className="mt-8 pt-6 border-t border-white/5 text-xs text-slate-400 italic font-medium text-right">
+                                                    <div className="text-[10px] font-black text-slate-600 mb-2 tracking-widest uppercase text-right">ملاحظات المعلم:</div>
+                                                    " {session.notes} "
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
+                                );
+                            }) : (
+                                <div className="text-center py-32 bg-slate-900/40 rounded-[3rem] border border-dashed border-slate-800">
+                                    <div className="text-6xl mb-6 opacity-20">📅</div>
+                                    <h4 className="text-xl font-black text-slate-700">لا يوجد سجلات حالياً</h4>
+                                    <p className="text-slate-500 mt-2 font-medium">ستظهر تقارير يوميتك هنا بمجرد تسجيلها</p>
                                 </div>
-                            );
-                        }) : (
-                            <div className="text-center py-20 text-slate-400">
-                                <span className="text-4xl mb-4 block">📅</span>
-                                لا توجد سجلات حالياً
-                            </div>
-                        )}
+                            )}
+                        </div>
                     </div>
-                </div>
             </main>
         </div>
     );
