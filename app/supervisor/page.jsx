@@ -11,6 +11,8 @@ import SendNotification from '../components/SendNotification';
 import ManageEvents from '../components/ManageEvents';
 import { useTheme } from '../components/ThemeProvider';
 import DevStats from '../components/DevStats';
+import Link from 'next/link';
+
 
 
 export default function SupervisorDashboard() {
@@ -555,6 +557,33 @@ export default function SupervisorDashboard() {
                                                 </span>
                                             </div>
                                             <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0 duration-300">
+                                                {halaqa.teacherId ? (
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => {
+                                                            e.preventDefault();
+                                                            e.stopPropagation();
+                                                            window.location.href = `/teacher/reports?teacherId=${halaqa.teacherId}`;
+                                                        }}
+                                                        className="w-10 h-10 flex items-center justify-center bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-xl hover:bg-indigo-100 dark:hover:bg-indigo-800 transition-colors shadow-sm"
+                                                        title="التقرير الأسبوعي"
+                                                    >
+                                                        📊
+                                                    </button>
+                                                ) : (
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            toast.error('هذه الحلقة غير مرتبطة بمعلم حالياً');
+                                                        }}
+                                                        className="w-10 h-10 flex items-center justify-center bg-slate-50 text-slate-300 rounded-xl cursor-not-allowed"
+                                                    >
+                                                        📊
+                                                    </button>
+                                                )}
+
+
                                                 <button
                                                     onClick={() => openEditHalaqaModal(halaqa)}
                                                     className="w-10 h-10 flex items-center justify-center bg-white dark:bg-slate-700 text-slate-400 dark:text-slate-300 rounded-xl border border-slate-100 dark:border-slate-600 hover:border-indigo-500 hover:text-indigo-500 transition-all shadow-sm"

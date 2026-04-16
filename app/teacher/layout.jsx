@@ -15,7 +15,8 @@ export default function TeacherLayout({ children }) {
         }
 
         const user = JSON.parse(storedUser);
-        if (user.role.toLowerCase() !== 'teacher') {
+        const role = user.role.toUpperCase();
+        if (role !== 'TEACHER' && role !== 'SUPERVISOR') {
             router.push('/login');
             return;
         }

@@ -1,12 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import { formatHijri } from '../../utils/dateUtils';
 
-export default function WeeklyReport() {
+function WeeklyReportContent() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const paramTeacherId = searchParams.get('teacherId');
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(false);
     const [reportData, setReportData] = useState([]);
@@ -39,13 +41,15 @@ export default function WeeklyReport() {
 
     useEffect(() => {
         if (user) fetchReport();
-    }, [user, startDate, endDate]);
+    }, [user, startDate, endDate, paramTeacherId]);
 
     const fetchReport = async () => {
-        if (!user || user.role !== 'TEACHER') return;
+        if (!user) return;
+        const targetId = (user.role === 'SUPERVISOR' && paramTeacherId) ? paramTeacherId : user.id;
+        
         setLoading(true);
         try {
-            const res = await fetch(`/api/reports/weekly?teacherId=${user.id}&startDate=${startDate}&endDate=${endDate}`);
+            const res = await fetch(`/api/reports/weekly?teacherId=${targetId}&startDate=${startDate}&endDate=${endDate}`);
             if (res.ok) {
                 setReportData(await res.json());
             } else {
@@ -111,7 +115,7 @@ export default function WeeklyReport() {
                 </div>
                 <div className="flex gap-3">
                     <button
-                        onClick={() => router.push('/teacher')}
+                        onClick={() => router.push(user?.role === 'SUPERVISOR' ? '/supervisor' : '/teacher')}
                         className="px-6 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold hover:bg-slate-50 transition-colors shadow-sm"
                     >
                         ← عودة
@@ -120,7 +124,7 @@ export default function WeeklyReport() {
                         onClick={() => window.print()}
                         className="flex items-center gap-2 px-6 py-2.5 bg-slate-900 text-white rounded-xl font-bold shadow-lg hover:bg-slate-800 transition-colors"
                     >
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 00-2 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
                         طباعة / PDF
                     </button>
                 </div>
@@ -261,5 +265,17 @@ export default function WeeklyReport() {
                 }
             `}</style>
         </div>
+    );
+}
+
+export default function WeeklyReport() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="w-10 h-10 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+        }>
+            <WeeklyReportContent />
+        </Suspense>
     );
 }
