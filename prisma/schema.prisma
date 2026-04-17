@@ -119,15 +119,16 @@ model Session {
 }
 
 model QuranicEvent {
-  id          Int       @id @default(autoincrement())
-  name        String
-  startDate   DateTime
-  endDate     DateTime
-  isActive    Boolean   @default(false)
-  sessions    Session[]
-  teachers    User[]    @relation("EventTeachers")
-  assignments EventAssignment[]
-  createdAt   DateTime  @default(now())
+  id               Int       @id @default(autoincrement())
+  name             String
+  startDate        DateTime
+  endDate          DateTime
+  isActive         Boolean   @default(false)
+  allowOpenTesting Boolean   @default(false)
+  sessions         Session[]
+  teachers         User[]    @relation("EventTeachers")
+  assignments      EventAssignment[]
+  createdAt        DateTime  @default(now())
 }
 
 model EventAssignment {

@@ -8,6 +8,67 @@ import AddStudentModal from '../components/AddStudentModal';
 import SendNotification from '../components/SendNotification';
 import { useTheme } from '../components/ThemeProvider';
 
+const StudentCard = ({ student, router }) => (
+    <div
+        className="group bg-white dark:bg-slate-800 rounded-[2.5rem] p-7 shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-2xl hover:shadow-emerald-500/10 transition-all duration-500 border-b-8 border-b-transparent hover:border-b-emerald-500 cursor-pointer relative overflow-hidden"
+        onClick={() => router.push(`/teacher/student/${student.id}`)}
+    >
+        <div className="absolute top-0 left-0 w-24 h-24 bg-emerald-500/5 rounded-br-[4rem] group-hover:scale-150 transition-transform duration-700"></div>
+
+        <div className="flex items-start justify-between mb-6 relative z-10">
+            <div className="w-16 h-16 bg-emerald-50 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 rounded-3xl flex items-center justify-center text-3xl font-black shadow-sm group-hover:rotate-6 transition-transform">
+                {student.name?.charAt(0)}
+            </div>
+            <div className="flex flex-col items-end gap-2">
+                <div className="bg-slate-50 dark:bg-slate-900 px-3 py-1 rounded-xl text-[10px] font-black text-slate-400 dark:text-slate-500 border border-slate-100 dark:border-slate-800">
+                    ID: #{student.id}
+                </div>
+                {student.isEventGuest && (
+                    <div className={`px-3 py-1 rounded-xl text-[10px] font-black border ${
+                        student.isSpecificallyAssigned 
+                        ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-500 border-amber-100 dark:border-amber-800 animate-pulse'
+                        : 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 border-indigo-100 dark:border-indigo-800'
+                    }`}>
+                        🏆 {student.isSpecificallyAssigned ? 'ضيف: مسند إليك' : 'متاح للتسميع (عام)'}
+                    </div>
+                )}
+            </div>
+        </div>
+
+        <h3 className="text-2xl font-black text-slate-800 dark:text-white mb-1 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">
+            {student.name}
+        </h3>
+        {student.halaqa && (
+            <p className="text-xs font-bold text-slate-400 dark:text-slate-500 mb-2 flex items-center gap-1">
+                <span>📍</span> {student.halaqa.name}
+            </p>
+        )}
+        <p className="text-slate-500 dark:text-slate-400 text-sm mb-6 font-medium line-clamp-1 italic">
+            وصل إلى: <span className="text-emerald-600 dark:text-emerald-500 font-bold">{student.hifzProgress || 'بداية الحفظ'}</span>
+        </p>
+
+        <div className="space-y-4 mb-8 bg-slate-50 dark:bg-slate-900/40 p-5 rounded-3xl border border-slate-100 dark:border-slate-800">
+            <div className="flex justify-between items-center text-xs">
+                <span className="text-slate-400 dark:text-slate-500 font-bold uppercase">إجمالي الحفظ</span>
+                <span className="font-black text-slate-800 dark:text-white bg-white dark:bg-slate-800 px-3 py-1 rounded-lg border border-slate-100 dark:border-slate-700 shadow-sm">{student.juzCount} أجزاء</span>
+            </div>
+            <div className="w-full h-2.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden p-0.5 border border-slate-100 dark:border-slate-700">
+                <div
+                    className="h-full bg-gradient-to-r from-emerald-600 to-emerald-400 rounded-full transition-all duration-1000 ease-out"
+                    style={{ width: `${(student.juzCount / 30) * 100}%` }}
+                ></div>
+            </div>
+        </div>
+
+        <div className="flex items-center justify-between text-sm text-emerald-600 dark:text-emerald-400 font-black pt-2 border-t border-slate-50 dark:border-slate-900">
+            <span className="group-hover:translate-x-1 transition-transform inline-block">تسجيل التسميع</span>
+            <div className="w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-900/40 flex items-center justify-center text-xl transform group-hover:rotate-45 transition-transform duration-300">
+                ←
+            </div>
+        </div>
+    </div>
+);
+
 export default function TeacherDashboard() {
     const router = useRouter();
     const [showAddModal, setShowAddModal] = useState(false);
@@ -37,25 +98,16 @@ export default function TeacherDashboard() {
     const fetchStudents = async () => {
         setLoading(true);
         try {
-            // First fetch teacher's halaqas to know what to filter by
-            let currentTeacherHalaqaId = null;
             if (user) {
-                // Fetch all halaqas and find the ones where this teacher is lead or assistant
+                // Fetch teacher's halaqas for the "Add Student" modal dropdown
                 const halaqasRes = await fetch('/api/halaqas');
                 if (halaqasRes.ok) {
                     const allHalaqas = await halaqasRes.json();
-
-                    // Find halaqas where teacher is lead or assistant
                     const myHalaqas = allHalaqas.filter(h =>
                         h.teacherId === user.id ||
                         (h.assistants && h.assistants.some(a => a.id === user.id))
                     );
                     setTeacherHalaqas(myHalaqas);
-
-                    // For now, default to the first halaqa found
-                    if (myHalaqas.length > 0) {
-                        currentTeacherHalaqaId = myHalaqas[0].id;
-                    }
                 }
             }
 
@@ -66,9 +118,9 @@ export default function TeacherDashboard() {
                 params.append('juzFilter', juzFilter);
             }
 
-            // Only filter by halaqa if we found one for this teacher
-            if (currentTeacherHalaqaId) {
-                params.append('halaqaId', currentTeacherHalaqaId);
+            // Using the new teacherId filter which includes both Halaqa students and Quranic Day assignments
+            if (user) {
+                params.append('teacherId', user.id);
             }
 
             if (params.toString()) {
@@ -118,7 +170,12 @@ export default function TeacherDashboard() {
                         <h1 className="text-4xl font-black text-slate-800 dark:text-white tracking-tight">
                             مرحباً بك، <span className="text-emerald-600 dark:text-emerald-500">يا {user ? getFirstName(user.name) : 'أستاذ'}!</span>
                         </h1>
-                        <p className="text-slate-500 dark:text-slate-400 mt-2 text-lg">لديك {students.length} طالب مسجل في حلقتك</p>
+                        <p className="text-slate-500 dark:text-slate-400 mt-2 text-lg">
+                            لديك {students.filter(s => !s.isEventGuest).length} طالب في حلقتك
+                            {students.some(s => s.isEventGuest) && (
+                                <span className="text-amber-600 dark:text-amber-500 font-black"> + {students.filter(s => s.isEventGuest).length} ضيوف (اليوم القرآني)</span>
+                            )}
+                        </p>
                     </div>
                     <div className="flex flex-wrap gap-3">
                         <button
@@ -203,57 +260,47 @@ export default function TeacherDashboard() {
                         <p className="mt-5 text-slate-500 dark:text-slate-400 font-black animate-pulse">جاري تحميل قائمة الطلاب المتميزين...</p>
                     </div>
                 ) : filteredStudents.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {filteredStudents.map((student) => (
-                            <div
-                                key={student.id}
-                                className="group bg-white dark:bg-slate-800 rounded-[2.5rem] p-7 shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-2xl hover:shadow-emerald-500/10 transition-all duration-500 border-b-8 border-b-transparent hover:border-b-emerald-500 cursor-pointer relative overflow-hidden"
-                                onClick={() => router.push(`/teacher/student/${student.id}`)}
-                            >
-                                <div className="absolute top-0 left-0 w-24 h-24 bg-emerald-500/5 rounded-br-[4rem] group-hover:scale-150 transition-transform duration-700"></div>
-
-                                <div className="flex items-start justify-between mb-6 relative z-10">
-                                    <div className="w-16 h-16 bg-emerald-50 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 rounded-3xl flex items-center justify-center text-3xl font-black shadow-sm group-hover:rotate-6 transition-transform">
-                                        {student.name?.charAt(0)}
-                                    </div>
-                                    <div className="bg-slate-50 dark:bg-slate-900 px-3 py-1 rounded-xl text-[10px] font-black text-slate-400 dark:text-slate-500 border border-slate-100 dark:border-slate-800">
-                                        ID: #{student.id}
-                                    </div>
+                    <div className="space-y-12">
+                        {/* Guest Students Section */}
+                        {filteredStudents.some(s => s.isEventGuest) && (
+                            <div className="space-y-6">
+                                <div className="flex items-center gap-4">
+                                    <h2 className="text-xl font-black text-amber-600 dark:text-amber-500 whitespace-nowrap">🌟 ضيوف اليوم القرآني</h2>
+                                    <div className="h-0.5 flex-1 bg-gradient-to-r from-amber-200 to-transparent dark:from-amber-900/50"></div>
                                 </div>
-
-                                <h3 className="text-2xl font-black text-slate-800 dark:text-white mb-1 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">
-                                    {student.name}
-                                </h3>
-                                {student.halaqa && (
-                                    <p className="text-xs font-bold text-slate-400 dark:text-slate-500 mb-2 flex items-center gap-1">
-                                        <span>📍</span> {student.halaqa.name}
-                                    </p>
-                                )}
-                                <p className="text-slate-500 dark:text-slate-400 text-sm mb-6 font-medium line-clamp-1 italic">
-                                    وصل إلى: <span className="text-emerald-600 dark:text-emerald-500 font-bold">{student.hifzProgress || 'بداية الحفظ'}</span>
-                                </p>
-
-                                <div className="space-y-4 mb-8 bg-slate-50 dark:bg-slate-900/40 p-5 rounded-3xl border border-slate-100 dark:border-slate-800">
-                                    <div className="flex justify-between items-center text-xs">
-                                        <span className="text-slate-400 dark:text-slate-500 font-bold uppercase">إجمالي الحفظ</span>
-                                        <span className="font-black text-slate-800 dark:text-white bg-white dark:bg-slate-800 px-3 py-1 rounded-lg border border-slate-100 dark:border-slate-700 shadow-sm">{student.juzCount} أجزاء</span>
-                                    </div>
-                                    <div className="w-full h-2.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden p-0.5 border border-slate-100 dark:border-slate-700">
-                                        <div
-                                            className="h-full bg-gradient-to-r from-emerald-600 to-emerald-400 rounded-full transition-all duration-1000 ease-out"
-                                            style={{ width: `${(student.juzCount / 30) * 100}%` }}
-                                        ></div>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center justify-between text-sm text-emerald-600 dark:text-emerald-400 font-black pt-2 border-t border-slate-50 dark:border-slate-900">
-                                    <span className="group-hover:translate-x-1 transition-transform inline-block">تسجيل التسميع</span>
-                                    <div className="w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-900/40 flex items-center justify-center text-xl transform group-hover:rotate-45 transition-transform duration-300">
-                                        ←
-                                    </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    {filteredStudents.filter(s => s.isEventGuest).map((student) => (
+                                        <StudentCard key={student.id} student={student} router={router} />
+                                    ))}
                                 </div>
                             </div>
-                        ))}
+                        )}
+
+                        {/* Separator if both exist */}
+                        {filteredStudents.some(s => s.isEventGuest) && filteredStudents.some(s => !s.isEventGuest) && (
+                            <div className="py-8 flex items-center gap-6">
+                                <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-800 to-transparent"></div>
+                                <span className="text-slate-400 dark:text-slate-600 font-black text-[10px] uppercase tracking-[0.3em] bg-slate-50 dark:bg-slate-900/50 px-4 py-1 rounded-full border border-slate-100 dark:border-slate-800">
+                                    نهاية قائمة الضيوف
+                                </span>
+                                <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-800 to-transparent"></div>
+                            </div>
+                        )}
+
+                        {/* Regular Students Section */}
+                        {filteredStudents.some(s => !s.isEventGuest) && (
+                            <div className="space-y-6">
+                                <div className="flex items-center gap-4">
+                                    <h2 className="text-xl font-black text-slate-400 dark:text-slate-500 whitespace-nowrap">👥 طلاب الحلقة</h2>
+                                    <div className="h-0.5 flex-1 bg-gradient-to-r from-slate-200 to-transparent dark:from-slate-800/50"></div>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    {filteredStudents.filter(s => !s.isEventGuest).map((student) => (
+                                        <StudentCard key={student.id} student={student} router={router} />
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 ) : (
                     <div className="text-center py-24 bg-white dark:bg-slate-800 rounded-[3rem] border-2 border-dashed border-slate-200 dark:border-slate-700 shadow-sm">

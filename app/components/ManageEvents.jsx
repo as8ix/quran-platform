@@ -20,7 +20,8 @@ export default function ManageEvents({ teachers, students }) {
         startDate: '',
         endDate: '',
         isActive: false,
-        teacherIds: []
+        teacherIds: [],
+        allowOpenTesting: false
     });
 
     const [editingId, setEditingId] = useState(null);
@@ -61,7 +62,7 @@ export default function ManageEvents({ teachers, students }) {
             if (res.ok) {
                 toast.success(editingId ? 'تم تعديل الدورة بنجاح' : 'تم إنشاء الدورة بنجاح');
                 setShowModal(false);
-                setNewEvent({ name: '', startDate: '', endDate: '', isActive: false, teacherIds: [] });
+                setNewEvent({ name: '', startDate: '', endDate: '', isActive: false, teacherIds: [], allowOpenTesting: false });
                 setEditingId(null);
                 fetchEvents();
             } else {
@@ -81,6 +82,7 @@ export default function ManageEvents({ teachers, students }) {
             startDate: new Date(event.startDate).toISOString().split('T')[0],
             endDate: new Date(event.endDate).toISOString().split('T')[0],
             isActive: event.isActive,
+            allowOpenTesting: event.allowOpenTesting || false,
             teacherIds: event.teachers.map(t => t.id)
         });
         setEditingId(event.id);
@@ -214,7 +216,7 @@ export default function ManageEvents({ teachers, students }) {
                     <button
                         onClick={() => {
                             setEditingId(null);
-                            setNewEvent({ name: '', startDate: '', endDate: '', isActive: false, teacherIds: [] });
+                            setNewEvent({ name: '', startDate: '', endDate: '', isActive: false, teacherIds: [], allowOpenTesting: false });
                             setShowModal(true);
                         }}
                         className="bg-amber-600 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg shadow-amber-100 hover:bg-amber-700 transition-all active:scale-95"
@@ -341,15 +343,26 @@ export default function ManageEvents({ teachers, students }) {
                                         ))}
                                     </div>
                                 </div>
-                                <label className="flex items-center gap-3 p-2 cursor-pointer">
-                                    <input
-                                        type="checkbox"
-                                        checked={newEvent.isActive}
-                                        onChange={e => setNewEvent({ ...newEvent, isActive: e.target.checked })}
-                                        className="w-5 h-5 rounded-md border-2 border-slate-300 dark:border-slate-600 text-amber-600 focus:ring-amber-500"
-                                    />
-                                    <span className="font-bold text-slate-700 dark:text-slate-300">تفعيل هذه الدورة حالياً</span>
-                                </label>
+                                <div className="space-y-3 p-2">
+                                    <label className="flex items-center gap-3 cursor-pointer group">
+                                        <input
+                                            type="checkbox"
+                                            checked={newEvent.isActive}
+                                            onChange={e => setNewEvent({ ...newEvent, isActive: e.target.checked })}
+                                            className="w-5 h-5 rounded-md border-2 border-slate-300 dark:border-slate-600 text-amber-600 focus:ring-amber-500"
+                                        />
+                                        <span className="font-bold text-slate-700 dark:text-slate-300 group-hover:text-amber-600 transition-colors">تفعيل هذه الدورة حالياً</span>
+                                    </label>
+                                    <label className="flex items-center gap-3 cursor-pointer group">
+                                        <input
+                                            type="checkbox"
+                                            checked={newEvent.allowOpenTesting}
+                                            onChange={e => setNewEvent({ ...newEvent, allowOpenTesting: e.target.checked })}
+                                            className="w-5 h-5 rounded-md border-2 border-slate-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-500"
+                                        />
+                                        <span className="font-bold text-slate-700 dark:text-slate-300 group-hover:text-indigo-600 transition-colors">نظام التسميع المفتوح (أي معلم يسمع أي طالب)</span>
+                                    </label>
+                                </div>
                             </form>
                         </div>
                         <div className="modal-footer flex gap-4">

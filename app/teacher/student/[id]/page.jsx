@@ -149,20 +149,22 @@ export default function StudentDetailsPage() {
                         const assignedRes = await fetch(`/api/quranic-events/assignments?eventId=${event.id}`);
                         if (assignedRes.ok) {
                             const assignments = await assignedRes.json();
-                            const isAssigned = assignments.some(a =>
+                            
+                            // Check if this student is assigned to THIS teacher OR if the event is OPEN
+                            const isAssignedToMe = assignments.some(a =>
                                 a.studentId === parseInt(studentId) &&
                                 a.teacherId === currentUser.id
                             );
-                            setIsQuranicDaySession(isAssigned);
-                            // Store assignment status in a separate state if needed, 
-                            // but setting the toggle is enough to "activate" it.
-                            if (!isAssigned) {
-                                // If not assigned, they can still record a normal session, 
-                                // but we might want to hide the toggle or show it as disabled.
-                                // The user said " يكون عنده تسجيل التسميع في الأيام القرآنية فقط" 
-                                // which implies if he's in the event, he records for it.
-                                // I'll add a check in the UI.
-                            }
+
+                            // The student is part of the event if they appear in ANY assignment for this event
+                            const isStudentInEvent = assignments.some(a => a.studentId === parseInt(studentId));
+
+                            // Logic: 
+                            // 1. If specifically assigned to me -> Valid.
+                            // 2. If it's OPEN testing and student is in the event -> Valid.
+                            const isValidQuranicSession = isAssignedToMe || (event.allowOpenTesting && isStudentInEvent);
+
+                            setIsQuranicDaySession(isValidQuranicSession);
                         }
                     }
                 }

@@ -65,42 +65,87 @@ export default function QuranicDaysDashboard() {
         return () => document.removeEventListener('fullscreenchange', handleFsChange);
     }, []);
 
-    const exportToCSV = () => {
-        if (!stats) return;
+    const exportToExcel = async () => {
+        if (!stats || !stats.exportData) return;
 
-        const rows = [
-            ['بند الإحصائية', 'القيمة'],
-            ['اسم الدورة', stats.eventName],
-            ['عدد المعلمين', stats.general.teachersCount],
-            ['إجمالي الجلسات', stats.general.totalSessions],
-            ['الحضور الفعلي', stats.general.actualAttendance],
-            ['المستهدف بالصفحات', stats.achievements.target],
-            ['الصفحات المنجزة', stats.achievements.accomplished],
-            ['صفحات بجودة عالية', stats.achievements.purity],
+        const XLSX = await import('xlsx');
+        const { exportData } = stats;
+
+        // 1. Summary Sheet
+        const summaryData = [
+            ['تقرير الأيام القرآنية', stats.eventName],
+            ['تاريخ التصدير', new Date().toLocaleString('ar-EG')],
+            ['', ''],
+            ['الإحصائيات العامة', 'القيمة'],
+            ['إجمالي المعلمين', stats.general.teachersCount],
+            ['إجمالي الطلاب المسجلين', stats.general.assignedStudentsCount],
+            ['الحضور الفعلي للطلاب', stats.general.actualAttendance],
+            ['إجمالي الجلسات المنفذة', stats.general.totalSessions],
+            ['', ''],
+            ['المنجزات', 'القيمة'],
+            ['المستهدف الإجمالي (صفحة)', stats.achievements.target],
+            ['الصفحات المنجزة (صفحة)', stats.achievements.accomplished],
+            ['الصفحات النقية', stats.achievements.purity],
             ['إجمالي الختمات', stats.achievements.khatmats],
-            ['جودة التلاوة %', stats.rates.purityRate],
-            ['إنجاز الورد %', stats.rates.goalAchievementRate],
-            ['معدل الإنجاز %', stats.rates.achievementRate],
             ['', ''],
-            ['لوحة الشرف: الأكثر تسميعاً', ''],
-            ['الاسم', 'الصفحات'],
-            ...stats.topReciting.map(s => [s.name, s.pages]),
-            ['', ''],
-            ['لوحة الشرف: الأجود تسميعاً', ''],
-            ['الاسم', 'الجودة %'],
-            ...stats.topQuality.map(s => [s.name, s.quality])
+            ['معدلات الأداء', 'النسبة'],
+            ['جودة التلاوة الإجمالية', `${stats.rates.purityRate}%`],
+            ['معدل إنجاز الطلاب للورد', `${stats.rates.goalAchievementRate}%`],
+            ['معدل الإنجاز العام', `${stats.rates.achievementRate}%`],
         ];
 
-        const csvContent = "data:text/csv;charset=utf-8,\uFEFF"
-            + rows.map(e => e.join(",")).join("\n");
+        // 2. Teachers Sheet
+        const teachersData = [
+            ['اسم المعلم', 'اسم المستخدم'],
+            ...exportData.teachers.map(t => [t.name, t.username])
+        ];
 
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", `تقرير_الأيام_القرآنية_${stats.eventName}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        // 3. Students Sheet
+        const studentsData = [
+            ['اسم الطالب', 'المعلم المسؤول', 'إجمالي الصفحات', 'الجودة %', 'عدد الجلسات', 'حقّق الهدف بالكامل'],
+            ...exportData.students.map(s => [
+                s.name, 
+                s.teacherName, 
+                s.pages, 
+                `${s.quality}%`, 
+                s.sessionsCount, 
+                s.isGoalAchieved ? 'نعم' : 'لا'
+            ])
+        ];
+
+        // 4. Sessions Sheet
+        const sessionsData = [
+            ['التاريخ', 'اسم الطالب', 'المعلم', 'عدد صفحات المراجعة', 'الصفحات النقية', 'أخطاء المراجعة', 'تنبيهات المراجعة', 'هل حقق الهدف؟', 'ملاحظات'],
+            ...exportData.sessions.map(s => [
+                new Date(s.date).toLocaleDateString('ar-EG'),
+                s.studentName,
+                s.teacherName,
+                s.pagesCount,
+                s.cleanPages,
+                (s.murajaahErrors + s.minorMurajaahErrors),
+                (s.murajaahAlerts + s.minorMurajaahAlerts),
+                s.isGoalAchieved,
+                s.notes
+            ])
+        ];
+
+        const wb = XLSX.utils.book_new();
+        
+        // Helper to set RTL for worksheet
+        const addSheet = (data, name) => {
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            if (!ws['!ref']) return;
+            // Set basic column widths
+            ws['!cols'] = data[0].map(() => ({ wch: 20 }));
+            XLSX.utils.book_append_sheet(wb, ws, name);
+        };
+
+        addSheet(summaryData, "الملخص العام");
+        addSheet(teachersData, "قائمة المعلمين");
+        addSheet(studentsData, "قائمة الطلاب");
+        addSheet(sessionsData, "تفاصيل الجلسات");
+
+        XLSX.writeFile(wb, `تقرير_الأيام_القرآنية_${stats.eventName}.xlsx`);
     };
 
     const { isDarkMode, mounted } = useTheme();
@@ -168,7 +213,7 @@ export default function QuranicDaysDashboard() {
                             <p className="text-slate-400 font-bold flex items-center gap-2">
                                 <span className={`w-2 h-2 bg-emerald-500 rounded-full animate-ping ${isFullscreen ? 'inline-block' : ''}`}></span>
                                 <span className="text-[10px] tracking-tighter text-emerald-500">مباشر • </span>
-                                <span className={`${isFullscreen ? 'text-xs' : ''}`}>{isFullscreen ? 'بث مباشر للنتائج الاحترافية' : 'جاري عرض النتائج المباشرة للدورة الحالية'}</span>
+                                <span className={`${isFullscreen ? 'text-xs' : ''}`}>{isFullscreen ? 'بث مباشر لنتائج اليوم القرآني' : 'جاري عرض النتائج المباشرة للدورة الحالية'}</span>
                             </p>
                         </div>
                     </div>
@@ -181,7 +226,7 @@ export default function QuranicDaysDashboard() {
                         </button>
                         {!isFullscreen && (
                             <button
-                                onClick={exportToCSV}
+                                onClick={exportToExcel}
                                 className="bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-6 py-4 rounded-2xl font-bold border-2 border-slate-100 dark:border-slate-700 hover:border-amber-500 transition-all flex items-center gap-2 shadow-sm"
                             >
                                 <span>📊</span> تصدير البيانات للـ Excel
@@ -226,9 +271,9 @@ export default function QuranicDaysDashboard() {
                         </h3>
 
                         <div className={`${isFullscreen ? 'space-y-4' : 'space-y-8'} relative z-10`}>
-                            <AchievementItem label="المستهدف بالصفحات" value={stats.achievements.target} unit="صفحة" color="text-slate-400" isFullscreen={isFullscreen} />
+                            <AchievementItem label="المستهدف من الصفحات" value={stats.achievements.target} unit="صفحة" color="text-slate-400" isFullscreen={isFullscreen} />
                             <AchievementItem label="الصفحات المنجزة" value={stats.achievements.accomplished} unit="صفحة" color="text-amber-600" isMain isFullscreen={isFullscreen} />
-                            <AchievementItem label="صفحات بجودة عالية" value={stats.achievements.purity} unit="صفحة" color="text-emerald-500" isFullscreen={isFullscreen} />
+                            <AchievementItem label="الصفحات النقية" value={stats.achievements.purity} unit="صفحة" color="text-emerald-500" isFullscreen={isFullscreen} />
                             <AchievementItem label="إجمالي الختمات" value={stats.achievements.khatmats} unit="ختمة" color="text-indigo-600" isFullscreen={isFullscreen} />
                         </div>
                     </div>
@@ -338,7 +383,7 @@ function RadialProgress({ percentage, label, color, isFullscreen }) {
         <div className="flex flex-col items-center gap-2 group">
             <div className={`${isFullscreen ? 'w-40 h-40' : 'w-36 h-36'} relative flex items-center justify-center`}>
                 {/* Background Circle */}
-                <svg className="w-full h-full -rotate-90" viewBox={`0 0 ${viewBoxSize} ${viewBoxSize}`}>
+                <svg className="w-full h-full -rotate-90 overflow-visible" viewBox={`0 0 ${viewBoxSize} ${viewBoxSize}`}>
                     <circle
                         cx={center} cy={center} r={radius}
                         className="stroke-slate-800"
@@ -354,7 +399,7 @@ function RadialProgress({ percentage, label, color, isFullscreen }) {
                         strokeDashoffset={offset}
                         strokeLinecap="round"
                         className="transition-all duration-1000 ease-out"
-                        style={{ filter: `drop-shadow(0 0 ${isFullscreen ? '8px' : '8px'} ${color})` }}
+                        style={{ filter: `drop-shadow(0 0 ${isFullscreen ? '12px' : '15px'} ${color})` }}
                     />
                 </svg>
                 {/* Center Value */}

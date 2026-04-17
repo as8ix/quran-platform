@@ -36,7 +36,7 @@ export async function GET(request) {
 export async function POST(request) {
     try {
         const body = await request.json();
-        const { name, startDate, endDate, teacherIds, isActive } = body;
+        const { name, startDate, endDate, teacherIds, isActive, allowOpenTesting } = body;
 
         // If this is set as active, deactivate others
         if (isActive) {
@@ -52,6 +52,7 @@ export async function POST(request) {
                 startDate: new Date(startDate),
                 endDate: new Date(endDate),
                 isActive: isActive || false,
+                allowOpenTesting: allowOpenTesting || false,
                 teachers: {
                     connect: teacherIds?.map(id => ({ id: parseInt(id) })) || []
                 }
@@ -71,7 +72,7 @@ export async function POST(request) {
 export async function PUT(request) {
     try {
         const body = await request.json();
-        const { id, name, startDate, endDate, teacherIds, isActive } = body;
+        const { id, name, startDate, endDate, teacherIds, isActive, allowOpenTesting } = body;
 
         if (!id) return NextResponse.json({ error: 'Event ID required' }, { status: 400 });
 
@@ -90,6 +91,7 @@ export async function PUT(request) {
                 startDate: startDate ? new Date(startDate) : undefined,
                 endDate: endDate ? new Date(endDate) : undefined,
                 isActive: isActive !== undefined ? isActive : undefined,
+                allowOpenTesting: allowOpenTesting !== undefined ? allowOpenTesting : undefined,
                 teachers: teacherIds ? {
                     set: teacherIds.map(id => ({ id: parseInt(id) }))
                 } : undefined
