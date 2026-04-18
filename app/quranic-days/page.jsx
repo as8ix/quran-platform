@@ -279,7 +279,7 @@ export default function QuranicDaysDashboard() {
                     </div>
 
                     {/* Radial Charts Box */}
-                    <div className={`${isFullscreen ? 'rounded-[1.5rem] p-4' : 'rounded-[3rem] p-10'} bg-white dark:bg-slate-900 shadow-xl dark:shadow-2xl shadow-slate-200/50 dark:shadow-indigo-900/20 border border-slate-50 dark:border-slate-800 flex flex-col transition-colors`}>
+                    <div className={`lg:col-span-2 ${isFullscreen ? 'rounded-[1.5rem] p-4' : 'rounded-[3rem] p-10'} bg-white dark:bg-slate-900 shadow-xl dark:shadow-2xl shadow-slate-200/50 dark:shadow-indigo-900/20 border border-slate-100 dark:border-slate-800 flex flex-col transition-colors`}>
                         <h3 className={`${isFullscreen ? 'text-sm mb-2' : 'text-2xl mb-10'} font-black text-slate-800 dark:text-white flex items-center gap-3`}>
                             ⚡ معدلات الأداء
                         </h3>
@@ -291,7 +291,7 @@ export default function QuranicDaysDashboard() {
                         </div>
 
                         {!isFullscreen && (
-                            <div className="mt-8 pt-8 border-t border-slate-800 flex justify-center items-center gap-8">
+                            <div className="mt-8 pt-8 border-t border-slate-100 dark:border-slate-800 flex justify-center items-center gap-8">
                                 <div className="flex items-center gap-2">
                                     <span className="w-3 h-3 bg-amber-500 rounded-full shadow-[0_0_10px_rgba(245,158,11,0.5)]"></span>
                                     <span className="text-xs font-bold text-slate-400">إتقان التلاوة</span>
