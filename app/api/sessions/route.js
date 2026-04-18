@@ -64,7 +64,7 @@ export async function POST(request) {
                 alertsCount: parseInt(alertsCount) || 0,
                 hifzErrors: parseInt(hifzErrors) || 0,
                 hifzAlerts: parseInt(hifzAlerts) || 0,
-                hifzCleanPages: parseInt(hifzCleanPages) || 0,
+                hifzCleanPages: parseFloat(hifzCleanPages) || 0,
                 cleanPagesCount: parseInt(cleanPagesCount) || 0,
                 minorErrorsCount: parseInt(minorErrorsCount) || 0,
                 minorAlertsCount: parseInt(minorAlertsCount) || 0,
@@ -126,6 +126,68 @@ export async function POST(request) {
         return NextResponse.json(session);
     } catch (error) {
         console.error("Session Save Error:", error);
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+}
+
+export async function PUT(request) {
+    try {
+        const body = await request.json();
+        const { id, ...fields } = body;
+
+        if (!id) return NextResponse.json({ error: 'Missing session id' }, { status: 400 });
+
+        const updateData = {};
+        if (fields.hifzSurah !== undefined)                updateData.hifzSurah = fields.hifzSurah;
+        if (fields.hifzFromPage !== undefined)             updateData.hifzFromPage = fields.hifzFromPage ? parseInt(fields.hifzFromPage) : null;
+        if (fields.hifzToPage !== undefined)               updateData.hifzToPage = fields.hifzToPage ? parseInt(fields.hifzToPage) : null;
+        if (fields.hifzFromAyah !== undefined)             updateData.hifzFromAyah = fields.hifzFromAyah ? parseInt(fields.hifzFromAyah) : null;
+        if (fields.hifzToAyah !== undefined)               updateData.hifzToAyah = fields.hifzToAyah ? parseInt(fields.hifzToAyah) : null;
+        if (fields.murajaahFromSurah !== undefined)        updateData.murajaahFromSurah = fields.murajaahFromSurah;
+        if (fields.murajaahFromAyah !== undefined)         updateData.murajaahFromAyah = fields.murajaahFromAyah ? parseInt(fields.murajaahFromAyah) : null;
+        if (fields.murajaahToSurah !== undefined)          updateData.murajaahToSurah = fields.murajaahToSurah;
+        if (fields.murajaahToAyah !== undefined)           updateData.murajaahToAyah = fields.murajaahToAyah ? parseInt(fields.murajaahToAyah) : null;
+        if (fields.minorMurajaahFromSurah !== undefined)   updateData.minorMurajaahFromSurah = fields.minorMurajaahFromSurah;
+        if (fields.minorMurajaahFromAyah !== undefined)    updateData.minorMurajaahFromAyah = fields.minorMurajaahFromAyah ? parseInt(fields.minorMurajaahFromAyah) : null;
+        if (fields.minorMurajaahToSurah !== undefined)     updateData.minorMurajaahToSurah = fields.minorMurajaahToSurah;
+        if (fields.minorMurajaahToAyah !== undefined)      updateData.minorMurajaahToAyah = fields.minorMurajaahToAyah ? parseInt(fields.minorMurajaahToAyah) : null;
+        if (fields.pagesCount !== undefined)               updateData.pagesCount = parseFloat(fields.pagesCount) || 0;
+        if (fields.resultString !== undefined)             updateData.resultString = fields.resultString;
+        if (fields.notes !== undefined)                    updateData.notes = fields.notes;
+        if (fields.errorsCount !== undefined)              updateData.errorsCount = parseInt(fields.errorsCount) || 0;
+        if (fields.alertsCount !== undefined)              updateData.alertsCount = parseInt(fields.alertsCount) || 0;
+        if (fields.cleanPagesCount !== undefined)          updateData.cleanPagesCount = parseFloat(fields.cleanPagesCount) || 0;
+        if (fields.hifzErrors !== undefined)               updateData.hifzErrors = parseInt(fields.hifzErrors) || 0;
+        if (fields.hifzAlerts !== undefined)               updateData.hifzAlerts = parseInt(fields.hifzAlerts) || 0;
+        if (fields.hifzCleanPages !== undefined)           updateData.hifzCleanPages = parseFloat(fields.hifzCleanPages) || 0;
+        if (fields.minorErrorsCount !== undefined)         updateData.minorErrorsCount = parseInt(fields.minorErrorsCount) || 0;
+        if (fields.minorAlertsCount !== undefined)         updateData.minorAlertsCount = parseInt(fields.minorAlertsCount) || 0;
+        if (fields.minorCleanPagesCount !== undefined)     updateData.minorCleanPagesCount = parseFloat(fields.minorCleanPagesCount) || 0;
+        if (fields.isGoalAchieved !== undefined)           updateData.isGoalAchieved = fields.isGoalAchieved;
+        if (fields.quranicEventId !== undefined)           updateData.quranicEventId = fields.quranicEventId ? parseInt(fields.quranicEventId) : null;
+
+        const updated = await prisma.session.update({
+            where: { id: parseInt(id) },
+            data: updateData
+        });
+
+        return NextResponse.json(updated);
+    } catch (error) {
+        console.error('Session Update Error:', error);
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+}
+
+export async function DELETE(request) {
+    try {
+        const { searchParams } = new URL(request.url);
+        const id = searchParams.get('id');
+        if (!id) return NextResponse.json({ error: 'Missing session id' }, { status: 400 });
+
+        await prisma.session.delete({ where: { id: parseInt(id) } });
+        return NextResponse.json({ success: true });
+    } catch (error) {
+        console.error('Session Delete Error:', error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }

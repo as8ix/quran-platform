@@ -64,6 +64,7 @@ export default function StudentDetailsPage() {
     const [showTypeModal, setShowTypeModal] = useState(false);
     const [isSessionActive, setIsSessionActive] = useState(false);
     const [showCancelModal, setShowCancelModal] = useState(false);
+    const [editingSession, setEditingSession] = useState(null);
 
     const [user, setUser] = useState(null);
 
@@ -500,8 +501,8 @@ export default function StudentDetailsPage() {
 
     // Auto-calculate clean pages whenever dependencies change
     useEffect(() => {
-        const total = Math.floor(pagesCount || 0);
-        const clean = Math.max(0, total - (parseInt(errorsCount) || 0) - (parseInt(alertsCount) || 0));
+        const total = parseFloat(pagesCount || 0);
+        const clean = Math.max(0, total - (parseFloat(errorsCount) || 0) - (parseFloat(alertsCount) || 0));
         setCleanPagesCount(clean);
     }, [pagesCount, errorsCount, alertsCount]);
 
@@ -512,7 +513,7 @@ export default function StudentDetailsPage() {
             const to = parseInt(hifzToPage);
             if (!isNaN(from) && !isNaN(to)) {
                 const total = Math.max(0, (to - from) + 1);
-                const clean = Math.max(0, total - (parseInt(hifzErrors) || 0) - (parseInt(hifzAlerts) || 0));
+                const clean = Math.max(0, total - (parseFloat(hifzErrors) || 0) - (parseFloat(hifzAlerts) || 0));
                 setHifzCleanPages(clean);
             }
         }
@@ -521,6 +522,84 @@ export default function StudentDetailsPage() {
     useEffect(() => {
         calculateMurajaah();
     }, [mFromSurah, mFromAyah, mToSurah, mToAyah, minorMFromSurah, minorMFromAyah, minorMToSurah, minorMToAyah, murajaahType]);
+
+    const findSurahId = (name) => {
+        if (!name) return 1;
+        const normalized = name.replace('سورة ', '').trim();
+        return quranData.find(s => s.name === normalized || s.name === name)?.id || 1;
+    };
+
+    const handleEditSession = (session) => {
+        setEditingSession(session);
+        setIsSessionActive(true);
+
+        // Determine session type
+        const hasHifz = !!session.hifzSurah;
+        const hasMajor = !!session.murajaahFromSurah;
+        const hasMinor = !!session.minorMurajaahFromSurah;
+
+        if (hasHifz && (hasMajor || hasMinor)) setSessionType('BOTH');
+        else if (hasHifz) setSessionType('HIFZ');
+        else setSessionType('MURAJAAH');
+
+        // Set Hifz Data
+        if (hasHifz) {
+            setHifzFromPage(session.hifzFromPage || '');
+            setHifzToPage(session.hifzToPage || '');
+            setHifzFromAyah(session.hifzFromAyah || 1);
+            setHifzToAyah(session.hifzToAyah || 1);
+            setHifzErrors(session.hifzErrors || 0);
+            setHifzAlerts(session.hifzAlerts || 0);
+            setHifzCleanPages(session.hifzCleanPages || 0);
+        }
+
+        // Set Murajaah Data
+        if (hasMajor || hasMinor) {
+            if (hasMajor && hasMinor) setMurajaahType('BOTH');
+            else if (hasMajor) setMurajaahType('MAJOR');
+            else setMurajaahType('MINOR');
+
+            if (hasMajor) {
+                setMFromSurah(findSurahId(session.murajaahFromSurah));
+                setMFromAyah(session.murajaahFromAyah || 1);
+                setMToSurah(findSurahId(session.murajaahToSurah));
+                setMToAyah(session.murajaahToAyah || 1);
+                setErrorsCount(session.errorsCount - (session.hifzErrors || 0)); // Major errors only
+                setAlertsCount(session.alertsCount - (session.hifzAlerts || 0)); // Major alerts only
+                setCleanPagesCount(session.cleanPagesCount - (session.hifzCleanPages || 0)); // Major clean pages
+            }
+
+            if (hasMinor) {
+                setMinorMFromSurah(findSurahId(session.minorMurajaahFromSurah));
+                setMinorMFromAyah(session.minorMurajaahFromAyah || 1);
+                setMinorMToSurah(findSurahId(session.minorMurajaahToSurah));
+                setMinorMToAyah(session.minorMurajaahToAyah || 1);
+                setMinorErrors(session.minorErrorsCount || 0);
+                setMinorAlerts(session.minorAlertsCount || 0);
+                setMinorCleanPages(session.minorCleanPagesCount || 0);
+            }
+        }
+
+        setNotes(session.notes || '');
+        window.scrollTo({ top: 300, behavior: 'smooth' });
+    };
+
+    const handleDeleteSession = async (sessionId) => {
+        if (!confirm('هل أنت متأكد من حذف هذا السجل؟ لا يمكن التراجع عن هذا الإجراء.')) return;
+        
+        try {
+            const res = await fetch(`/api/sessions?id=${sessionId}`, { method: 'DELETE' });
+            if (res.ok) {
+                toast.success('تم حذف السجل بنجاح');
+                fetchHistory();
+                fetchStudent();
+            } else {
+                toast.error('حدث خطأ أثناء الحذف');
+            }
+        } catch (e) {
+            toast.error('خطأ في الاتصال');
+        }
+    };
 
     const handleSaveSession = async (e) => {
         e.preventDefault();
@@ -541,6 +620,13 @@ export default function StudentDetailsPage() {
             // 1. Get Hifz Target (student.dailyTargetPages)
             const hifzTarget = student?.dailyTargetPages || 0;
 
+            // 1.5 Quranic Day Precise Target Logic
+            const juzStartPages = [
+                0, 1, 22, 42, 62, 82, 102, 122, 142, 162, 182,
+                202, 222, 242, 262, 282, 302, 322, 342, 362, 382,
+                402, 422, 442, 462, 482, 502, 522, 542, 562, 582
+            ];
+
             // 2. Get Review Target (from student.reviewPlan string)
             // Parse "part", "2 parts", etc into pages.
             // Assumption: 1 Juz = 20 pages.
@@ -557,6 +643,19 @@ export default function StudentDetailsPage() {
                 // Try to parse custom number if existing (e.g. "5")
                 // If it's pure number
                 if (!isNaN(parseFloat(plan))) reviewTarget = parseFloat(plan);
+            }
+
+            // OVERRIDE: If it's a Quranic Day, the target is their entire portion
+            if (isQuranicDay) {
+                const count = Math.min(30, Math.max(0, student?.juzCount || 0));
+                if (count > 0) {
+                    const startJuzIndex = 31 - count;
+                    const startPage = juzStartPages[startJuzIndex];
+                    reviewTarget = (604 - startPage + 1);
+                } else {
+                    // Default if juzCount is 0 but they are in the event
+                    reviewTarget = 20; 
+                }
             }
 
             // 3. Calculate Actuals
@@ -586,7 +685,10 @@ export default function StudentDetailsPage() {
 
             // 3.5 Calculate Today's Past Sessions
             const todayStr = new Date().toISOString().split('T')[0];
-            const todaysSessions = history.filter(s => new Date(s.date).toISOString().split('T')[0] === todayStr);
+            const todaysSessions = history.filter(s => 
+                new Date(s.date).toISOString().split('T')[0] === todayStr && 
+                s.id !== editingSession?.id
+            );
 
             let pastHifz = 0;
             let pastReview = 0;
@@ -612,12 +714,13 @@ export default function StudentDetailsPage() {
             const isGoalAchieved = hifzMet && reviewMet;
 
             const response = await fetch('/api/sessions', {
-                method: 'POST',
+                method: editingSession ? 'PUT' : 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
+                    id: editingSession?.id,
                     studentId,
                     // Only send hifz data if (includesHifz) AND (not Khatim) AND (not a Quranic Day session)
-                    hifzSurah: (includesHifz && !isKhatim && !isQuranicDay) ? currentSurah?.name : null,
+                    hifzSurah: (includesHifz && !isKhatim && !isQuranicDay) ? (editingSession?.hifzSurah || currentSurah?.name) : null,
                     hifzFromPage: (includesHifz && !isKhatim && !isQuranicDay) ? parseInt(hifzFromPage) : null,
                     hifzToPage: (includesHifz && !isKhatim && !isQuranicDay) ? parseInt(hifzToPage) : null,
                     hifzFromAyah: (includesHifz && !isKhatim && !isQuranicDay) ? parseInt(hifzFromAyah) : null,
@@ -635,7 +738,7 @@ export default function StudentDetailsPage() {
 
                     minorErrorsCount: (includesReview && (murajaahType === 'MINOR' || murajaahType === 'BOTH')) ? (parseInt(minorErrors) || 0) : 0,
                     minorAlertsCount: (includesReview && (murajaahType === 'MINOR' || murajaahType === 'BOTH')) ? (parseInt(minorAlerts) || 0) : 0,
-                    minorCleanPagesCount: (includesReview && (murajaahType === 'MINOR' || murajaahType === 'BOTH')) ? (parseInt(minorCleanPages) || 0) : 0,
+                    minorCleanPagesCount: (includesReview && (murajaahType === 'MINOR' || murajaahType === 'BOTH')) ? (parseFloat(minorCleanPages) || 0) : 0,
 
                     // Summary Stats (Total of Hifz + Murajaah)
                     pagesCount: (includesReview ? parseFloat(pagesCount) : 0) + (includesHifz ? hifzDone : 0),
@@ -643,32 +746,33 @@ export default function StudentDetailsPage() {
                     notes,
                     errorsCount: (includesReview ? (parseInt(errorsCount) || 0) : 0) + (includesHifz ? (parseInt(hifzErrors) || 0) : 0),
                     alertsCount: (includesReview ? (parseInt(alertsCount) || 0) : 0) + (includesHifz ? (parseInt(hifzAlerts) || 0) : 0),
-                    cleanPagesCount: (includesReview ? (parseInt(cleanPagesCount) || 0) : 0) + (includesHifz ? (parseInt(hifzCleanPages) || 0) : 0),
+                    cleanPagesCount: (includesReview ? (parseFloat(cleanPagesCount) || 0) : 0) + (includesHifz ? (parseFloat(hifzCleanPages) || 0) : 0),
 
                     // Specific Breakdowns (kept for record)
                     hifzErrors: parseInt(hifzErrors) || 0,
                     hifzAlerts: parseInt(hifzAlerts) || 0,
-                    hifzCleanPages: parseInt(hifzCleanPages) || 0,
-                    isFinishedSurah: includesHifz ? isFinishedSurah : false,
+                    hifzCleanPages: parseFloat(hifzCleanPages) || 0,
+                    isFinishedSurah: (includesHifz && !editingSession) ? isFinishedSurah : false,
                     isGoalAchieved,
                     quranicEventId: isQuranicDaySession ? activeEvent?.id : null
                 })
             });
 
             if (response.ok) {
-                toast.success('تم تسجيل التسميع بنجاح');
+                toast.success(editingSession ? 'تم تحديث التسميع بنجاح' : 'تم تسجيل التسميع بنجاح');
                 setNotes('');
-                setErrorsCount(0);
-                setAlertsCount(0);
                 setHifzErrors(0);
                 setHifzAlerts(0);
                 setHifzCleanPages(0);
+                setErrorsCount(0);
+                setAlertsCount(0);
                 setCleanPagesCount(0);
                 setMinorErrors(0);
                 setMinorAlerts(0);
                 setMinorCleanPages(0);
-                setIsSessionActive(false); // End session
+                setIsSessionActive(false); 
                 setSessionType(null);
+                setEditingSession(null);
                 fetchStudent();
                 fetchHistory();
             }
@@ -914,10 +1018,28 @@ export default function StudentDetailsPage() {
                                     </h2>
                                     <button
                                         type="button"
-                                        onClick={() => setShowCancelModal(true)}
+                                        onClick={() => {
+                                            if (editingSession) {
+                                                setEditingSession(null);
+                                                setIsSessionActive(false);
+                                                setSessionType(null);
+                                                setNotes('');
+                                                setHifzErrors(0);
+                                                setHifzAlerts(0);
+                                                setHifzCleanPages(0);
+                                                setErrorsCount(0);
+                                                setAlertsCount(0);
+                                                setCleanPagesCount(0);
+                                                setMinorErrors(0);
+                                                setMinorAlerts(0);
+                                                setMinorCleanPages(0);
+                                            } else {
+                                                setShowCancelModal(true);
+                                            }
+                                        }}
                                         className="px-4 py-2 bg-red-50 text-red-500 rounded-xl text-xs font-black hover:bg-red-100 transition-colors"
                                     >
-                                        إلغاء ✕
+                                        {editingSession ? 'إلغاء التعديل ✕' : 'إلغاء ✕'}
                                     </button>
                                 </div>
 
@@ -1006,7 +1128,7 @@ export default function StudentDetailsPage() {
                                                     <div className="flex justify-between items-center mb-6">
                                                         <h3 className="text-emerald-800 dark:text-emerald-400 font-black text-xl flex items-center gap-3">
                                                             <span className="w-3 h-3 bg-emerald-500 rounded-full shadow-lg shadow-emerald-200 dark:shadow-none"></span>
-                                                            الحفظ الجديد (سورة {currentSurah?.name})
+                                                            الحفظ الجديد (سورة {editingSession?.hifzSurah || currentSurah?.name})
                                                         </h3>
                                                         <span className="text-xs font-bold text-emerald-600 bg-emerald-100 px-3 py-1 rounded-full">
                                                             صفحات السورة: {allowedPages[0]} - {allowedPages[allowedPages.length - 1]}
@@ -1040,7 +1162,7 @@ export default function StudentDetailsPage() {
                                                                 onChange={e => {
                                                                     const val = e.target.value;
                                                                     if (val === '') setHifzErrors('');
-                                                                    else setHifzErrors(Math.max(0, parseInt(val) || 0));
+                                                                    else setHifzErrors(Math.max(0, parseFloat(val) || 0));
                                                                 }}
                                                                 min="0"
                                                                 className="w-full px-6 py-4 bg-white dark:bg-slate-900 border-2 border-transparent focus:border-red-400 rounded-2xl outline-none transition-all font-bold text-lg dark:text-white"
@@ -1057,7 +1179,7 @@ export default function StudentDetailsPage() {
                                                                 onChange={e => {
                                                                     const val = e.target.value;
                                                                     if (val === '') setHifzAlerts('');
-                                                                    else setHifzAlerts(Math.max(0, parseInt(val) || 0));
+                                                                    else setHifzAlerts(Math.max(0, parseFloat(val) || 0));
                                                                 }}
                                                                 min="0"
                                                                 className="w-full px-6 py-4 bg-white dark:bg-slate-900 border-2 border-transparent focus:border-orange-400 rounded-2xl outline-none transition-all font-bold text-lg dark:text-white"
@@ -1068,13 +1190,14 @@ export default function StudentDetailsPage() {
                                                             <label className="block text-xs font-bold text-emerald-600 mb-2 mr-2">صفحات نقية</label>
                                                             <input
                                                                 type="number"
+                                                                step="0.25"
                                                                 value={hifzCleanPages}
                                                                 onFocus={() => hifzCleanPages === 0 && setHifzCleanPages('')}
                                                                 onBlur={() => hifzCleanPages === '' && setHifzCleanPages(0)}
                                                                 onChange={e => {
                                                                     const val = e.target.value;
                                                                     if (val === '') setHifzCleanPages('');
-                                                                    else setHifzCleanPages(Math.max(0, parseInt(val) || 0));
+                                                                    else setHifzCleanPages(Math.max(0, parseFloat(val) || 0));
                                                                 }}
                                                                 min="0"
                                                                 className="w-full px-6 py-4 bg-white dark:bg-slate-900 border-2 border-transparent focus:border-emerald-400 rounded-2xl outline-none transition-all font-bold text-lg dark:text-white"
@@ -1212,15 +1335,15 @@ export default function StudentDetailsPage() {
                                                                 <div className="grid grid-cols-3 gap-4 mt-4 pt-4 border-t border-indigo-100 dark:border-indigo-800">
                                                                     <div>
                                                                         <label className="block text-xs font-bold text-red-600 mb-2">أخطاء</label>
-                                                                        <input type="number" value={errorsCount} onFocus={() => errorsCount === 0 && setErrorsCount('')} onBlur={() => errorsCount === '' && setErrorsCount(0)} onChange={e => { const v = e.target.value; if (v === '') setErrorsCount(''); else setErrorsCount(Math.max(0, parseInt(v) || 0)); }} min="0" className="w-full px-4 py-3 bg-indigo-50/50 dark:bg-slate-800 border-2 border-transparent focus:border-red-400 rounded-2xl outline-none font-bold dark:text-white" placeholder="0" />
+                                                                        <input type="number" value={errorsCount} onFocus={() => errorsCount === 0 && setErrorsCount('')} onBlur={() => errorsCount === '' && setErrorsCount(0)} onChange={e => { const v = e.target.value; if (v === '') setErrorsCount(''); else setErrorsCount(Math.max(0, parseFloat(v) || 0)); }} min="0" className="w-full px-4 py-3 bg-indigo-50/50 dark:bg-slate-800 border-2 border-transparent focus:border-red-400 rounded-2xl outline-none font-bold dark:text-white" placeholder="0" />
                                                                     </div>
                                                                     <div>
                                                                         <label className="block text-xs font-bold text-orange-600 mb-2">تنبيهات</label>
-                                                                        <input type="number" value={alertsCount} onFocus={() => alertsCount === 0 && setAlertsCount('')} onBlur={() => alertsCount === '' && setAlertsCount(0)} onChange={e => { const v = e.target.value; if (v === '') setAlertsCount(''); else setAlertsCount(Math.max(0, parseInt(v) || 0)); }} min="0" className="w-full px-4 py-3 bg-indigo-50/50 dark:bg-slate-800 border-2 border-transparent focus:border-orange-400 rounded-2xl outline-none font-bold dark:text-white" placeholder="0" />
+                                                                        <input type="number" value={alertsCount} onFocus={() => alertsCount === 0 && setAlertsCount('')} onBlur={() => alertsCount === '' && setAlertsCount(0)} onChange={e => { const v = e.target.value; if (v === '') setAlertsCount(''); else setAlertsCount(Math.max(0, parseFloat(v) || 0)); }} min="0" className="w-full px-4 py-3 bg-indigo-50/50 dark:bg-slate-800 border-2 border-transparent focus:border-orange-400 rounded-2xl outline-none font-bold dark:text-white" placeholder="0" />
                                                                     </div>
                                                                     <div>
                                                                         <label className="block text-xs font-bold text-emerald-600 mb-2">نقية</label>
-                                                                        <input type="number" value={cleanPagesCount} onFocus={() => cleanPagesCount === 0 && setCleanPagesCount('')} onBlur={() => cleanPagesCount === '' && setCleanPagesCount(0)} onChange={e => { const v = e.target.value; if (v === '') setCleanPagesCount(''); else setCleanPagesCount(Math.max(0, parseInt(v) || 0)); }} min="0" className="w-full px-4 py-3 bg-indigo-50/50 dark:bg-slate-800 border-2 border-transparent focus:border-emerald-400 rounded-2xl outline-none font-bold dark:text-white" placeholder="0" />
+                                                                        <input type="number" step="0.25" value={cleanPagesCount} onFocus={() => cleanPagesCount === 0 && setCleanPagesCount('')} onBlur={() => cleanPagesCount === '' && setCleanPagesCount(0)} onChange={e => { const v = e.target.value; if (v === '') setCleanPagesCount(''); else setCleanPagesCount(Math.max(0, parseFloat(v) || 0)); }} min="0" className="w-full px-4 py-3 bg-indigo-50/50 dark:bg-slate-800 border-2 border-transparent focus:border-emerald-400 rounded-2xl outline-none font-bold dark:text-white" placeholder="0" />
                                                                     </div>
                                                                 </div>
 
@@ -1328,7 +1451,7 @@ export default function StudentDetailsPage() {
                                                                             value={minorErrors}
                                                                             onFocus={() => minorErrors === 0 && setMinorErrors('')}
                                                                             onBlur={() => minorErrors === '' && setMinorErrors(0)}
-                                                                            onChange={e => { const v = e.target.value; if (v === '') setMinorErrors(''); else setMinorErrors(Math.max(0, parseInt(v) || 0)); }}
+                                                                            onChange={e => { const v = e.target.value; if (v === '') setMinorErrors(''); else setMinorErrors(Math.max(0, parseFloat(v) || 0)); }}
                                                                             min="0"
                                                                             className="w-full px-4 py-3 bg-indigo-50/50 dark:bg-slate-800 border-2 border-transparent focus:border-red-400 rounded-2xl outline-none font-bold dark:text-white"
                                                                             placeholder="0"
@@ -1341,7 +1464,7 @@ export default function StudentDetailsPage() {
                                                                             value={minorAlerts}
                                                                             onFocus={() => minorAlerts === 0 && setMinorAlerts('')}
                                                                             onBlur={() => minorAlerts === '' && setMinorAlerts(0)}
-                                                                            onChange={e => { const v = e.target.value; if (v === '') setMinorAlerts(''); else setMinorAlerts(Math.max(0, parseInt(v) || 0)); }}
+                                                                            onChange={e => { const v = e.target.value; if (v === '') setMinorAlerts(''); else setMinorAlerts(Math.max(0, parseFloat(v) || 0)); }}
                                                                             min="0"
                                                                             className="w-full px-4 py-3 bg-indigo-50/50 dark:bg-slate-800 border-2 border-transparent focus:border-orange-400 rounded-2xl outline-none font-bold dark:text-white"
                                                                             placeholder="0"
@@ -1351,10 +1474,11 @@ export default function StudentDetailsPage() {
                                                                         <label className="block text-xs font-bold text-emerald-500 mb-2 mr-2">نقية الصغرى</label>
                                                                         <input
                                                                             type="number"
+                                                                            step="0.25"
                                                                             value={minorCleanPages}
                                                                             onFocus={() => minorCleanPages === 0 && setMinorCleanPages('')}
                                                                             onBlur={() => minorCleanPages === '' && setMinorCleanPages(0)}
-                                                                            onChange={e => { const v = e.target.value; if (v === '') setMinorCleanPages(''); else setMinorCleanPages(Math.max(0, parseInt(v) || 0)); }}
+                                                                            onChange={e => { const v = e.target.value; if (v === '') setMinorCleanPages(''); else setMinorCleanPages(Math.max(0, parseFloat(v) || 0)); }}
                                                                             min="0"
                                                                             className="w-full px-4 py-3 bg-indigo-50/50 dark:bg-slate-800 border-2 border-transparent focus:border-emerald-400 rounded-2xl outline-none font-bold dark:text-white"
                                                                             placeholder="0"
@@ -1402,7 +1526,7 @@ export default function StudentDetailsPage() {
                                         className="group relative w-full py-6 bg-slate-900 text-white rounded-[2rem] font-black text-2xl shadow-2xl shadow-slate-300 hover:bg-black transition-all active:scale-[0.98] disabled:opacity-50 overflow-hidden"
                                     >
                                         <span className="relative z-10 flex items-center justify-center gap-4">
-                                            {saving ? 'جاري الحفظ...' : 'حفظ تقرير اليوم 💎'}
+                                            {saving ? 'جاري الحفظ...' : editingSession ? 'تحديث تقرير اليوم 💎' : 'حفظ تقرير اليوم 💎'}
                                         </span>
                                         <div className="absolute inset-0 bg-gradient-to-r from-emerald-600 to-teal-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                                     </button>
@@ -1453,6 +1577,27 @@ export default function StudentDetailsPage() {
                                                 {session.hifzSurah && (
                                                     <div className="absolute top-0 right-0 w-1 h-full bg-emerald-500"></div>
                                                 )}
+                                                
+                                                <div className="absolute top-4 left-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                                                    <button 
+                                                        onClick={() => handleEditSession(session)}
+                                                        className="p-2 bg-white/90 dark:bg-slate-700/90 rounded-xl shadow-lg hover:text-emerald-600 transition-all hover:scale-110"
+                                                        title="تعديل"
+                                                    >
+                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                                                        </svg>
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => handleDeleteSession(session.id)}
+                                                        className="p-2 bg-white/90 dark:bg-slate-700/90 rounded-xl shadow-lg hover:text-red-600 transition-all hover:scale-110"
+                                                        title="حذف"
+                                                    >
+                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.34 12m-4.74 0-.34-12m10.14-0.45L19 7.14M5 7.14l1.2-1.2h12.6l1.2 1.2m-13.8 0 1.2 13.8a2.25 2.25 0 0 0 2.25 2.25h9.7a2.25 2.25 0 0 0 2.25-2.25L18.8 7.14m-12.6 0h12.6" />
+                                                        </svg>
+                                                    </button>
+                                                </div>
                                                 <div className="flex justify-between items-start mb-4">
                                                     <span className="text-[10px] font-black text-slate-400 bg-slate-200 dark:bg-slate-800 px-2 py-1 rounded-lg">
                                                         {new Date(session.date).toLocaleTimeString('ar-SA', { hour: 'numeric', minute: '2-digit' })}

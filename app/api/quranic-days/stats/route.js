@@ -114,26 +114,32 @@ async function calculateStats(event) {
         totalCleanPages += session.cleanPagesCount || 0;
     });
 
-    participatingStudentIds.forEach(sid => {
-        const studentSessions = sessions.filter(s => s.studentId === sid);
-        const student = sessionStudents.find(s => s.id === sid);
-        const count = Math.min(30, Math.max(0, student?.juzCount || 0));
-
-        if (student && count > 0) {
-            const startJuzIndex = 31 - count;
-            const startPage = juzStartPages[startJuzIndex];
-            const studentFullPortionPages = (604 - startPage + 1);
-
-            const studentTotalPages = studentSessions.reduce((sum, s) => sum + (s.pagesCount || 0), 0);
-            totalKhatmats += studentTotalPages / studentFullPortionPages;
-        }
-    });
+    // Collective Khatmats: Total pages recited by everyone / 604 (Full Quran pages)
+    totalKhatmats = totalAccomplishedPages / 604;
 
     // 2. Rates Logic
     const purityRate = totalAccomplishedPages > 0 ? (totalCleanPages / totalAccomplishedPages) * 100 : 0;
     const achievementRate = totalTargetPages > 0 ? (totalAccomplishedPages / totalTargetPages) * 100 : 0;
-    const goalAchievedCount = sessions.filter(s => s.isGoalAchieved).length;
-    const goalAchievementRate = totalSessions > 0 ? (goalAchievedCount / totalSessions) * 100 : 0;
+    
+    // Improved Goal Achievement: Weighted average of individual student progress
+    let totalProgressSum = 0;
+    participatingStudentIds.forEach(sid => {
+        const studentSessions = sessions.filter(s => s.studentId === sid);
+        const student = sessionStudents.find(s => s.id === sid);
+        const count = Math.min(30, Math.max(0, student?.juzCount || 0));
+        
+        const totalDone = studentSessions.reduce((sum, s) => sum + (s.pagesCount || 0), 0);
+        
+        let target = 20; 
+        if (count > 0) {
+            const startPage = juzStartPages[31 - count];
+            target = (604 - startPage + 1);
+        }
+        
+        totalProgressSum += Math.min(100, (totalDone / target) * 100);
+    });
+    
+    const goalAchievementRate = participatingStudentIds.length > 0 ? (totalProgressSum / participatingStudentIds.length) : 0;
 
     // 3. Detailed Data for Export
     const studentStats = participatingStudentIds.map(sid => {
