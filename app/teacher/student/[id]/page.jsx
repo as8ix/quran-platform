@@ -1089,37 +1089,38 @@ export default function StudentDetailsPage() {
                                                     <span className="w-3 h-3 bg-indigo-500 rounded-full shadow-lg shadow-indigo-200 dark:shadow-none"></span>
                                                     المراجعة
                                                 </h3>
-                                                <div className="flex bg-indigo-100/50 dark:bg-indigo-900/40 rounded-xl p-1">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setMurajaahType('MAJOR')}
-                                                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${murajaahType === 'MAJOR' ? 'bg-indigo-500 text-white shadow-md' : 'text-indigo-600 dark:text-indigo-300 hover:bg-indigo-200/50'}`}
-                                                    >
-                                                        كبرى
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setMurajaahType('MINOR')}
-                                                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${murajaahType === 'MINOR' ? 'bg-indigo-500 text-white shadow-md' : 'text-indigo-600 dark:text-indigo-300 hover:bg-indigo-200/50'}`}
-                                                    >
-                                                        صغرى
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setMurajaahType('BOTH')}
-                                                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${murajaahType === 'BOTH' ? 'bg-indigo-500 text-white shadow-md' : 'text-indigo-600 dark:text-indigo-300 hover:bg-indigo-200/50'}`}
-                                                    >
-                                                        كلاهما
-                                                    </button>
-                                                </div>
+                                                {!isQuranicDaySession && (
+                                                    <div className="flex bg-indigo-100/50 dark:bg-indigo-900/40 rounded-xl p-1">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setMurajaahType('MAJOR')}
+                                                            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${murajaahType === 'MAJOR' ? 'bg-indigo-500 text-white shadow-md' : 'text-indigo-600 dark:text-indigo-300 hover:bg-indigo-200/50'}`}
+                                                        >
+                                                            كبرى
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setMurajaahType('MINOR')}
+                                                            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${murajaahType === 'MINOR' ? 'bg-indigo-500 text-white shadow-md' : 'text-indigo-600 dark:text-indigo-300 hover:bg-indigo-200/50'}`}
+                                                        >
+                                                            صغرى
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setMurajaahType('BOTH')}
+                                                            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${murajaahType === 'BOTH' ? 'bg-indigo-500 text-white shadow-md' : 'text-indigo-600 dark:text-indigo-300 hover:bg-indigo-200/50'}`}
+                                                        >
+                                                            كلاهما
+                                                        </button>
+                                                    </div>
+                                                )}
                                             </div>
-
                                             <div className="space-y-8">
                                                 {reviewableSurahs.length > 0 ? (
                                                     <>
-                                                        {(murajaahType === 'MAJOR' || murajaahType === 'BOTH') && (
+                                                        {(isQuranicDaySession || murajaahType === 'MAJOR' || murajaahType === 'BOTH') && (
                                                             <div className="p-4 bg-white dark:bg-slate-900 rounded-2xl border border-indigo-100 dark:border-indigo-800 shadow-sm">
-                                                                <h4 className="text-sm font-black text-indigo-500 mb-4 px-2">المراجعة الكبرى</h4>
+                                                                <h4 className="text-sm font-black text-indigo-500 mb-4 px-2">{isQuranicDaySession ? 'المراجعة' : 'المراجعة الكبرى'}</h4>
                                                                 {/* From Section */}
                                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
                                                                     <div>
@@ -1229,7 +1230,7 @@ export default function StudentDetailsPage() {
                                                             </div>
                                                         )}
 
-                                                        {(murajaahType === 'MINOR' || murajaahType === 'BOTH') && (
+                                                        {!isQuranicDaySession && (murajaahType === 'MINOR' || murajaahType === 'BOTH') && (
                                                             <div className="p-4 bg-white dark:bg-slate-900 rounded-2xl border border-indigo-100 dark:border-indigo-800 shadow-sm mt-4">
                                                                 <h4 className="text-sm font-black text-indigo-500 mb-4 px-2">المراجعة الصغرى</h4>
                                                                 {/* From Section */}

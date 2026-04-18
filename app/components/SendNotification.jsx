@@ -10,6 +10,7 @@ export default function SendNotification({ senderRole, senderId, students = [], 
     const [isOpen, setIsOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const [uploading, setUploading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
@@ -45,30 +46,51 @@ export default function SendNotification({ senderRole, senderId, students = [], 
         const file = e.target.files[0];
         if (!file) return;
 
-        // Block video files
         if (file.type.startsWith('video/')) {
             toast.error('عذراً، لا يُسمح برفع ملفات الفيديو');
-            e.target.value = ''; // Reset input
+            e.target.value = '';
             return;
         }
 
         setUploading(true);
+        setUploadProgress(0);
+        
         try {
+            const { uploadBytesResumable, getDownloadURL } = await import('firebase/storage');
             const fileRef = ref(storage, `notifications/${Date.now()}_${file.name}`);
-            await uploadBytes(fileRef, file);
-            const url = await getDownloadURL(fileRef);
-            setAttachmentUrl(url);
-            // Auto-detect image
-            if (file.type.startsWith('image/')) {
-                setAttachmentType('IMAGE');
-            } else {
-                setAttachmentType('LINK');
-            }
+            const uploadTask = uploadBytesResumable(fileRef, file);
+
+            uploadTask.on('state_changed', 
+                (snapshot) => {
+                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                    setUploadProgress(Math.round(progress));
+                }, 
+                (error) => {
+                    console.error("Detailed Firebase Storage Error:", error);
+                    let errorMessage = `خطأ في رفع الملف: ${error.code || 'unknown'}`;
+                    
+                    if (error.code === 'storage/unknown') {
+                        errorMessage = "خطأ غير معروف (Unknown): غالباً بسبب عدم تفعيل Storage في Firebase Console أو خطأ في اسم الـ Bucket";
+                    } else if (error.code === 'storage/unauthorized') {
+                        errorMessage = "خطأ في الصلاحيات: تأكد من ضبط الـ Rules لتسمح بالرفع";
+                    }
+                    
+                    toast.error(errorMessage, { duration: 6000 });
+                    setUploading(false);
+                }, 
+                async () => {
+                    const url = await getDownloadURL(uploadTask.snapshot.ref);
+                    setAttachmentUrl(url);
+                    if (file.type.startsWith('image/')) setAttachmentType('IMAGE');
+                    else setAttachmentType('LINK');
+                    setUploading(false);
+                    setUploadProgress(100);
+                    toast.success('تم رفع الملف بنجاح');
+                }
+            );
         } catch (error) {
             console.error("Firebase Storage Error:", error);
-            const errorCode = error.code || 'unknown';
-            toast.error(`خطأ في رفع الملف: ${errorCode}`);
-        } finally {
+            toast.error("حدث خطأ في الاتصال بخدمة التخزين");
             setUploading(false);
         }
     };
@@ -265,7 +287,17 @@ export default function SendNotification({ senderRole, senderId, students = [], 
                                                     <div className="text-center">
                                                         {uploading ? (
                                                             <div className="flex flex-col items-center">
-                                                                <div className="w-8 h-8 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin mb-3"></div>
+                                                                <div className="relative w-12 h-12 flex items-center justify-center mb-3">
+                                                                    <div className="absolute inset-0 border-4 border-indigo-100 rounded-full"></div>
+                                                                    <div 
+                                                                        className="absolute inset-0 border-4 border-indigo-600 rounded-full transition-all duration-300"
+                                                                        style={{ 
+                                                                            clipPath: `inset(0 0 0 ${100 - uploadProgress}%)`,
+                                                                            transform: 'rotate(0deg)'
+                                                                        }}
+                                                                    ></div>
+                                                                    <span className="text-[10px] font-black text-indigo-600">{uploadProgress}%</span>
+                                                                </div>
                                                                 <span className="text-xs font-bold text-slate-400">جاري الرفع...</span>
                                                             </div>
                                                         ) : attachmentUrl ? (

@@ -171,9 +171,9 @@ export default function TeacherDashboard() {
                             مرحباً بك، <span className="text-emerald-600 dark:text-emerald-500">يا {user ? getFirstName(user.name) : 'أستاذ'}!</span>
                         </h1>
                         <p className="text-slate-500 dark:text-slate-400 mt-2 text-lg">
-                            لديك {students.filter(s => !s.isEventGuest).length} طالب في حلقتك
-                            {students.some(s => s.isEventGuest) && (
-                                <span className="text-amber-600 dark:text-amber-500 font-black"> + {students.filter(s => s.isEventGuest).length} ضيوف (اليوم القرآني)</span>
+                            لديك {students.filter(s => !s.isInActiveEvent).length} طالب في حلقتك
+                            {students.some(s => s.isInActiveEvent) && (
+                                <span className="text-amber-600 dark:text-amber-500 font-black"> + {students.filter(s => s.isInActiveEvent).length} مشارك (اليوم القرآني)</span>
                             )}
                         </p>
                     </div>
@@ -261,15 +261,15 @@ export default function TeacherDashboard() {
                     </div>
                 ) : filteredStudents.length > 0 ? (
                     <div className="space-y-12">
-                        {/* Guest Students Section */}
-                        {filteredStudents.some(s => s.isEventGuest) && (
+                        {/* Quranic Active Students Section */}
+                        {filteredStudents.some(s => s.isInActiveEvent) && (
                             <div className="space-y-6">
                                 <div className="flex items-center gap-4">
-                                    <h2 className="text-xl font-black text-amber-600 dark:text-amber-500 whitespace-nowrap">🌟 ضيوف اليوم القرآني</h2>
+                                    <h2 className="text-xl font-black text-amber-600 dark:text-amber-500 whitespace-nowrap">🌟 مشاركو اليوم القرآني</h2>
                                     <div className="h-0.5 flex-1 bg-gradient-to-r from-amber-200 to-transparent dark:from-amber-900/50"></div>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                    {filteredStudents.filter(s => s.isEventGuest).map((student) => (
+                                    {filteredStudents.filter(s => s.isInActiveEvent).map((student) => (
                                         <StudentCard key={student.id} student={student} router={router} />
                                     ))}
                                 </div>
@@ -277,25 +277,25 @@ export default function TeacherDashboard() {
                         )}
 
                         {/* Separator if both exist */}
-                        {filteredStudents.some(s => s.isEventGuest) && filteredStudents.some(s => !s.isEventGuest) && (
+                        {filteredStudents.some(s => s.isInActiveEvent) && filteredStudents.some(s => !s.isInActiveEvent) && (
                             <div className="py-8 flex items-center gap-6">
                                 <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-800 to-transparent"></div>
                                 <span className="text-slate-400 dark:text-slate-600 font-black text-[10px] uppercase tracking-[0.3em] bg-slate-50 dark:bg-slate-900/50 px-4 py-1 rounded-full border border-slate-100 dark:border-slate-800">
-                                    نهاية قائمة الضيوف
+                                    بقية الطلاب
                                 </span>
                                 <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-800 to-transparent"></div>
                             </div>
                         )}
 
-                        {/* Regular Students Section */}
-                        {filteredStudents.some(s => !s.isEventGuest) && (
+                        {/* Regular Halaqa Students Section */}
+                        {filteredStudents.some(s => !s.isInActiveEvent) && (
                             <div className="space-y-6">
                                 <div className="flex items-center gap-4">
                                     <h2 className="text-xl font-black text-slate-400 dark:text-slate-500 whitespace-nowrap">👥 طلاب الحلقة</h2>
                                     <div className="h-0.5 flex-1 bg-gradient-to-r from-slate-200 to-transparent dark:from-slate-800/50"></div>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                    {filteredStudents.filter(s => !s.isEventGuest).map((student) => (
+                                    {filteredStudents.filter(s => !s.isInActiveEvent).map((student) => (
                                         <StudentCard key={student.id} student={student} router={router} />
                                     ))}
                                 </div>

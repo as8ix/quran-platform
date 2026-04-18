@@ -115,12 +115,20 @@ export async function GET(request) {
             });
             const specificIds = specificAssignments.map(a => a.studentId);
 
+            // Get all student IDs participating in any active event
+            const allActiveEventAssignments = await prisma.eventAssignment.findMany({
+                where: { event: { isActive: true } },
+                select: { studentId: true }
+            });
+            const activeEventStudentIds = new Set(allActiveEventAssignments.map(a => a.studentId));
+
             students = students.map(student => {
                 const isMyHalaqa = myHalaqaIds.includes(student.halaqaId);
                 return {
                     ...student,
                     isEventGuest: !isMyHalaqa,
-                    isSpecificallyAssigned: specificIds.includes(student.id)
+                    isSpecificallyAssigned: specificIds.includes(student.id),
+                    isInActiveEvent: activeEventStudentIds.has(student.id)
                 };
             });
         }
