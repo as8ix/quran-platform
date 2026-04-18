@@ -235,13 +235,13 @@ export default function ManageEvents({ teachers, students }) {
                                     <div className="w-14 h-14 bg-white dark:bg-slate-800 border-2 border-amber-100 dark:border-amber-900 text-amber-600 dark:text-amber-400 rounded-2xl flex flex-col items-center justify-center shadow-sm group-hover:scale-105 transition-all">
                                         <span className="text-sm font-black leading-tight">{new Date(event.startDate).getDate()}</span>
                                         <span className="text-[10px] font-bold opacity-50 uppercase tracking-tighter">
-                                            {new Date(event.startDate).toLocaleString('ar-EG', { month: 'short' })}
+                                            {new Date(event.startDate).toLocaleString('en-US', { month: 'short' })}
                                         </span>
                                     </div>
                                     <div>
                                         <div className="font-bold text-lg text-slate-800 dark:text-white group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors">{event.name}</div>
                                         <div className="text-xs text-slate-400 dark:text-slate-500 font-bold flex flex-wrap items-center gap-x-2 gap-y-1 mt-1">
-                                            <span className="flex items-center gap-1">🗓️ {new Date(event.startDate).toLocaleDateString('ar-EG')} - {new Date(event.endDate).toLocaleDateString('ar-EG')}</span>
+                                            <span className="flex items-center gap-1">🗓️ {new Date(event.startDate).toLocaleDateString('en-GB')} - {new Date(event.endDate).toLocaleDateString('en-GB')}</span>
                                             <span className="bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-500 px-2 py-0.5 rounded-lg text-[10px]">{event.teachers?.length || 0} معلمين</span>
                                         </div>
                                     </div>
