@@ -941,11 +941,11 @@ export default function StudentDetailsPage() {
                                 )}
 
                                 <div className="space-y-10">
-                                    <div className="bg-red-50 border-r-4 border-red-400 p-4 rounded-2xl flex items-center gap-3 shadow-sm animate-pulse-slow">
-                                        <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center text-xl font-bold">⚠️</div>
+                                    <div className="bg-red-50 dark:bg-red-900/20 border-r-4 border-red-400 dark:border-red-800 p-4 rounded-2xl flex items-center gap-3 shadow-sm animate-pulse-slow">
+                                        <div className="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-xl flex items-center justify-center text-xl font-bold">⚠️</div>
                                         <div className="flex-1">
-                                            <p className="text-red-900 font-black text-sm leading-tight mb-0.5">تنبيه هام للمسجل:</p>
-                                            <p className="text-red-700 font-bold text-xs">
+                                            <p className="text-red-900 dark:text-red-300 font-black text-sm leading-tight mb-0.5">تنبيه هام للمسجل:</p>
+                                            <p className="text-red-700 dark:text-red-400 font-bold text-xs">
                                                 "الصفحة الواحدة مسموح فيها خطأ واحد وتنبيهان" - غير ذلك يرجع الطالب.
                                             </p>
                                         </div>
