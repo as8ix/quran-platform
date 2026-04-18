@@ -926,15 +926,15 @@ export default function StudentDetailsPage() {
 
                                 {/* Quranic Day Active Banner/Toggle */}
                                 {activeEvent && isQuranicDaySession && (
-                                    <div className="mb-8 p-6 rounded-[2rem] border-2 bg-amber-50 border-amber-300 shadow-lg shadow-amber-100 flex justify-between items-center animate-pulse-slow">
+                                    <div className="mb-8 p-6 rounded-[2rem] border-2 bg-amber-50 dark:bg-amber-900/20 border-amber-300 dark:border-amber-800 shadow-lg shadow-amber-100 dark:shadow-none flex justify-between items-center animate-pulse-slow">
                                         <div className="flex items-center gap-4">
-                                            <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl bg-amber-100">🏆</div>
+                                            <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl bg-amber-100 dark:bg-amber-900/30">🏆</div>
                                             <div>
-                                                <div className="font-black text-amber-900 leading-tight">دورة الأيام القرآنية: {activeEvent.name}</div>
-                                                <div className="text-xs font-bold text-amber-600">هذا الطالب مسند إليك في هذه الدورة. سيتم احتساب الجلسة في الإحصائيات.</div>
+                                                <div className="font-black text-amber-900 dark:text-amber-200 leading-tight">دورة الأيام القرآنية: {activeEvent.name}</div>
+                                                <div className="text-xs font-bold text-amber-600 dark:text-amber-400">هذا الطالب مسند إليك في هذه الدورة. سيتم احتساب الجلسة في الإحصائيات.</div>
                                             </div>
                                         </div>
-                                        <div className="bg-amber-500 text-white px-4 py-2 rounded-xl text-xs font-black shadow-sm">
+                                        <div className="bg-amber-500 dark:bg-amber-600 text-white px-4 py-2 rounded-xl text-xs font-black shadow-sm">
                                             تسجيل معتمد
                                         </div>
                                     </div>
