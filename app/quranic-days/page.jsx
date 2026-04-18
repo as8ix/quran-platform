@@ -207,7 +207,7 @@ export default function QuranicDaysDashboard() {
                             🏆
                         </div>
                         <div>
-                            <h1 className={`${isFullscreen ? 'text-2xl' : 'text-4xl md:text-5xl'} font-black ${isFullscreen ? 'text-white' : 'text-slate-900 dark:text-white'} tracking-tight`}>
+                            <h1 className={`${isFullscreen ? 'text-2xl' : 'text-4xl md:text-5xl'} font-black ${isFullscreen ? 'text-slate-900 dark:text-white' : 'text-slate-900 dark:text-white'} tracking-tight`}>
                                 إحصائيات: <span className="text-amber-600 dark:text-amber-500">{stats.eventName}</span>
                             </h1>
                             <p className="text-slate-400 font-bold flex items-center gap-2">
@@ -220,7 +220,7 @@ export default function QuranicDaysDashboard() {
                     <div className="flex gap-4">
                         <button
                             onClick={toggleFullscreen}
-                            className={`${isFullscreen ? 'bg-slate-800/80 text-white px-4 py-2 text-xs' : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-6 py-4'} rounded-2xl font-bold border-2 ${isFullscreen ? 'border-slate-700' : 'border-slate-100 dark:border-slate-700'} hover:border-amber-500 transition-all flex items-center gap-2 shadow-sm`}
+                            className={`${isFullscreen ? 'bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-4 py-2 text-xs' : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-6 py-4'} rounded-2xl font-bold border-2 ${isFullscreen ? 'border-slate-100 dark:border-slate-700' : 'border-slate-100 dark:border-slate-700'} hover:border-amber-500 transition-all flex items-center gap-2 shadow-sm`}
                         >
                             <span>{isFullscreen ? '📺 خروج' : '📺 وضع العرض (Full Screen)'}</span>
                         </button>
