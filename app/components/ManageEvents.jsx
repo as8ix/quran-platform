@@ -244,7 +244,7 @@ export default function ManageEvents({ teachers, students }) {
                                             <span className="flex items-center gap-1">
                                                 🗓️ {new Date(event.startDate).toLocaleDateString('en-GB')}
                                                 <span className="text-[10px] bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-500 px-1.5 py-0.5 rounded-lg border border-amber-100 dark:border-amber-800 font-black">
-                                                    {new Date(event.startDate).toLocaleDateString('ar-u-ca-islamic-nu-latn', {day:'numeric', month:'long', year:'numeric'})} هـ
+                                                    {new Date(event.startDate).toLocaleDateString('ar-u-ca-islamic-nu-latn', {day:'numeric', month:'long', year:'numeric'})}
                                                 </span>
                                             </span>
                                             <span className="bg-slate-50 dark:bg-slate-900/30 text-slate-500 dark:text-slate-400 px-2 py-0.5 rounded-lg text-[10px]">{event.teachers?.length || 0} معلمين</span>
