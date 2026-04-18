@@ -153,7 +153,7 @@ export default function AttendancePage() {
         <div className="min-h-screen bg-[#f8fafc] dark:bg-slate-950 font-noto transition-colors duration-300">
             <Navbar userType="teacher" userName={teacherName} onLogout={() => router.push('/login')} />
 
-            <main className="max-w-4xl mx-auto px-4 py-10">
+            <main className="max-w-4xl mx-auto px-4 pt-28 pb-12">
                 {/* Back Button */}
                 <button
                     onClick={() => router.push('/teacher')}
@@ -213,7 +213,7 @@ export default function AttendancePage() {
                     </div>
                 </div>
 
-                <div className="bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-xl shadow-slate-200/50 dark:shadow-none overflow-hidden border border-slate-100 dark:border-slate-700">
+                <div className="premium-glass rounded-[2.5rem] shadow-2xl shadow-slate-200/50 dark:shadow-none overflow-hidden border border-white/20 dark:border-slate-800/50">
                     <div className="overflow-x-auto custom-scrollbar p-1 md:p-2">
                         <table className="w-full text-right border-collapse min-w-[350px] md:min-w-[600px]">
                             <thead>
