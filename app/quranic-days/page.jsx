@@ -176,7 +176,7 @@ export default function QuranicDaysDashboard() {
     );
 
     return (
-        <div className={`min-h-screen ${isFullscreen ? 'h-screen overflow-hidden bg-slate-900 shadow-[inset_0_0_100px_rgba(0,0,0,0.5)]' : 'bg-[#FDFCFB] dark:bg-slate-950'} text-slate-900 dark:text-white font-noto rtl transition-all duration-700`} dir="rtl">
+        <div className={`min-h-screen ${isFullscreen ? (isDarkMode ? 'h-screen overflow-hidden bg-slate-950' : 'h-screen overflow-hidden bg-slate-50') : 'bg-[#FDFCFB] dark:bg-slate-950'} text-slate-900 dark:text-white font-noto rtl transition-all duration-700`} dir="rtl">
             {!isFullscreen && (
                 <Navbar
                     userType={user?.role?.toLowerCase() || 'teacher'}
@@ -279,8 +279,8 @@ export default function QuranicDaysDashboard() {
                     </div>
 
                     {/* Radial Charts Box */}
-                    <div className={`lg:col-span-2 bg-slate-900 ${isFullscreen ? 'rounded-[1.5rem] p-4' : 'rounded-[3rem] p-10'} shadow-2xl shadow-indigo-900/20 border border-slate-800 flex flex-col`}>
-                        <h3 className={`${isFullscreen ? 'text-sm mb-2' : 'text-2xl mb-10'} font-black text-white flex items-center gap-3`}>
+                    <div className={`${isFullscreen ? 'rounded-[1.5rem] p-4' : 'rounded-[3rem] p-10'} bg-white dark:bg-slate-900 shadow-xl dark:shadow-2xl shadow-slate-200/50 dark:shadow-indigo-900/20 border border-slate-50 dark:border-slate-800 flex flex-col transition-colors`}>
+                        <h3 className={`${isFullscreen ? 'text-sm mb-2' : 'text-2xl mb-10'} font-black text-slate-800 dark:text-white flex items-center gap-3`}>
                             ⚡ معدلات الأداء
                         </h3>
 
@@ -350,7 +350,7 @@ function StatCard({ label, value, icon, color, isFullscreen }) {
                 {icon}
             </div>
             <div className="text-left">
-                <span className={`${isFullscreen ? 'text-xs' : 'text-sm'} block font-black text-slate-400 dark:text-slate-500 mb-1 uppercase tracking-widest`}>{label}</span>
+                <span className={`${isFullscreen ? 'text-[9px]' : 'text-[10px]'} block font-black text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-widest`}>{label}</span>
                 <span className={`${isFullscreen ? 'text-3xl' : 'text-4xl'} font-black text-slate-800 dark:text-white tabular-nums`}>
                     {value}
                 </span>
@@ -361,8 +361,8 @@ function StatCard({ label, value, icon, color, isFullscreen }) {
 
 function AchievementItem({ label, value, unit, color, isMain, isFullscreen }) {
     return (
-        <div className={`flex justify-between items-end border-b border-slate-50 dark:border-slate-700 ${isFullscreen ? 'pb-3' : 'pb-4'}`}>
-            <span className={`${isFullscreen ? 'text-sm' : 'text-sm'} font-bold text-slate-400 dark:text-slate-500`}>{label}</span>
+        <div className={`flex justify-between items-end border-b border-slate-100 dark:border-slate-700/50 ${isFullscreen ? 'pb-3' : 'pb-4'}`}>
+            <span className={`${isFullscreen ? 'text-[11px]' : 'text-sm'} font-bold text-slate-500 dark:text-slate-400`}>{label}</span>
             <div className={`flex items-baseline gap-1 ${color}`}>
                 <span className={`${isMain ? (isFullscreen ? 'text-3xl' : 'text-4xl') : (isFullscreen ? 'text-2xl' : 'text-2xl')} font-black tabular-nums`}>{value}</span>
                 <span className="text-[10px] font-black opacity-60 uppercase">{unit}</span>
@@ -386,7 +386,7 @@ function RadialProgress({ percentage, label, color, isFullscreen }) {
                 <svg className="w-full h-full -rotate-90 overflow-visible" viewBox={`0 0 ${viewBoxSize} ${viewBoxSize}`}>
                     <circle
                         cx={center} cy={center} r={radius}
-                        className="stroke-slate-800"
+                        className="stroke-slate-100 dark:stroke-slate-800"
                         strokeWidth={isFullscreen ? "7" : "8"} fill="transparent"
                     />
                     {/* Progress Circle with Glow */}
@@ -404,10 +404,10 @@ function RadialProgress({ percentage, label, color, isFullscreen }) {
                 </svg>
                 {/* Center Value */}
                 <div className="absolute flex flex-col items-center">
-                    <span className={`${isFullscreen ? 'text-2xl' : 'text-2xl'} font-black text-white tabular-nums group-hover:scale-110 transition-transform`}>{percentage}%</span>
+                    <span className={`${isFullscreen ? 'text-2xl' : 'text-2xl'} font-black text-slate-800 dark:text-white tabular-nums group-hover:scale-110 transition-transform`}>{percentage}%</span>
                 </div>
             </div>
-            <div className={`${isFullscreen ? 'text-xs' : 'text-sm'} font-black text-slate-400 dark:text-slate-500 text-center uppercase tracking-widest`}>{label}</div>
+            <div className={`${isFullscreen ? 'text-[10px]' : 'text-xs'} font-black text-slate-500 dark:text-slate-400 text-center uppercase tracking-widest`}>{label}</div>
         </div>
     );
 }
