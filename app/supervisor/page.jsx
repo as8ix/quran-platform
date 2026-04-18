@@ -348,7 +348,7 @@ export default function SupervisorDashboard() {
         <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-main)] font-noto rtl transition-colors duration-300" dir="rtl">
             <Navbar userType="supervisor" userName={supervisorName} onLogout={() => router.push('/login')} />
 
-            <div className="max-w-7xl mx-auto px-4 py-8 md:px-6 lg:px-8">
+            <main className="max-w-7xl mx-auto px-4 pt-28 pb-12 md:px-6 lg:px-8">
                 {/* Hero Header */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10 reveal">
                     <div>
@@ -405,8 +405,9 @@ export default function SupervisorDashboard() {
                 </div>
 
                 {/* Distribution Chart Section */}
-                <div className="bg-[var(--card-bg)] rounded-[2.5rem] p-8 shadow-xl shadow-slate-200/50 dark:shadow-none border border-[var(--border-main)] mb-10 reveal reveal-delay-2">
-                    <div className="flex flex-col md:flex-row items-center gap-12">
+                <div className="premium-glass rounded-[3rem] p-8 shadow-2xl shadow-slate-200/50 dark:shadow-none border border-white/20 dark:border-slate-800/50 mb-12 reveal reveal-delay-2 relative overflow-hidden group">
+                    <div className="premium-glow-amber opacity-30 group-hover:opacity-50 transition-opacity"></div>
+                    <div className="flex flex-col md:flex-row items-center gap-12 relative z-10">
                         <div className="relative w-56 h-56 flex-shrink-0">
                             <div
                                 className="w-full h-full rounded-full shadow-inner transition-all duration-700 rotate-180"
@@ -453,7 +454,9 @@ export default function SupervisorDashboard() {
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     {/* Teachers Section */}
-                    <div className="bg-[var(--card-bg)] rounded-[2.5rem] p-8 shadow-sm border border-[var(--border-main)] h-full flex flex-col reveal reveal-delay-2">
+                    <div className="premium-glass rounded-[3rem] p-8 shadow-2xl border border-white/20 dark:border-slate-800/50 h-full flex flex-col reveal reveal-delay-2 relative overflow-hidden group">
+                         <div className="premium-glow-red opacity-10 group-hover:opacity-20"></div>
+                         <div className="relative z-10 flex flex-col h-full">
                         <div className="flex justify-between items-center mb-6">
                             <h2 className="text-2xl font-black text-slate-800 dark:text-white flex items-center gap-3">
                                 <span className="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-2xl flex items-center justify-center text-xl">👨‍🏫</span>
@@ -516,9 +519,12 @@ export default function SupervisorDashboard() {
                             )}
                         </div>
                     </div>
+                    </div>
 
                     {/* Halaqas Section */}
-                    <div className="bg-[var(--card-bg)] rounded-[2.5rem] p-8 shadow-sm border border-[var(--border-main)] h-full flex flex-col reveal reveal-delay-3">
+                    <div className="premium-glass rounded-[3rem] p-8 shadow-2xl border border-white/20 dark:border-slate-800/50 h-full flex flex-col reveal reveal-delay-3 relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-3xl opacity-50"></div>
+                        <div className="relative z-10 flex flex-col h-full">
                         <div className="flex justify-between items-center mb-6">
                             <h2 className="text-2xl font-black text-slate-800 dark:text-white flex items-center gap-3">
                                 <span className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-2xl flex items-center justify-center text-xl">🕌</span>
@@ -616,6 +622,7 @@ export default function SupervisorDashboard() {
                             )}
                         </div>
                     </div>
+                </div>
                 </div>
 
                 {/* Quranic Events Management */}
