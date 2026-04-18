@@ -242,12 +242,12 @@ export default function ManageEvents({ teachers, students }) {
                                         <div className="font-bold text-lg text-slate-800 dark:text-white group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors">{event.name}</div>
                                         <div className="text-xs text-slate-400 dark:text-slate-500 font-bold flex flex-wrap items-center gap-x-2 gap-y-1 mt-1">
                                             <span className="flex items-center gap-1">
-                                                🗓️ {new Date(event.startDate).toLocaleDateString('en-GB')} - {new Date(event.endDate).toLocaleDateString('en-GB')}
-                                                <span className="text-[10px] opacity-70 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded ml-1">
-                                                    {new Date(event.startDate).toLocaleDateString('ar-SA-u-ca-islamic-uma-nu-latn', {day:'numeric', month:'long', year:'numeric'})} هـ
+                                                🗓️ {new Date(event.startDate).toLocaleDateString('en-GB')}
+                                                <span className="text-[10px] bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-500 px-1.5 py-0.5 rounded-lg border border-amber-100 dark:border-amber-800 font-black">
+                                                    {new Intl.DateTimeFormat('ar-SA-u-ca-islamic-uma-nu-latn', {day: 'numeric', month: 'long', year: 'numeric'}).format(new Date(event.startDate))} هـ
                                                 </span>
                                             </span>
-                                            <span className="bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-500 px-2 py-0.5 rounded-lg text-[10px]">{event.teachers?.length || 0} معلمين</span>
+                                            <span className="bg-slate-50 dark:bg-slate-900/30 text-slate-500 dark:text-slate-400 px-2 py-0.5 rounded-lg text-[10px]">{event.teachers?.length || 0} معلمين</span>
                                         </div>
                                     </div>
                                 </div>
