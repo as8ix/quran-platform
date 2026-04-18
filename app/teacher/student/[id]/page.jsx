@@ -941,6 +941,15 @@ export default function StudentDetailsPage() {
                                 )}
 
                                 <div className="space-y-10">
+                                    <div className="bg-amber-50 border-r-4 border-amber-500 p-6 rounded-[2rem] flex items-center gap-4 shadow-sm animate-pulse-slow">
+                                        <div className="w-12 h-12 bg-amber-100 rounded-2xl flex items-center justify-center text-2xl font-bold">⚠️</div>
+                                        <div className="flex-1">
+                                            <p className="text-amber-900 font-black text-lg leading-tight mb-1">تنبيه هام للمسجل:</p>
+                                            <p className="text-amber-700 font-bold text-sm">
+                                                "الصفحة الواحدة مسموح فيها خطأ واحد وتنبيهان" - إذا زاد عن ذلك يرجع الطالب ولا يحسب له الإنجاز.
+                                            </p>
+                                        </div>
+                                    </div>
                                     {/* Hifz Section - Logic Refined */}
                                     {(() => {
                                         // If Session is Review Only, and not specialized mode, don't show Hifz block at all
