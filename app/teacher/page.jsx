@@ -165,7 +165,7 @@ export default function TeacherDashboard() {
         <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-main)] font-noto rtl transition-colors duration-300" dir="rtl">
             <Navbar userType="teacher" userName={teacherName} onLogout={() => router.push('/login')} />
 
-            <main className="max-w-7xl mx-auto px-4 py-8 md:px-6 lg:px-8">
+            <main className="max-w-7xl mx-auto px-4 pt-28 pb-12 md:px-6 lg:px-8">
                 {/* Hero / Header Section */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
                     <div>

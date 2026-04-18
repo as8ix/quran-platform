@@ -184,7 +184,7 @@ export default function QuranicDaysDashboard() {
                 />
             )}
 
-            <main className={`max-w-[1600px] mx-auto px-4 ${isFullscreen ? 'h-full flex flex-col py-2' : 'py-8 md:py-12'}`}>
+            <main className={`max-w-[1600px] mx-auto px-4 ${isFullscreen ? 'h-full flex flex-col py-2' : 'pt-28 pb-12'}`}>
                 {/* Back Button - Hidden in FS */}
                 {!isFullscreen && (
                     <button

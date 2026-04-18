@@ -801,7 +801,7 @@ export default function StudentDetailsPage() {
                 onLogout={() => router.push('/login')}
             />
 
-            <main className="max-w-6xl mx-auto px-4 py-10">
+            <main className="max-w-6xl mx-auto px-4 pt-28 pb-12">
                 {/* Back Button */}
                 <button
                     onClick={() => router.push('/teacher')}
