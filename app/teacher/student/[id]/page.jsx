@@ -957,22 +957,22 @@ export default function StudentDetailsPage() {
 
                                         // If student is Khatim, show congrats
                                         if (isKhatim) return (
-                                            <div className="p-8 bg-gradient-to-br from-amber-50 to-yellow-50 rounded-[2.5rem] border-2 border-amber-200 shadow-inner animate-in zoom-in duration-500">
+                                            <div className="p-8 bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 rounded-[2.5rem] border-2 border-amber-200 dark:border-amber-800 shadow-inner animate-in zoom-in duration-500">
                                                 <div className="text-center">
                                                     <div className="text-6xl mb-4">🎉</div>
-                                                    <h3 className="text-2xl font-black text-amber-800 mb-2">مبارك! الطالب خاتم للقرآن الكريم</h3>
-                                                    <p className="text-amber-600 font-bold">اتم الطالب حفظ كتاب الله كاملاً - ينتقل الآن لمرحلة التثبيت والمراجعة المكثفة</p>
+                                                    <h3 className="text-2xl font-black text-amber-800 dark:text-amber-200 mb-2">مبارك! الطالب خاتم للقرآن الكريم</h3>
+                                                    <p className="text-amber-600 dark:text-amber-400 font-bold">اتم الطالب حفظ كتاب الله كاملاً - ينتقل الآن لمرحلة التثبيت والمراجعة المكثفة</p>
                                                 </div>
                                             </div>
                                         );
 
                                         // If Quranic Day is active, show banner
                                         if (isQuranicDaySession) return (
-                                            <div className="p-8 bg-gradient-to-br from-indigo-50 to-amber-50 rounded-[2.5rem] border-2 border-amber-200 shadow-inner">
+                                            <div className="p-8 bg-gradient-to-br from-indigo-50 to-amber-50 dark:from-indigo-900/20 dark:to-amber-900/20 rounded-[2.5rem] border-2 border-amber-200 dark:border-amber-800 shadow-inner">
                                                 <div className="text-center">
                                                     <div className="text-6xl mb-4">🛡️</div>
-                                                    <h3 className="text-2xl font-black text-amber-800 mb-2">وضع الأيام القرآنية نشط</h3>
-                                                    <p className="text-amber-600 font-bold">تم قفل قسم الحفظ - التركيز الآن على المراجعة المكثفة فقط</p>
+                                                    <h3 className="text-2xl font-black text-amber-800 dark:text-amber-200 mb-2">وضع الأيام القرآنية نشط</h3>
+                                                    <p className="text-amber-600 dark:text-amber-400 font-bold">تم قفل قسم الحفظ - التركيز الآن على المراجعة المكثفة فقط</p>
                                                 </div>
                                             </div>
                                         );
