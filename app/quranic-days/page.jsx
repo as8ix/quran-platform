@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Navbar from '../components/Navbar';
 import { useTheme } from '../components/ThemeProvider';
@@ -13,6 +13,7 @@ export default function QuranicDaysDashboard() {
     const [error, setError] = useState(null);
     const [user, setUser] = useState(null);
     const [isFullscreen, setIsFullscreen] = useState(false);
+    const statsContainerRef = useRef(null);
 
     useEffect(() => {
         const storedUser = sessionStorage.getItem('user');
@@ -56,6 +57,33 @@ export default function QuranicDaysDashboard() {
                 document.exitFullscreen();
                 setIsFullscreen(false);
             }
+        }
+    };
+
+    const downloadImage = async () => {
+        if (!statsContainerRef.current) return;
+        
+        const toastId = toast.loading('جاري تجهيز الصورة...');
+        
+        try {
+            const html2canvas = (await import('html2canvas')).default;
+            
+            const canvas = await html2canvas(statsContainerRef.current, {
+                scale: 2,
+                backgroundColor: isDarkMode ? '#020617' : '#FDFCFB', // slate-950 or warm light bg
+                useCORS: true,
+            });
+            
+            const image = canvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.download = `إحصائيات_${stats.eventName.replace(/\\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.png`;
+            link.href = image;
+            link.click();
+            
+            toast.success('تم تحميل الصورة بنجاح', { id: toastId });
+        } catch (err) {
+            console.error("Error creating image:", err);
+            toast.error('حدث خطأ أثناء إنشاء الصورة', { id: toastId });
         }
     };
 
@@ -200,10 +228,11 @@ export default function QuranicDaysDashboard() {
                     </button>
                 )}
 
-                {/* Dashboard Header */}
-                <div className={`flex flex-col md:flex-row justify-between items-center gap-6 ${isFullscreen ? 'mb-2 h-[8%]' : 'mb-12'}`}>
-                    <div className="flex items-center gap-6">
-                        <div className={`${isFullscreen ? 'w-12 h-12 text-2xl rounded-xl' : 'w-20 h-20 text-3xl rounded-[2rem]'} ${isFullscreen ? 'bg-amber-500' : 'bg-amber-600'} text-white flex items-center justify-center font-black shadow-xl shadow-amber-200 animate-bounce-slow`}>
+                <div ref={statsContainerRef} className={`${isFullscreen ? 'h-full flex flex-col' : ''}`}>
+                    {/* Dashboard Header */}
+                    <div className={`flex flex-col md:flex-row justify-between items-center gap-6 ${isFullscreen ? 'mb-2 h-[8%]' : 'mb-12'}`}>
+                        <div className="flex items-center gap-6">
+                            <div className={`${isFullscreen ? 'w-12 h-12 text-2xl rounded-xl' : 'w-20 h-20 text-3xl rounded-[2rem]'} ${isFullscreen ? 'bg-amber-500' : 'bg-amber-600'} text-white flex items-center justify-center font-black shadow-xl shadow-amber-200 animate-bounce-slow`}>
                             🏆
                         </div>
                         <div>
@@ -217,7 +246,15 @@ export default function QuranicDaysDashboard() {
                             </p>
                         </div>
                     </div>
-                    <div className="flex gap-4">
+                    <div className="flex gap-4 flex-wrap" data-html2canvas-ignore="true">
+                        {!isFullscreen && (
+                            <button
+                                onClick={downloadImage}
+                                className="bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-6 py-4 rounded-2xl font-bold border-2 border-slate-100 dark:border-slate-700 hover:border-amber-500 transition-all flex items-center gap-2 shadow-sm"
+                            >
+                                <span>📸</span> تحميل كصورة
+                            </button>
+                        )}
                         <button
                             onClick={toggleFullscreen}
                             className={`${isFullscreen ? 'bg-white dark:bg-slate-800 text-slate-800 dark:text-white px-4 py-2 text-xs' : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-6 py-4'} rounded-2xl font-bold border-2 ${isFullscreen ? 'border-slate-100 dark:border-slate-700' : 'border-slate-100 dark:border-slate-700'} hover:border-amber-500 transition-all flex items-center gap-2 shadow-sm`}
@@ -229,7 +266,7 @@ export default function QuranicDaysDashboard() {
                                 onClick={exportToExcel}
                                 className="bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-6 py-4 rounded-2xl font-bold border-2 border-slate-100 dark:border-slate-700 hover:border-amber-500 transition-all flex items-center gap-2 shadow-sm"
                             >
-                                <span>📊</span> تصدير البيانات للـ Excel
+                                <span>📊</span> تصدير البيانات
                             </button>
                         )}
                     </div>
@@ -327,6 +364,7 @@ export default function QuranicDaysDashboard() {
                         colorClass="bg-emerald-600"
                         isFullscreen={isFullscreen}
                     />
+                </div>
                 </div>
             </main>
 
