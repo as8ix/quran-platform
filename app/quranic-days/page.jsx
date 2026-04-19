@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Navbar from '../components/Navbar';
 import { useTheme } from '../components/ThemeProvider';
 import { toast } from 'react-hot-toast';
+import html2canvas from 'html2canvas';
 
 export default function QuranicDaysDashboard() {
     const router = useRouter();
@@ -66,8 +67,6 @@ export default function QuranicDaysDashboard() {
         const toastId = toast.loading('جاري تجهيز الصورة...');
         
         try {
-            const html2canvas = (await import('html2canvas')).default;
-            
             const canvas = await html2canvas(statsContainerRef.current, {
                 scale: 2,
                 backgroundColor: isDarkMode ? '#020617' : '#FDFCFB', // slate-950 or warm light bg
@@ -76,14 +75,14 @@ export default function QuranicDaysDashboard() {
             
             const image = canvas.toDataURL('image/png');
             const link = document.createElement('a');
-            link.download = `إحصائيات_${stats.eventName.replace(/\\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.png`;
+            link.download = `إحصائيات_${(stats?.eventName || 'العامة').replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.png`;
             link.href = image;
             link.click();
             
             toast.success('تم تحميل الصورة بنجاح', { id: toastId });
         } catch (err) {
             console.error("Error creating image:", err);
-            toast.error('حدث خطأ أثناء إنشاء الصورة', { id: toastId });
+            toast.error('حدث خطأ: ' + err.message, { id: toastId });
         }
     };
 
