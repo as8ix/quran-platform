@@ -1,12 +1,74 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+
+const getHParts = (d) => {
+    const parts = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', { month: 'numeric', year: 'numeric' }).formatToParts(d);
+    const m = parts.find(p => p.type === 'month')?.value;
+    const y = parts.find(p => p.type === 'relatedYear' || p.type === 'year')?.value;
+    return { m: parseInt(m), y: parseInt(y) };
+};
+
+const getGregorianDateFromHijri = (hijriYear, hijriMonthIndex) => {
+    const estimateGYear = Math.floor(hijriYear - hijriYear / 33 + 622);
+    let current = new Date(estimateGYear, 0, 1);
+    
+    let h = getHParts(current);
+    let diff = (hijriYear - h.y) * 12 + (hijriMonthIndex - h.m);
+    current.setDate(current.getDate() + diff * 29);
+    
+    current.setDate(current.getDate() - 35);
+    let matches = [];
+    for(let i=0; i<70; i++) {
+        h = getHParts(current);
+        if (h.y === hijriYear && h.m === hijriMonthIndex) {
+            matches.push(new Date(current));
+        }
+        current.setDate(current.getDate() + 1);
+    }
+    
+    // Pick the middle of the month to safely avoid timezone offset boundaries
+    const safeDate = matches[14] || matches[0] || new Date();
+    const yyyy = safeDate.getFullYear();
+    const mm = String(safeDate.getMonth() + 1).padStart(2, '0');
+    const dd = String(safeDate.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+};
+
+const HIJRI_MONTHS = [
+    { value: 1, label: 'محرم' },
+    { value: 2, label: 'صفر' },
+    { value: 3, label: 'ربيع الأول' },
+    { value: 4, label: 'ربيع الآخر' },
+    { value: 5, label: 'جمادى الأولى' },
+    { value: 6, label: 'جمادى الآخرة' },
+    { value: 7, label: 'رجب' },
+    { value: 8, label: 'شعبان' },
+    { value: 9, label: 'رمضان' },
+    { value: 10, label: 'شوال' },
+    { value: 11, label: 'ذو القعدة' },
+    { value: 12, label: 'ذو الحجة' }
+];
 
 function ReportContent() {
+    const router = useRouter();
     const searchParams = useSearchParams();
     const type = searchParams.get('type') || 'week'; // 'week' | 'month'
     const dateParam = searchParams.get('date');
+    const pivotDateForInput = dateParam ? new Date(dateParam) : new Date();
+    
+    const currentHParts = getHParts(pivotDateForInput);
+    const [hijriYearInput, setHijriYearInput] = useState(currentHParts.y);
+
+    useEffect(() => {
+        setHijriYearInput(getHParts(pivotDateForInput).y);
+    }, [pivotDateForInput]);
+
+    const handleHijriChange = (newYear, newMonth) => {
+        const newDate = getGregorianDateFromHijri(newYear, newMonth);
+        router.push(`?type=month&date=${newDate}`);
+    };
 
     const [students, setStudents] = useState([]);
     const [reportData, setReportData] = useState([]);
@@ -189,6 +251,61 @@ function ReportContent() {
         <div className="min-h-screen bg-white font-noto p-8 text-right" dir="rtl">
             {/* Header / Actions */}
             <div className="flex justify-between items-start mb-8 no-print">
+                <div className="flex gap-4 items-center">
+                    {type === 'month' ? (
+                        <div className="flex items-center gap-1 bg-white px-3 py-1.5 border border-slate-200 rounded-xl shadow-sm">
+                            <label className="text-sm font-bold text-slate-600 px-2 pl-3 border-l border-slate-100">اختر الشهر الهجري</label>
+                            
+                            <select 
+                                value={currentHParts.m}
+                                onChange={(e) => handleHijriChange(currentHParts.y, parseInt(e.target.value))}
+                                className="px-2 py-1 bg-transparent font-bold text-slate-900 outline-none hover:bg-slate-50 cursor-pointer rounded"
+                            >
+                                {HIJRI_MONTHS.map(m => (
+                                    <option key={m.value} value={m.value}>{m.label}</option>
+                                ))}
+                            </select>
+                            
+                            <span className="text-slate-300">/</span>
+                            
+                            <input 
+                                type="number" 
+                                value={hijriYearInput || ''}
+                                onChange={(e) => setHijriYearInput(e.target.value)}
+                                onBlur={(e) => {
+                                     const year = parseInt(e.target.value);
+                                     if(year >= 1400 && year <= 1500 && year !== currentHParts.y) {
+                                         handleHijriChange(year, currentHParts.m);
+                                     } else {
+                                         setHijriYearInput(currentHParts.y);
+                                     }
+                                }}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') e.target.blur();
+                                }}
+                                className="w-[4.5rem] text-center px-1 py-1 bg-transparent font-bold text-slate-900 outline-none hover:bg-slate-50 rounded select-all"
+                                min="1400"
+                                max="1500"
+                            />
+                            
+                            <span className="text-sm font-bold text-slate-500 pr-1">هـ</span>
+                        </div>
+                    ) : (
+                        <div className="flex items-center gap-2">
+                            <label className="text-sm font-bold text-slate-600">اختر تاريخاً ضمن الأسبوع:</label>
+                            <input 
+                                type="date"
+                                value={pivotDateForInput.toISOString().substring(0, 10)}
+                                onChange={(e) => {
+                                    if (e.target.value) {
+                                        router.push(`?type=week&date=${e.target.value}`);
+                                    }
+                                }}
+                                className="px-4 py-2 bg-white border border-slate-200 rounded-xl font-bold text-slate-900 outline-none focus:border-emerald-500 shadow-sm"
+                            />
+                        </div>
+                    )}
+                </div>
                 <button
                     onClick={() => window.print()}
                     className="flex items-center gap-2 bg-slate-900 text-white px-6 py-3 rounded-xl font-bold hover:bg-slate-800 transition-colors shadow-lg"
