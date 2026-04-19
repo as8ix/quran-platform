@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Navbar from '../components/Navbar';
 import { useTheme } from '../components/ThemeProvider';
 import { toast } from 'react-hot-toast';
-import html2canvas from 'html2canvas';
+import * as htmlToImage from 'html-to-image';
 
 export default function QuranicDaysDashboard() {
     const router = useRouter();
@@ -67,16 +67,22 @@ export default function QuranicDaysDashboard() {
         const toastId = toast.loading('جاري تجهيز الصورة...');
         
         try {
-            const canvas = await html2canvas(statsContainerRef.current, {
-                scale: 2,
-                backgroundColor: isDarkMode ? '#020617' : '#FDFCFB', // slate-950 or warm light bg
-                useCORS: true,
+            const dataUrl = await htmlToImage.toPng(statsContainerRef.current, {
+                quality: 1,
+                pixelRatio: 2,
+                backgroundColor: isDarkMode ? '#020617' : '#FDFCFB',
+                filter: (node) => {
+                    // Exclude the action buttons
+                    if (node.tagName && node.hasAttribute && node.hasAttribute('data-html2canvas-ignore')) {
+                        return false;
+                    }
+                    return true;
+                }
             });
             
-            const image = canvas.toDataURL('image/png');
             const link = document.createElement('a');
             link.download = `إحصائيات_${(stats?.eventName || 'العامة').replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.png`;
-            link.href = image;
+            link.href = dataUrl;
             link.click();
             
             toast.success('تم تحميل الصورة بنجاح', { id: toastId });
