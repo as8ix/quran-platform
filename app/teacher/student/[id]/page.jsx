@@ -1476,11 +1476,7 @@ export default function StudentDetailsPage() {
                                                                     </div>
                                                                     <div>
                                                                         <label className="block text-xs font-bold text-emerald-600 mb-2">نقية</label>
-<<<<<<< HEAD
-                                                                        <input type="number" step="0.25" value={cleanPagesCount} onFocus={() => cleanPagesCount === 0 && setCleanPagesCount('')} onBlur={() => cleanPagesCount === '' && setCleanPagesCount(0)} onChange={e => { const v = e.target.value; if (v === '') setCleanPagesCount(''); else setCleanPagesCount(Math.max(0, parseFloat(v) || 0)); }} min="0" className="w-full px-4 py-3 bg-indigo-50/50 dark:bg-slate-800 border-2 border-transparent focus:border-emerald-400 rounded-2xl outline-none font-bold dark:text-white" placeholder="0" />
-=======
                                                                         <input type="number" step="0.5" value={cleanPagesCount} onFocus={() => cleanPagesCount === 0 && setCleanPagesCount('')} onBlur={() => cleanPagesCount === '' && setCleanPagesCount(0)} onChange={e => { const v = e.target.value; if (v === '') setCleanPagesCount(''); else setCleanPagesCount(Math.max(0, parseFloat(v) || 0)); }} min="0" className="w-full px-4 py-3 bg-indigo-50/50 dark:bg-slate-800 border-2 border-transparent focus:border-emerald-400 rounded-2xl outline-none font-bold dark:text-white" placeholder="0" />
->>>>>>> dev
                                                                     </div>
                                                                 </div>
 
