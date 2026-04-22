@@ -271,7 +271,7 @@ export default function SendNotification({ senderRole, senderId, students = [], 
                                                         type="url"
                                                         value={attachmentUrl}
                                                         onChange={(e) => setAttachmentUrl(e.target.value)}
-                                                        className="w-full p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-white text-sm ltr outline-none focus:border-indigo-500"
+                                                        className="w-full p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 premium-glass text-slate-800 dark:text-white text-sm ltr outline-none focus:border-indigo-500"
                                                         placeholder={attachmentType === 'IMAGE' ? 'رابط الصورة...' : 'رابط الملف...'}
                                                         dir="ltr"
                                                     />

@@ -44,7 +44,7 @@ model Student {
   password     String
   hifzProgress String?   // Current surah name
   currentHifzSurahId Int? @default(114) // 1-114
-  juzCount     Int      @default(0)
+  juzCount     Float    @default(0)
   reviewPlan   String?
   dailyTargetPages Float? @default(1.0) // Goal in pages (can be 0.5)
   createdAt    DateTime @default(now())
@@ -99,17 +99,17 @@ model Session {
   // Quality Metrics - General or Murajaah (backward compatible)
   errorsCount      Int @default(0)  // أخطاء المراجعة الكبرى
   alertsCount      Int @default(0)  // تنبيهات المراجعة الكبرى
-  cleanPagesCount  Int @default(0)  // الصفحات النقية في الكبرى
+  cleanPagesCount  Float @default(0)  // الصفحات النقية في الكبرى
 
   // Quality Metrics - Minor Murajaah
   minorErrorsCount     Int @default(0)  // أخطاء المراجعة الصغرى
   minorAlertsCount     Int @default(0)  // تنبيهات المراجعة الصغرى
-  minorCleanPagesCount Int @default(0)  // الصفحات النقية في الصغرى
+  minorCleanPagesCount Float @default(0)  // الصفحات النقية في الصغرى
   
   // Quality Metrics - Hifz Specific
   hifzErrors       Int @default(0)  // أخطاء الحفظ
   hifzAlerts       Int @default(0)  // تنبيهات الحفظ
-  hifzCleanPages   Int @default(0)  // الصفحات النقية في الحفظ
+  hifzCleanPages   Float @default(0)  // الصفحات النقية في الحفظ
   
   isGoalAchieved   Boolean @default(false) // هل حقق الهدف اليومي؟
 

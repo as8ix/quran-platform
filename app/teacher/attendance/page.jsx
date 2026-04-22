@@ -174,7 +174,7 @@ export default function AttendancePage() {
                     </div>
 
                     <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
-                        <div className="w-full md:w-auto bg-white dark:bg-slate-900 p-3 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 flex flex-wrap md:flex-nowrap items-center justify-center gap-3 px-4">
+                        <div className="w-full md:w-auto premium-glass p-3 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 flex flex-wrap md:flex-nowrap items-center justify-center gap-3 px-4">
                             <span className="text-slate-400 font-bold text-sm">التاريخ:</span>
 
                             {/* Hijri Primary */}
@@ -235,7 +235,8 @@ export default function AttendancePage() {
                                                     { id: 'PRESENT', label: 'حاضر', color: 'bg-emerald-500', shadow: 'shadow-emerald-200' },
                                                     { id: 'LATE', label: 'متأخر', color: 'bg-amber-400', shadow: 'shadow-amber-200' },
                                                     { id: 'ABSENT_EXCUSED', label: 'بعذر', color: 'bg-orange-500', shadow: 'shadow-orange-200' },
-                                                    { id: 'ABSENT_UNEXCUSED', label: 'غياب', color: 'bg-rose-500', shadow: 'shadow-rose-200' }
+                                                    { id: 'ABSENT_UNEXCUSED', label: 'غياب', color: 'bg-rose-500', shadow: 'shadow-rose-200' },
+                                                    { id: 'HOLIDAY', label: 'إجازة', color: 'bg-blue-500', shadow: 'shadow-blue-200' }
                                                 ].map((status) => (
                                                     <button
                                                         key={status.id}
@@ -260,11 +261,22 @@ export default function AttendancePage() {
                     </div>
                 </div>
 
-                <div className="mt-8 flex justify-end">
+                <div className="mt-8 flex justify-between items-center">
+                    <button
+                        onClick={() => {
+                            const newMap = {};
+                            students.forEach(s => newMap[s.id] = 'HOLIDAY');
+                            setAttendance(newMap);
+                            toast.success('تم تعيين إجازة لجميع الطلاب لهذا اليوم');
+                        }}
+                        className="px-6 py-3 md:px-8 md:py-4 bg-white/50 dark:bg-slate-800/50 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 rounded-2xl font-black text-sm md:text-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-all active:scale-95 shadow-sm"
+                    >
+                        🏖️ إجازة للجميع
+                    </button>
                     <button
                         onClick={saveAttendance}
                         disabled={saving}
-                        className="px-12 py-4 bg-emerald-600 text-white rounded-2xl font-black text-lg shadow-xl shadow-emerald-200 hover:bg-emerald-700 hover:-translate-y-1 transition-all active:scale-95 disabled:opacity-50"
+                        className="px-8 py-3 md:px-12 md:py-4 bg-emerald-600 text-white rounded-2xl font-black text-sm md:text-lg shadow-xl shadow-emerald-200 hover:bg-emerald-700 hover:-translate-y-1 transition-all active:scale-95 disabled:opacity-50"
                     >
                         {saving ? 'جاري الحفظ...' : 'حفظ الكشف النهائي'}
                     </button>

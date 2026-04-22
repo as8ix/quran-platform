@@ -89,43 +89,42 @@ function WeeklyReportContent() {
     const printDate = new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date());
 
     return (
-        <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-main)] font-noto pt-28 pb-12 px-8 text-right transition-colors duration-500" dir="rtl">
+        <div className="min-h-screen bg-white font-noto p-8 text-right" dir="rtl">
 
             {/* ===== Controls - hidden on print ===== */}
-            <div className="no-print flex flex-wrap justify-between items-center gap-4 mb-10 premium-glass rounded-[2.5rem] p-7 border border-white/20 dark:border-slate-800/50 shadow-2xl relative overflow-hidden group">
-                <div className="absolute top-0 left-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <div className="flex gap-5 items-end flex-wrap relative z-10">
+            <div className="no-print flex flex-wrap justify-between items-center gap-4 mb-8 bg-slate-50 rounded-3xl p-6 border border-slate-100 shadow-sm">
+                <div className="flex gap-4 items-end flex-wrap">
                     <div>
-                        <label className="block text-xs font-black text-slate-500 dark:text-slate-400 mb-2 mr-1 uppercase tracking-widest">من تاريخ</label>
+                        <label className="block text-xs font-bold text-slate-600 mb-2">من تاريخ</label>
                         <input
                             type="date"
                             value={startDate}
                             onChange={(e) => setStartDate(e.target.value)}
-                            className="px-5 py-3 bg-white/50 dark:bg-slate-900/50 border-2 border-transparent focus:border-emerald-500/50 rounded-2xl font-bold text-slate-900 dark:text-white outline-none shadow-inner transition-all"
+                            className="px-4 py-2 bg-white border border-slate-200 rounded-xl font-bold text-slate-900 outline-none focus:border-emerald-500 shadow-sm"
                         />
                     </div>
                     <div>
-                        <label className="block text-xs font-black text-slate-500 dark:text-slate-400 mb-2 mr-1 uppercase tracking-widest">إلى تاريخ</label>
+                        <label className="block text-xs font-bold text-slate-600 mb-2">إلى تاريخ</label>
                         <input
                             type="date"
                             value={endDate}
                             onChange={(e) => setEndDate(e.target.value)}
-                            className="px-5 py-3 bg-white/50 dark:bg-slate-900/50 border-2 border-transparent focus:border-emerald-500/50 rounded-2xl font-bold text-slate-900 dark:text-white outline-none shadow-inner transition-all"
+                            className="px-4 py-2 bg-white border border-slate-200 rounded-xl font-bold text-slate-900 outline-none focus:border-emerald-500 shadow-sm"
                         />
                     </div>
                 </div>
-                <div className="flex gap-3 relative z-10">
+                <div className="flex gap-3">
                     <button
                         onClick={() => router.push(user?.role === 'SUPERVISOR' ? '/supervisor' : '/teacher')}
-                        className="px-6 py-3 bg-white/50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-2xl font-bold hover:bg-white dark:hover:bg-slate-700 transition-all shadow-sm active:scale-95"
+                        className="px-6 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold hover:bg-slate-50 transition-colors shadow-sm"
                     >
                         ← عودة
                     </button>
                     <button
                         onClick={() => window.print()}
-                        className="flex items-center gap-2 px-6 py-3 bg-slate-900 dark:bg-emerald-600 text-white rounded-2xl font-bold shadow-xl hover:shadow-emerald-500/20 transition-all active:scale-95"
+                        className="flex items-center gap-2 px-6 py-2.5 bg-slate-900 text-white rounded-xl font-bold shadow-lg hover:bg-slate-800 transition-colors"
                     >
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 00-2 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 00-2 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
                         طباعة / PDF
                     </button>
                 </div>
@@ -146,29 +145,37 @@ function WeeklyReportContent() {
                 </div>
 
                 {/* Summary Stats */}
-                <div className="flex gap-5 mb-10 flex-wrap no-print">
-                    {[
-                        { label: 'عدد الطلاب', value: reportData.length, color: 'text-slate-800 dark:text-white', bg: 'bg-white/50 dark:bg-slate-900/50' },
-                        { label: 'إجمالي الحضور', value: totalPresent, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50/50 dark:bg-emerald-900/30' },
-                        { label: 'إجمالي الغياب', value: totalAbsent, color: 'text-rose-500 hot-pink', bg: 'bg-rose-50/50 dark:bg-rose-900/30' },
-                        { label: 'إجمالي التأخر', value: totalLate, color: 'text-amber-600', bg: 'bg-amber-50/50 dark:bg-amber-900/30' },
-                        { label: 'الأوجه المقروءة', value: totalPages, color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-50/50 dark:bg-indigo-900/30' },
-                    ].map((s, i) => (
-                        <div key={i} className={`${s.bg} px-8 py-5 rounded-[2rem] shadow-lg border border-white/20 dark:border-slate-800/50 flex flex-col items-center min-w-[140px] transition-transform hover:scale-105 duration-300`}>
-                            <span className="text-slate-400 dark:text-slate-500 text-[10px] font-black uppercase tracking-widest mb-2">{s.label}</span>
-                            <span className={`text-3xl font-black ${s.color}`}>{s.value}</span>
-                        </div>
-                    ))}
+                <div className="flex gap-4 mb-8 flex-wrap">
+                    <div className="bg-white px-6 py-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center min-w-[110px] print:border-slate-300 print:bg-white">
+                        <span className="text-slate-400 text-xs font-bold mb-1">عدد الطلاب</span>
+                        <span className="text-2xl font-black text-slate-800">{reportData.length}</span>
+                    </div>
+                    <div className="bg-white px-6 py-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center min-w-[110px] print:border-slate-300 print:bg-white">
+                        <span className="text-slate-400 text-xs font-bold mb-1">إجمالي الحضور</span>
+                        <span className="text-2xl font-black text-emerald-600">{totalPresent}</span>
+                    </div>
+                    <div className="bg-white px-6 py-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center min-w-[110px] print:border-slate-300 print:bg-white">
+                        <span className="text-slate-400 text-xs font-bold mb-1">إجمالي الغياب</span>
+                        <span className="text-2xl font-black text-rose-500">{totalAbsent}</span>
+                    </div>
+                    <div className="bg-white px-6 py-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center min-w-[110px] print:border-slate-300 print:bg-white">
+                        <span className="text-slate-400 text-xs font-bold mb-1">إجمالي التأخر</span>
+                        <span className="text-2xl font-black text-amber-500">{totalLate}</span>
+                    </div>
+                    <div className="bg-white px-6 py-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center min-w-[110px] print:border-slate-300 print:bg-white">
+                        <span className="text-slate-400 text-xs font-bold mb-1">الأوجه المقروءة</span>
+                        <span className="text-2xl font-black text-indigo-600">{totalPages}</span>
+                    </div>
                 </div>
 
                 {/* Table */}
                 {loading ? (
-                    <div className="text-center py-24 text-emerald-600 font-black animate-pulse text-xl">جاري صياغة التقرير الشامل...</div>
+                    <div className="text-center py-20 text-emerald-600 font-bold animate-pulse">جاري صياغة التقرير...</div>
                 ) : reportData.length === 0 ? (
-                    <div className="text-center py-24 premium-glass rounded-[3rem] border-2 border-dashed border-slate-200 dark:border-slate-800 text-slate-400 font-black text-xl">لا توجد بيانات لهذه الفترة</div>
+                    <div className="text-center py-20 text-slate-400 font-bold">لا توجد بيانات لهذه الفترة</div>
                 ) : (
-                    <div className="premium-glass rounded-[2rem] shadow-2xl overflow-hidden border border-white/20 dark:border-slate-800/50 print:shadow-none print:rounded-none print:border-0 relative">
-                        <table className="w-full border-collapse text-sm relative z-10">
+                    <div className="bg-white rounded-[1.5rem] shadow-xl shadow-slate-200/50 overflow-hidden border border-slate-100 print:shadow-none print:rounded-none print:border-0 print:bg-transparent">
+                        <table className="w-full border-collapse text-sm">
                             <thead>
                                 <tr className="bg-slate-50 border-b border-slate-100 print:bg-slate-100 print:border-slate-300">
                                     <th className="p-4 font-black text-slate-600 text-right min-w-[200px]">الطالب</th>

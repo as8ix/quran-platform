@@ -428,7 +428,7 @@ export default function StudentDashboard() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
                     {/* Hifz Progress Card */}
-                    <div className="bg-white dark:bg-slate-800 p-8 rounded-[2.5rem] shadow-xl shadow-slate-200/50 dark:shadow-none border border-white dark:border-slate-700 relative overflow-hidden reveal reveal-delay-2 flex items-center gap-6 group hover:border-emerald-500 transition-colors">
+                    <div className="premium-glass p-8 rounded-[2.5rem] shadow-xl shadow-slate-200/50 dark:shadow-none border border-white dark:border-slate-700 relative overflow-hidden reveal reveal-delay-2 flex items-center gap-6 group hover:border-emerald-500 transition-colors">
                         {/* Circular Progress SVG */}
                         <div className="relative w-32 h-32 flex-shrink-0">
                             <svg className="w-full h-full transform -rotate-90">
@@ -486,7 +486,7 @@ export default function StudentDashboard() {
                     </div>
 
                     {/* Review Plan Card */}
-                    <div className="bg-white dark:bg-slate-800 p-8 rounded-[2.5rem] shadow-xl shadow-slate-200/50 dark:shadow-none border border-white dark:border-slate-700 border-b-8 border-b-amber-500 dark:border-b-amber-600 reveal reveal-delay-3 flex flex-col justify-center group hover:border-r-8 hover:border-r-amber-500 transition-all">
+                    <div className="premium-glass p-8 rounded-[2.5rem] shadow-xl shadow-slate-200/50 dark:shadow-none border border-white dark:border-slate-700 border-b-8 border-b-amber-500 dark:border-b-amber-600 reveal reveal-delay-3 flex flex-col justify-center group hover:border-r-8 hover:border-r-amber-500 transition-all">
                         <div className="flex justify-between items-center">
                             <div>
                                 <h3 className="text-slate-400 dark:text-slate-500 font-bold text-[10px] uppercase tracking-wider mb-1">خطة المراجعة الكلية</h3>

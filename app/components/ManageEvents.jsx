@@ -288,7 +288,6 @@ export default function ManageEvents({ teachers, students }) {
                 </div>
                 </div>
             </div>
-            </div>
 
             {/* Event Form Modal */}
             {showModal && (
@@ -469,7 +468,7 @@ export default function ManageEvents({ teachers, students }) {
 
                                 <div className="flex flex-col">
                                     <label className="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">التوزيع الحالي في الدورة</label>
-                                    <div className="flex-1 overflow-y-auto bg-white dark:bg-slate-900/50 border-2 border-slate-50 dark:border-slate-700 rounded-2xl p-4 custom-scrollbar">
+                                    <div className="flex-1 overflow-y-auto premium-glass/50 border-2 border-slate-50 dark:border-slate-700 rounded-2xl p-4 custom-scrollbar">
                                         {loadingAssignments ? (
                                             <div className="text-center py-20 text-slate-400 font-bold">جاري التحميل...</div>
                                         ) : assignments.length > 0 ? (
@@ -482,11 +481,11 @@ export default function ManageEvents({ teachers, students }) {
                                                         <div key={tid} className="p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700">
                                                             <div className="flex justify-between items-center mb-3">
                                                                 <span className="font-black text-indigo-700 dark:text-indigo-400">{teacherName}</span>
-                                                                <span className="text-xs font-bold bg-white dark:bg-slate-900 px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-600 dark:text-slate-300">{teacherAssignments.length} طلاب</span>
+                                                                <span className="text-xs font-bold premium-glass px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-600 dark:text-slate-300">{teacherAssignments.length} طلاب</span>
                                                             </div>
                                                             <div className="p-3 flex flex-wrap gap-2">
                                                                 {teacherAssignments.map(a => (
-                                                                    <div key={a.id} className="flex items-center gap-1 bg-white dark:bg-slate-900 px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-600 text-xs font-bold dark:text-slate-300 group">
+                                                                    <div key={a.id} className="flex items-center gap-1 premium-glass px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-600 text-xs font-bold dark:text-slate-300 group">
                                                                         <span>{a.student.name}</span>
                                                                         <button onClick={() => deleteAssignment(a.id)} className="text-red-400 hover:text-red-600 px-1 font-black">×</button>
                                                                     </div>
@@ -509,7 +508,7 @@ export default function ManageEvents({ teachers, students }) {
 
             {confirmConfig && (
                 <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-[9999] flex items-center justify-center p-4">
-                    <div className="bg-white dark:bg-slate-800 rounded-[2.5rem] p-8 w-full max-w-sm shadow-2xl animate-popIn border border-slate-100/50 dark:border-slate-700">
+                    <div className="premium-glass rounded-[2.5rem] p-8 w-full max-w-sm shadow-2xl animate-popIn border border-slate-100/50 dark:border-slate-700">
                         <div className="text-center">
                             <div className="w-20 h-20 bg-amber-50 dark:bg-amber-900/30 text-amber-500 rounded-full flex items-center justify-center text-4xl mx-auto mb-6 shadow-inner ring-8 ring-amber-50/50 dark:ring-amber-900/20">
                                 ⚠️

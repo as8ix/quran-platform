@@ -233,7 +233,7 @@ export default function SupervisorDashboard() {
 
     const handleDeleteTeacher = (id, name) => {
         toast((t) => (
-            <div className="bg-white p-6 rounded-2xl shadow-2xl border border-slate-100 flex flex-col gap-4 min-w-[300px]">
+            <div className="premium-glass p-6 rounded-2xl shadow-2xl border border-slate-100 flex flex-col gap-4 min-w-[300px]">
                 <div className="font-bold text-slate-800 text-lg">
                     هل أنت متأكد من حذف المعلم "{name}"؟
                     <div className="text-sm text-red-500 mt-2 font-medium">سيتم حذفه نهائياً من النظام.</div>
@@ -279,7 +279,7 @@ export default function SupervisorDashboard() {
 
     const handleDeleteHalaqa = (id, name) => {
         toast((t) => (
-            <div className="bg-white p-6 rounded-2xl shadow-2xl border border-slate-100 flex flex-col gap-4 min-w-[300px]">
+            <div className="premium-glass p-6 rounded-2xl shadow-2xl border border-slate-100 flex flex-col gap-4 min-w-[300px]">
                 <div className="font-bold text-slate-800 text-lg">
                     هل أنت متأكد من حذف حلقة "{name}"؟
                     <div className="text-sm text-red-500 mt-2 font-medium">سيتم إلغاء ربط الطلاب بالحلقة ولكن لن يتم حذفهم.</div>
@@ -438,7 +438,7 @@ export default function SupervisorDashboard() {
                                     <div className="flex-1 flex justify-between items-center">
                                         <span className="font-bold text-slate-700 dark:text-slate-200">{h.name}</span>
                                         <div className="flex items-center gap-2">
-                                            <span className="bg-white dark:bg-slate-800 px-3 py-1 rounded-xl text-xs font-black text-emerald-600 dark:text-emerald-400 shadow-sm border border-slate-50 dark:border-slate-700">
+                                            <span className="premium-glass px-3 py-1 rounded-xl text-xs font-black text-emerald-600 dark:text-emerald-400 shadow-sm border border-slate-50 dark:border-slate-700">
                                                 {h.count} طالب
                                             </span>
                                             <span className="text-[10px] font-bold text-slate-300 dark:text-slate-600">
@@ -627,7 +627,7 @@ export default function SupervisorDashboard() {
 
                 {/* Quranic Events Management */}
                 <ManageEvents teachers={teachers} students={students} />
-            </div>
+            </main>
 
             {/* Modals */}
             {showTeacherModal && (

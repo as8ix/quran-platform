@@ -143,7 +143,7 @@ export default function LoginPage() {
             {/* Login Card */}
             <div className="relative z-10 flex items-center justify-center min-h-screen p-6">
                 <div className="w-full max-w-md">
-                    <div className="bg-white dark:bg-slate-800 rounded-[2.5rem] p-8 shadow-2xl border border-slate-100 dark:border-slate-700 reveal transition-all">
+                    <div className="premium-glass rounded-[2.5rem] p-8 shadow-2xl border border-slate-100 dark:border-slate-700 reveal transition-all">
                         {/* Logo Section */}
                         <div className="text-center mb-8">
                             <img src="/mosque-logo.png" alt="شعار جامع الحديقة" className="w-24 h-24 mx-auto mb-4 object-contain dark:hidden" />
