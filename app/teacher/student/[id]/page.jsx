@@ -631,7 +631,7 @@ export default function StudentDetailsPage() {
             const todayStr = new Date().toISOString().split('T')[0];
             const todaysSessions = history.filter(s => 
                 new Date(s.date).toISOString().split('T')[0] === todayStr && 
-                s.id !== editingSession?.id
+                s.id !== editingSessionId
             );
 
             let pastHifz = 0;
@@ -1178,7 +1178,7 @@ export default function StudentDetailsPage() {
                                                     <div className="flex justify-between items-center mb-6">
                                                         <h3 className="text-emerald-800 dark:text-emerald-400 font-black text-xl flex items-center gap-3">
                                                             <span className="w-3 h-3 bg-emerald-500 rounded-full shadow-lg shadow-emerald-200 dark:shadow-none"></span>
-                                                            الحفظ الجديد (سورة {editingSession?.hifzSurah || currentSurah?.name})
+                                                            الحفظ الجديد (سورة {editingSessionData?.hifzSurah || currentSurah?.name})
                                                         </h3>
                                                         <span className="text-xs font-bold text-emerald-600 bg-emerald-100 px-3 py-1 rounded-full">
                                                             صفحات السورة: {allowedPages[0]} - {allowedPages[allowedPages.length - 1]}
@@ -1576,7 +1576,7 @@ export default function StudentDetailsPage() {
                                         className="group relative w-full py-6 bg-slate-900 text-white rounded-[2rem] font-black text-2xl shadow-2xl shadow-slate-300 hover:bg-black transition-all active:scale-[0.98] disabled:opacity-50 overflow-hidden"
                                     >
                                         <span className="relative z-10 flex items-center justify-center gap-4">
-                                            {saving ? 'جاري الحفظ...' : editingSession ? 'تحديث تقرير اليوم 💎' : 'حفظ تقرير اليوم 💎'}
+                                            {saving ? 'جاري الحفظ...' : editingSessionId ? 'تحديث تقرير اليوم 💎' : 'حفظ تقرير اليوم 💎'}
                                         </span>
                                         <div className="absolute inset-0 bg-gradient-to-r from-emerald-600 to-teal-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                                     </button>
