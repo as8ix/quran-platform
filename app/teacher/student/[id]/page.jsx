@@ -64,15 +64,11 @@ export default function StudentDetailsPage() {
     const [showTypeModal, setShowTypeModal] = useState(false);
     const [isSessionActive, setIsSessionActive] = useState(false);
     const [showCancelModal, setShowCancelModal] = useState(false);
-<<<<<<< HEAD
-    const [editingSession, setEditingSession] = useState(null);
-=======
     const [editingSessionId, setEditingSessionId] = useState(null);
     const [editingSessionData, setEditingSessionData] = useState(null);
     const [sessionDate, setSessionDate] = useState('');
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [sessionToDelete, setSessionToDelete] = useState(null);
->>>>>>> dev
 
     const [user, setUser] = useState(null);
 
@@ -509,11 +505,7 @@ export default function StudentDetailsPage() {
 
     // Auto-calculate clean pages whenever dependencies change
     useEffect(() => {
-<<<<<<< HEAD
-        const total = parseFloat(pagesCount || 0);
-=======
         const total = parseFloat(pagesCount) || 0;
->>>>>>> dev
         const clean = Math.max(0, total - (parseFloat(errorsCount) || 0) - (parseFloat(alertsCount) || 0));
         setCleanPagesCount(clean);
     }, [pagesCount, errorsCount, alertsCount]);
@@ -535,85 +527,14 @@ export default function StudentDetailsPage() {
         calculateMurajaah();
     }, [mFromSurah, mFromAyah, mToSurah, mToAyah, minorMFromSurah, minorMFromAyah, minorMToSurah, minorMToAyah, murajaahType]);
 
-<<<<<<< HEAD
     const findSurahId = (name) => {
         if (!name) return 1;
         const normalized = name.replace('سورة ', '').trim();
         return quranData.find(s => s.name === normalized || s.name === name)?.id || 1;
     };
 
-    const handleEditSession = (session) => {
-        setEditingSession(session);
-        setIsSessionActive(true);
 
-        // Determine session type
-        const hasHifz = !!session.hifzSurah;
-        const hasMajor = !!session.murajaahFromSurah;
-        const hasMinor = !!session.minorMurajaahFromSurah;
 
-        if (hasHifz && (hasMajor || hasMinor)) setSessionType('BOTH');
-        else if (hasHifz) setSessionType('HIFZ');
-        else setSessionType('MURAJAAH');
-
-        // Set Hifz Data
-        if (hasHifz) {
-            setHifzFromPage(session.hifzFromPage || '');
-            setHifzToPage(session.hifzToPage || '');
-            setHifzFromAyah(session.hifzFromAyah || 1);
-            setHifzToAyah(session.hifzToAyah || 1);
-            setHifzErrors(session.hifzErrors || 0);
-            setHifzAlerts(session.hifzAlerts || 0);
-            setHifzCleanPages(session.hifzCleanPages || 0);
-        }
-
-        // Set Murajaah Data
-        if (hasMajor || hasMinor) {
-            if (hasMajor && hasMinor) setMurajaahType('BOTH');
-            else if (hasMajor) setMurajaahType('MAJOR');
-            else setMurajaahType('MINOR');
-
-            if (hasMajor) {
-                setMFromSurah(findSurahId(session.murajaahFromSurah));
-                setMFromAyah(session.murajaahFromAyah || 1);
-                setMToSurah(findSurahId(session.murajaahToSurah));
-                setMToAyah(session.murajaahToAyah || 1);
-                setErrorsCount(session.errorsCount - (session.hifzErrors || 0)); // Major errors only
-                setAlertsCount(session.alertsCount - (session.hifzAlerts || 0)); // Major alerts only
-                setCleanPagesCount(session.cleanPagesCount - (session.hifzCleanPages || 0)); // Major clean pages
-            }
-
-            if (hasMinor) {
-                setMinorMFromSurah(findSurahId(session.minorMurajaahFromSurah));
-                setMinorMFromAyah(session.minorMurajaahFromAyah || 1);
-                setMinorMToSurah(findSurahId(session.minorMurajaahToSurah));
-                setMinorMToAyah(session.minorMurajaahToAyah || 1);
-                setMinorErrors(session.minorErrorsCount || 0);
-                setMinorAlerts(session.minorAlertsCount || 0);
-                setMinorCleanPages(session.minorCleanPagesCount || 0);
-            }
-        }
-
-        setNotes(session.notes || '');
-        window.scrollTo({ top: 300, behavior: 'smooth' });
-    };
-
-    const handleDeleteSession = async (sessionId) => {
-        if (!confirm('هل أنت متأكد من حذف هذا السجل؟ لا يمكن التراجع عن هذا الإجراء.')) return;
-        
-        try {
-            const res = await fetch(`/api/sessions?id=${sessionId}`, { method: 'DELETE' });
-            if (res.ok) {
-                toast.success('تم حذف السجل بنجاح');
-                fetchHistory();
-                fetchStudent();
-            } else {
-                toast.error('حدث خطأ أثناء الحذف');
-            }
-        } catch (e) {
-            toast.error('خطأ في الاتصال');
-        }
-    };
-=======
     useEffect(() => {
         if (isSessionActive && !editingSessionId) {
             const d = new Date();
@@ -622,7 +543,7 @@ export default function StudentDetailsPage() {
             setSessionDate(localISOTime);
         }
     }, [isSessionActive, editingSessionId]);
->>>>>>> dev
+
 
     const handleSaveSession = async (e) => {
         e.preventDefault();
