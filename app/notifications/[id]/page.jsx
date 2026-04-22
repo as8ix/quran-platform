@@ -90,7 +90,7 @@ export default function NotificationDetails() {
                     </div>
                 </button>
 
-                <div className={`bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl overflow-hidden border-t-8 transition-all ${
+                <div className={`premium-glass rounded-[2.5rem] shadow-2xl overflow-hidden border-t-8 transition-all ${
                     notification.type === 'WARNING' ? 'border-red-500' : 
                     notification.type === 'PROPOSAL' ? 'border-green-500' : 'border-blue-500'
                 }`}>

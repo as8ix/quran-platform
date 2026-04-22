@@ -323,15 +323,15 @@ function ReportContent() {
                         <p className="text-slate-500 font-medium text-lg">{title}</p>
                     </div>
                     <div className="flex gap-4">
-                        <div className="bg-white px-5 py-3 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center min-w-[100px] print:border-slate-300">
+                        <div className="bg-white px-5 py-3 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center min-w-[100px] print:border-slate-300 print:bg-white">
                             <span className="text-slate-400 text-xs font-bold mb-1">حاضر</span>
                             <span className="text-2xl font-black text-emerald-600">{stats.present}</span>
                         </div>
-                        <div className="bg-white px-5 py-3 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center min-w-[100px] print:border-slate-300">
+                        <div className="bg-white px-5 py-3 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center min-w-[100px] print:border-slate-300 print:bg-white">
                             <span className="text-slate-400 text-xs font-bold mb-1">متأخر</span>
                             <span className="text-2xl font-black text-amber-500">{stats.late}</span>
                         </div>
-                        <div className="bg-white px-5 py-3 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center min-w-[100px] print:border-slate-300">
+                        <div className="bg-white px-5 py-3 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center min-w-[100px] print:border-slate-300 print:bg-white">
                             <span className="text-slate-400 text-xs font-bold mb-1">غياب</span>
                             <span className="text-2xl font-black text-rose-500">{stats.absent}</span>
                         </div>

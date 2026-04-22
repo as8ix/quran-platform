@@ -10,24 +10,26 @@ import { useTheme } from '../components/ThemeProvider';
 
 const StudentCard = ({ student, router }) => (
     <div
-        className="group bg-white dark:bg-slate-800 rounded-[2.5rem] p-7 shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-2xl hover:shadow-emerald-500/10 transition-all duration-500 border-b-8 border-b-transparent hover:border-b-emerald-500 cursor-pointer relative overflow-hidden"
+        className="group premium-glass rounded-[2.5rem] p-7 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-emerald-500/20 cursor-pointer relative overflow-hidden border border-white/20 dark:border-slate-800/50"
         onClick={() => router.push(`/teacher/student/${student.id}`)}
     >
-        <div className="absolute top-0 left-0 w-24 h-24 bg-emerald-500/5 rounded-br-[4rem] group-hover:scale-150 transition-transform duration-700"></div>
+        {/* Glow Effects */}
+        <div className="absolute -top-10 -right-10 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl group-hover:bg-emerald-500/20 transition-all duration-700"></div>
+        <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-indigo-500/5 rounded-full blur-3xl group-hover:bg-indigo-500/10 transition-all duration-700"></div>
 
         <div className="flex items-start justify-between mb-6 relative z-10">
-            <div className="w-16 h-16 bg-emerald-50 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 rounded-3xl flex items-center justify-center text-3xl font-black shadow-sm group-hover:rotate-6 transition-transform">
+            <div className="w-16 h-16 bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-900/40 dark:to-slate-900 text-emerald-600 dark:text-emerald-400 rounded-3xl flex items-center justify-center text-3xl font-black shadow-inner group-hover:rotate-6 transition-transform">
                 {student.name?.charAt(0)}
             </div>
             <div className="flex flex-col items-end gap-2">
-                <div className="bg-slate-50 dark:bg-slate-900 px-3 py-1 rounded-xl text-[10px] font-black text-slate-400 dark:text-slate-500 border border-slate-100 dark:border-slate-800">
+                <div className="bg-white/50 dark:bg-slate-900/50 px-3 py-1 rounded-xl text-[10px] font-black text-slate-400 dark:text-slate-500 border border-white/20 dark:border-slate-800">
                     ID: #{student.id}
                 </div>
                 {student.isEventGuest && (
                     <div className={`px-3 py-1 rounded-xl text-[10px] font-black border ${
                         student.isSpecificallyAssigned 
-                        ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-500 border-amber-100 dark:border-amber-800 animate-pulse'
-                        : 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 border-indigo-100 dark:border-indigo-800'
+                        ? 'bg-amber-500/10 dark:bg-amber-900/30 text-amber-600 dark:text-amber-500 border-amber-500/20 dark:border-amber-800 animate-pulse'
+                        : 'bg-indigo-500/10 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 border-indigo-500/20 dark:border-indigo-800'
                     }`}>
                         🏆 {student.isSpecificallyAssigned ? 'ضيف: مسند إليك' : 'متاح للتسميع (عام)'}
                     </div>
@@ -35,24 +37,24 @@ const StudentCard = ({ student, router }) => (
             </div>
         </div>
 
-        <h3 className="text-2xl font-black text-slate-800 dark:text-white mb-1 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">
+        <h3 className="text-2xl font-black text-slate-800 dark:text-white mb-1 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors relative z-10">
             {student.name}
         </h3>
         {student.halaqa && (
-            <p className="text-xs font-bold text-slate-400 dark:text-slate-500 mb-2 flex items-center gap-1">
+            <p className="text-xs font-bold text-slate-400 dark:text-slate-500 mb-2 flex items-center gap-1 relative z-10">
                 <span>📍</span> {student.halaqa.name}
             </p>
         )}
-        <p className="text-slate-500 dark:text-slate-400 text-sm mb-6 font-medium line-clamp-1 italic">
+        <p className="text-slate-500 dark:text-slate-400 text-sm mb-6 font-medium line-clamp-1 italic relative z-10">
             وصل إلى: <span className="text-emerald-600 dark:text-emerald-500 font-bold">{student.hifzProgress || 'بداية الحفظ'}</span>
         </p>
 
-        <div className="space-y-4 mb-8 bg-slate-50 dark:bg-slate-900/40 p-5 rounded-3xl border border-slate-100 dark:border-slate-800">
+        <div className="space-y-4 mb-8 bg-white/30 dark:bg-slate-950/40 p-5 rounded-3xl border border-white/20 dark:border-slate-800/50 relative z-10">
             <div className="flex justify-between items-center text-xs">
                 <span className="text-slate-400 dark:text-slate-500 font-bold uppercase">إجمالي الحفظ</span>
-                <span className="font-black text-slate-800 dark:text-white bg-white dark:bg-slate-800 px-3 py-1 rounded-lg border border-slate-100 dark:border-slate-700 shadow-sm">{student.juzCount} أجزاء</span>
+                <span className="font-black text-slate-800 dark:text-white bg-white/50 dark:bg-slate-800/50 px-3 py-1 rounded-lg border border-white/20 dark:border-slate-700 shadow-sm">{student.juzCount} أجزاء</span>
             </div>
-            <div className="w-full h-2.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden p-0.5 border border-slate-100 dark:border-slate-700">
+            <div className="w-full h-2.5 bg-slate-100/50 dark:bg-slate-800/50 rounded-full overflow-hidden p-0.5 border border-white/10 dark:border-slate-700">
                 <div
                     className="h-full bg-gradient-to-r from-emerald-600 to-emerald-400 rounded-full transition-all duration-1000 ease-out"
                     style={{ width: `${(student.juzCount / 30) * 100}%` }}
@@ -60,9 +62,9 @@ const StudentCard = ({ student, router }) => (
             </div>
         </div>
 
-        <div className="flex items-center justify-between text-sm text-emerald-600 dark:text-emerald-400 font-black pt-2 border-t border-slate-50 dark:border-slate-900">
+        <div className="flex items-center justify-between text-sm text-emerald-600 dark:text-emerald-400 font-black pt-2 border-t border-white/10 dark:border-slate-900/50 relative z-10">
             <span className="group-hover:translate-x-1 transition-transform inline-block">تسجيل التسميع</span>
-            <div className="w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-900/40 flex items-center justify-center text-xl transform group-hover:rotate-45 transition-transform duration-300">
+            <div className="w-8 h-8 rounded-full bg-white/50 dark:bg-emerald-900/40 flex items-center justify-center text-xl transform group-hover:rotate-45 transition-transform duration-300 shadow-sm">
                 ←
             </div>
         </div>
@@ -163,7 +165,7 @@ export default function TeacherDashboard() {
         <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-main)] font-noto rtl transition-colors duration-300" dir="rtl">
             <Navbar userType="teacher" userName={teacherName} onLogout={() => router.push('/login')} />
 
-            <main className="max-w-7xl mx-auto px-4 py-8 md:px-6 lg:px-8">
+            <main className="max-w-7xl mx-auto px-4 pt-28 pb-12 md:px-6 lg:px-8">
                 {/* Hero / Header Section */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
                     <div>
@@ -179,7 +181,7 @@ export default function TeacherDashboard() {
                     </div>
                     <div className="flex flex-wrap gap-3">
                         <button
-                            onClick={() => router.push('/teacher/reports')}
+                            onClick={() => window.open('/teacher/reports', '_blank')}
                             className="flex items-center gap-2 px-6 py-3 bg-indigo-50 dark:bg-indigo-900/30 border-2 border-indigo-100 dark:border-indigo-800 rounded-2xl font-bold text-indigo-600 dark:text-indigo-400 hover:border-indigo-400 hover:text-indigo-700 transition-all shadow-sm active:scale-95"
                         >
                             <span>📊</span> التقرير الأسبوعي
@@ -213,24 +215,25 @@ export default function TeacherDashboard() {
                 </div>
 
                 {/* Filters Section */}
-                <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-700 mb-8 transition-colors">
-                    <div className="flex flex-col lg:flex-row gap-6">
+                <div className="premium-glass p-6 sm:p-8 rounded-[3rem] shadow-xl border border-white/20 dark:border-slate-800/50 mb-10 transition-all relative overflow-hidden group">
+                    <div className="absolute top-0 left-0 w-full h-full bg-emerald-500/5 dark:bg-emerald-500/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+                    <div className="flex flex-col lg:flex-row gap-8 relative z-10">
                         <div className="flex-1">
-                            <label className="block text-sm font-bold text-slate-400 dark:text-slate-500 mb-2 mr-1 uppercase tracking-wider">البحث عن اسم الطالب</label>
-                            <div className="relative group">
-                                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-600 text-xl group-focus-within:text-emerald-500 transition-colors">🔍</span>
+                            <label className="block text-sm font-black text-slate-500 dark:text-slate-400 mb-3 mr-1 uppercase tracking-[0.2em]">البحث عن اسم الطالب</label>
+                            <div className="relative group/search">
+                                <span className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 text-xl group-focus-within/search:text-emerald-500 transition-colors">🔍</span>
                                 <input
                                     type="text"
                                     placeholder="ابحث باسم الطالب هنا..."
-                                    className="w-full pr-12 pl-4 py-4 bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800 rounded-2xl transition-all outline-none font-bold dark:text-white"
+                                    className="w-full pr-14 pl-6 py-5 bg-white/50 dark:bg-slate-900/80 border-2 border-transparent focus:border-emerald-500/50 focus:bg-white dark:focus:bg-slate-950 rounded-3xl shadow-inner transition-all outline-none font-bold dark:text-white"
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                 />
                             </div>
                         </div>
                         <div className="flex-1 lg:flex-[0.7]">
-                            <label className="block text-sm font-bold text-slate-400 dark:text-slate-500 mb-2 mr-1 uppercase tracking-wider">تصفية حسب الحفظ</label>
-                            <div className="flex p-1.5 bg-slate-100 dark:bg-slate-900/50 rounded-2xl gap-1 border border-slate-200 dark:border-slate-700">
+                            <label className="block text-sm font-black text-slate-500 dark:text-slate-400 mb-3 mr-1 uppercase tracking-[0.2em]">تصفية حسب الحفظ</label>
+                            <div className="flex p-2 bg-slate-100/50 dark:bg-slate-900/80 rounded-3xl gap-2 border border-white/10 dark:border-slate-800">
                                 {[
                                     { id: 'all', label: 'الكل' },
                                     { id: 'less5', label: 'أقل من 5' },
@@ -240,9 +243,9 @@ export default function TeacherDashboard() {
                                     <button
                                         key={tab.id}
                                         onClick={() => setJuzFilter(tab.id)}
-                                        className={`flex-1 py-2.5 px-4 rounded-xl text-sm font-black transition-all ${juzFilter === tab.id
-                                            ? 'bg-white dark:bg-slate-700 text-emerald-600 dark:text-emerald-400 shadow-md transform scale-[1.02]'
-                                            : 'text-slate-500 dark:text-slate-400 hover:bg-white/50 dark:hover:bg-slate-800'
+                                        className={`flex-1 py-3 px-4 rounded-2xl text-xs sm:text-sm font-black transition-all duration-300 ${juzFilter === tab.id
+                                            ? 'bg-white dark:bg-slate-800 text-emerald-600 dark:text-primary shadow-xl shadow-emerald-500/10 transform scale-[1.05] z-10'
+                                            : 'text-slate-500 dark:text-slate-500 hover:bg-white/50 dark:hover:bg-slate-800/50'
                                             }`}
                                     >
                                         {tab.label}

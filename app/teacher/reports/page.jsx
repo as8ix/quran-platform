@@ -146,23 +146,23 @@ function WeeklyReportContent() {
 
                 {/* Summary Stats */}
                 <div className="flex gap-4 mb-8 flex-wrap">
-                    <div className="bg-white px-6 py-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center min-w-[110px] print:border-slate-300">
+                    <div className="bg-white px-6 py-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center min-w-[110px] print:border-slate-300 print:bg-white">
                         <span className="text-slate-400 text-xs font-bold mb-1">عدد الطلاب</span>
                         <span className="text-2xl font-black text-slate-800">{reportData.length}</span>
                     </div>
-                    <div className="bg-white px-6 py-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center min-w-[110px] print:border-slate-300">
+                    <div className="bg-white px-6 py-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center min-w-[110px] print:border-slate-300 print:bg-white">
                         <span className="text-slate-400 text-xs font-bold mb-1">إجمالي الحضور</span>
                         <span className="text-2xl font-black text-emerald-600">{totalPresent}</span>
                     </div>
-                    <div className="bg-white px-6 py-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center min-w-[110px] print:border-slate-300">
+                    <div className="bg-white px-6 py-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center min-w-[110px] print:border-slate-300 print:bg-white">
                         <span className="text-slate-400 text-xs font-bold mb-1">إجمالي الغياب</span>
                         <span className="text-2xl font-black text-rose-500">{totalAbsent}</span>
                     </div>
-                    <div className="bg-white px-6 py-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center min-w-[110px] print:border-slate-300">
+                    <div className="bg-white px-6 py-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center min-w-[110px] print:border-slate-300 print:bg-white">
                         <span className="text-slate-400 text-xs font-bold mb-1">إجمالي التأخر</span>
                         <span className="text-2xl font-black text-amber-500">{totalLate}</span>
                     </div>
-                    <div className="bg-white px-6 py-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center min-w-[110px] print:border-slate-300">
+                    <div className="bg-white px-6 py-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center min-w-[110px] print:border-slate-300 print:bg-white">
                         <span className="text-slate-400 text-xs font-bold mb-1">الأوجه المقروءة</span>
                         <span className="text-2xl font-black text-indigo-600">{totalPages}</span>
                     </div>
@@ -174,7 +174,7 @@ function WeeklyReportContent() {
                 ) : reportData.length === 0 ? (
                     <div className="text-center py-20 text-slate-400 font-bold">لا توجد بيانات لهذه الفترة</div>
                 ) : (
-                    <div className="bg-white rounded-[1.5rem] shadow-xl shadow-slate-200/50 overflow-hidden border border-slate-100 print:shadow-none print:rounded-none print:border-0">
+                    <div className="bg-white rounded-[1.5rem] shadow-xl shadow-slate-200/50 overflow-hidden border border-slate-100 print:shadow-none print:rounded-none print:border-0 print:bg-transparent">
                         <table className="w-full border-collapse text-sm">
                             <thead>
                                 <tr className="bg-slate-50 border-b border-slate-100 print:bg-slate-100 print:border-slate-300">

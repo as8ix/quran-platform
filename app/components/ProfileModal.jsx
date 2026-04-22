@@ -58,7 +58,7 @@ export default function ProfileModal({ student, onClose, onUpdate }) {
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
-            <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-[2.5rem] shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden transform animate-in zoom-in-95 duration-300">
+            <div className="premium-glass w-full max-w-md rounded-[2.5rem] shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden transform animate-in zoom-in-95 duration-300">
                 {/* Header */}
                 <div className="p-8 bg-gradient-to-br from-emerald-600 to-teal-700 text-white relative">
                     <button 

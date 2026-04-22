@@ -125,7 +125,7 @@ export default function LandingPage() {
             {loading ? (
               // Loading skeleton
               Array(4).fill(0).map((_, i) => (
-                <div key={i} className="bg-white dark:bg-slate-800 rounded-3xl p-8 text-center shadow-lg border border-slate-100 dark:border-slate-700 animate-pulse">
+                <div key={i} className="premium-glass rounded-3xl p-8 text-center shadow-lg border border-slate-100 dark:border-slate-700 animate-pulse">
                   <div className="h-12 bg-slate-200 dark:bg-slate-700 rounded-xl mb-4"></div>
                   <div className="h-6 bg-slate-200 dark:bg-slate-700 rounded-lg"></div>
                 </div>
@@ -173,7 +173,7 @@ export default function LandingPage() {
             {features.map((feature, index) => (
               <div
                 key={index}
-                className="bg-white dark:bg-slate-800 rounded-3xl p-8 shadow-lg border border-slate-100 dark:border-slate-700 hover:shadow-2xl hover:shadow-emerald-50 dark:hover:shadow-none transition-all duration-300 transform hover:-translate-y-1 group reveal"
+                className="premium-glass rounded-3xl p-8 shadow-lg border border-slate-100 dark:border-slate-700 hover:shadow-2xl hover:shadow-emerald-50 dark:hover:shadow-none transition-all duration-300 transform hover:-translate-y-1 group reveal"
                 style={{ transitionDelay: `${index * 150}ms` }}
               >
                 <div className="text-6xl mb-4 group-hover:scale-110 transition-transform duration-300">
@@ -205,7 +205,7 @@ export default function LandingPage() {
 
           <div className="grid md:grid-cols-3 gap-8">
             {/* Student Dashboard Screenshot */}
-            <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-lg border border-slate-100 dark:border-slate-700 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 reveal">
+            <div className="premium-glass rounded-3xl p-6 shadow-lg border border-slate-100 dark:border-slate-700 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 reveal">
               <div className="mb-4 rounded-2xl overflow-hidden border-2 border-slate-200 dark:border-slate-700">
                 <img
                   src="/images/student-dashboard.png"
@@ -220,7 +220,7 @@ export default function LandingPage() {
             </div>
 
             {/* Teacher Dashboard Screenshot */}
-            <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-lg border border-slate-100 dark:border-slate-700 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 reveal reveal-delay-1">
+            <div className="premium-glass rounded-3xl p-6 shadow-lg border border-slate-100 dark:border-slate-700 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 reveal reveal-delay-1">
               <div className="mb-4 rounded-2xl overflow-hidden border-2 border-slate-200 dark:border-slate-700">
                 <img
                   src="/images/teacher-dashboard.png"
@@ -235,7 +235,7 @@ export default function LandingPage() {
             </div>
 
             {/* Recording Session Screenshot */}
-            <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-lg border border-slate-100 dark:border-slate-700 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 reveal reveal-delay-2">
+            <div className="premium-glass rounded-3xl p-6 shadow-lg border border-slate-100 dark:border-slate-700 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 reveal reveal-delay-2">
               <div className="mb-4 rounded-2xl overflow-hidden border-2 border-slate-200 dark:border-slate-700">
                 <img
                   src="/images/recording-session.png"

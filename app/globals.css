@@ -43,7 +43,19 @@
   }
 
   .card-premium {
-    @apply bg-[var(--card-bg)] rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-[var(--border-main)];
+    @apply bg-[var(--card-bg)] rounded-[2.5rem] shadow-xl hover:shadow-2xl transition-all duration-500 border border-[var(--border-main)] hover:scale-[1.01];
+  }
+
+  .premium-glass {
+    @apply bg-white/20 dark:bg-slate-950/40 backdrop-blur-2xl border border-white/30 dark:border-slate-800/50 shadow-xl shadow-slate-200/40 dark:shadow-none;
+  }
+
+  .premium-glow-red {
+    @apply absolute top-0 right-0 w-32 h-32 bg-red-500/10 dark:bg-red-500/20 rounded-full blur-3xl transition-opacity duration-1000;
+  }
+
+  .premium-glow-amber {
+    @apply absolute bottom-0 left-0 w-32 h-32 bg-amber-500/10 dark:bg-amber-500/10 rounded-full blur-3xl transition-opacity duration-1000;
   }
 
   .btn-primary {
@@ -126,6 +138,15 @@
 
   .animate-bounce-subtle {
     animation: bounce-subtle 3s ease-in-out infinite;
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% { opacity: 0.5; transform: scale(1); }
+    50% { opacity: 0.8; transform: scale(1.1); }
+  }
+
+  .animate-pulse-glow {
+    animation: pulse-glow 4s ease-in-out infinite;
   }
 }
 
@@ -221,76 +242,14 @@ header {
     background-color: white !important;
   }
 
-  /* Hide everything we don't want to print */
-  nav,
-  /* Navbar */
-  button,
-  /* All buttons */
-  a[href],
-  /* Links/Back buttons */
   .no-print,
-  /* Utility class for hiding specific elements */
-  form,
-  /* Input forms (Adding sessions) */
-  .modal-backdrop,
-  /* Modals */
-  textarea
-
-  /* Notes input */
-    {
+  nav,
+  footer {
     display: none !important;
-  }
-
-  /* Layout Adjustments for Print */
-  main {
-    padding: 0 !important;
-    max-width: 100% !important;
-  }
-
-  /* Header Card Adjustments */
-  .bg-white {
-    box-shadow: none !important;
-    border: 1px solid #ddd !important;
-    border-radius: 1rem !important;
-  }
-
-  /* Ensure history list flows naturally */
-  .max-h-\[calc\(100vh-350px\)\] {
-    max-height: none !important;
-    overflow: visible !important;
-  }
-
-  .sticky {
-    position: static !important;
-  }
-
-  /* Reset layout grid to focus on history */
-  .grid {
-    display: block !important;
-  }
-
-  .col-span-2 {
-    display: none !important;
-    /* Hide the form col entirely if using grid */
-  }
-
-  /* Show specific hidden elements if marked for print */
-  .print-only {
-    display: block !important;
   }
 
   .print-break-inside-avoid {
     break-inside: avoid;
-  }
-
-  /* Custom Watermark or Header for Print */
-  body::before {
-    content: "تقرير سجل الإنجاز - منصة التحفيظ";
-    display: block;
-    text-align: center;
-    font-size: 10pt;
-    color: #999;
-    margin-bottom: 20px;
   }
 }
 /* Custom Scrollbar Utility */

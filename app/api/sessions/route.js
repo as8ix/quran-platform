@@ -65,13 +65,13 @@ export async function POST(request) {
                 hifzErrors: parseInt(hifzErrors) || 0,
                 hifzAlerts: parseInt(hifzAlerts) || 0,
                 hifzCleanPages: parseFloat(hifzCleanPages) || 0,
-                cleanPagesCount: parseInt(cleanPagesCount) || 0,
+                cleanPagesCount: parseFloat(cleanPagesCount) || 0,
                 minorErrorsCount: parseInt(minorErrorsCount) || 0,
                 minorAlertsCount: parseInt(minorAlertsCount) || 0,
-                minorCleanPagesCount: parseInt(minorCleanPagesCount) || 0,
+                minorCleanPagesCount: parseFloat(minorCleanPagesCount) || 0,
                 isGoalAchieved: body.isGoalAchieved || false,
                 quranicEventId: quranicEventId ? parseInt(quranicEventId) : null,
-                date: new Date()
+                date: body.sessionDate ? new Date(body.sessionDate) : new Date()
             }
         });
 
@@ -107,15 +107,16 @@ export async function POST(request) {
 
                     const nextSurah = quranData.find(s => s.id === nextSurahId);
                     if (nextSurah) {
-                        const standardJuz = Math.floor((nextSurah.startPage - 1) / 20) + 1;
-                        const reversedJuz = 31 - standardJuz;
+                        const pagesMemorized = 605 - nextSurah.startPage;
+                        let exactJuz = Math.floor(pagesMemorized / 20);
+                        if (exactJuz > 30) exactJuz = 30;
 
                         await prisma.student.update({
                             where: { id: parseInt(studentId) },
                             data: {
                                 currentHifzSurahId: nextSurahId,
                                 hifzProgress: nextSurah.name,
-                                juzCount: reversedJuz
+                                juzCount: exactJuz
                             }
                         });
                     }

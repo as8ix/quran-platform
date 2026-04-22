@@ -194,7 +194,7 @@ export default function QuranicDaysDashboard() {
 
     if (error) return (
         <div className="min-h-screen bg-[var(--bg-main)] flex items-center justify-center p-4">
-            <div className="bg-white dark:bg-slate-800 p-8 rounded-[2.5rem] shadow-xl border border-red-100 dark:border-red-900/30 text-center max-w-md">
+            <div className="premium-glass p-8 rounded-[2.5rem] shadow-xl border border-red-100 dark:border-red-900/30 text-center max-w-md">
                 <div className="text-5xl mb-4">⚠️</div>
                 <h2 className="text-2xl font-black text-slate-800 dark:text-white mb-2">{error}</h2>
                 <p className="text-slate-500 dark:text-slate-400 mb-6 font-bold">يرجى التأكد من وجود دورة "أيام قرآنية" نشطة حالياً وتسجيل بعض الجلسات فيها.</p>
@@ -217,7 +217,7 @@ export default function QuranicDaysDashboard() {
                 />
             )}
 
-            <main className={`max-w-[1600px] mx-auto px-4 ${isFullscreen ? 'h-full flex flex-col py-2' : 'py-8 md:py-12'}`}>
+            <main className={`max-w-[1600px] mx-auto px-4 ${isFullscreen ? 'h-full flex flex-col py-2' : 'pt-28 pb-12'}`}>
                 {/* Back Button - Hidden in FS */}
                 {!isFullscreen && (
                     <button
@@ -269,7 +269,7 @@ export default function QuranicDaysDashboard() {
                         {!isFullscreen && (
                             <button
                                 onClick={exportToExcel}
-                                className="bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-6 py-4 rounded-2xl font-bold border-2 border-slate-100 dark:border-slate-700 hover:border-amber-500 transition-all flex items-center gap-2 shadow-sm"
+                                className="premium-glass text-slate-700 dark:text-slate-300 px-6 py-4 rounded-2xl font-bold border-2 border-slate-100 dark:border-slate-700 hover:border-amber-500 transition-all flex items-center gap-2 shadow-sm"
                             >
                                 <span>📊</span> تصدير البيانات
                             </button>
@@ -321,7 +321,7 @@ export default function QuranicDaysDashboard() {
                     </div>
 
                     {/* Radial Charts Box */}
-                    <div className={`lg:col-span-2 ${isFullscreen ? 'rounded-[1.5rem] p-4' : 'rounded-[3rem] p-10'} bg-white dark:bg-slate-900 shadow-xl dark:shadow-2xl shadow-slate-200/50 dark:shadow-indigo-900/20 border border-slate-100 dark:border-slate-800 flex flex-col transition-colors`}>
+                    <div className={`lg:col-span-2 ${isFullscreen ? 'rounded-[1.5rem] p-4' : 'rounded-[3rem] p-10'} premium-glass shadow-xl dark:shadow-2xl shadow-slate-200/50 dark:shadow-indigo-900/20 border border-slate-100 dark:border-slate-800 flex flex-col transition-colors`}>
                         <h3 className={`${isFullscreen ? 'text-sm mb-2' : 'text-2xl mb-10'} font-black text-slate-800 dark:text-white flex items-center gap-3`}>
                             ⚡ معدلات الأداء
                         </h3>

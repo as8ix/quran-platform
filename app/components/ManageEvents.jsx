@@ -207,7 +207,9 @@ export default function ManageEvents({ teachers, students }) {
 
     return (
         <>
-            <div className="bg-[var(--card-bg)] rounded-[2.5rem] p-8 shadow-sm border border-[var(--border-main)] flex flex-col h-full mt-8 reveal">
+            <div className="premium-glass rounded-[3rem] p-8 shadow-2xl border border-white/20 dark:border-slate-800/50 flex flex-col h-full mt-10 reveal relative overflow-hidden group">
+                <div className="premium-glow-amber opacity-10 group-hover:opacity-20 transition-opacity"></div>
+                <div className="relative z-10 flex flex-col h-full">
                 <div className="flex justify-between items-center mb-6">
                     <h2 className="text-2xl font-black text-slate-800 dark:text-white flex items-center gap-3">
                         <span className="w-10 h-10 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-2xl flex items-center justify-center text-xl">🏆</span>
@@ -225,60 +227,65 @@ export default function ManageEvents({ teachers, students }) {
                     </button>
                 </div>
 
-                <div className="space-y-4 max-h-[500px] overflow-y-auto pl-2 custom-scrollbar flex-1">
+                <div className="space-y-4 max-h-[600px] overflow-y-auto pl-2 custom-scrollbar flex-1 pb-4">
                     {loading ? (
-                        <div className="text-center py-10 opacity-50 dark:text-slate-400">جاري التحميل...</div>
+                        <div className="text-center py-20 opacity-50 dark:text-slate-400">جاري تحميل الفعاليات...</div>
                     ) : events.length > 0 ? events.map((event) => (
-                        <div key={event.id} className={`group p-5 bg-[var(--bg-main)] rounded-3xl border ${event.isActive ? 'border-amber-200 dark:border-amber-900 bg-amber-50/50 dark:bg-amber-900/20' : 'border-[var(--border-main)]'} hover:bg-[var(--card-bg)] hover:shadow-lg transition-all duration-300`}>
-                            <div className="flex justify-between items-center">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-14 h-14 bg-white dark:bg-slate-800 border-2 border-amber-100 dark:border-amber-900 text-amber-600 dark:text-amber-400 rounded-2xl flex flex-col items-center justify-center shadow-sm group-hover:scale-105 transition-all">
-                                        <span className="text-sm font-black leading-tight">{new Date(event.startDate).getDate()}</span>
-                                        <span className="text-[10px] font-bold opacity-50 uppercase tracking-tighter">
+                        <div key={event.id} className={`group p-6 bg-white/30 dark:bg-slate-900/40 rounded-[2rem] border-2 ${event.isActive ? 'border-amber-500/50 dark:border-amber-500/30' : 'border-white/10 dark:border-slate-800/50'} hover:bg-white/60 dark:hover:bg-slate-800/60 hover:shadow-2xl hover:shadow-amber-500/10 transition-all duration-500 relative overflow-hidden`}>
+                            {event.isActive && <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/10 rounded-full blur-3xl animate-pulse"></div>}
+                            <div className="flex justify-between items-center relative z-10">
+                                <div className="flex items-center gap-5">
+                                    <div className="w-16 h-16 bg-gradient-to-br from-white to-amber-50 dark:from-slate-800 dark:to-slate-900 border-2 border-amber-100 dark:border-amber-900/50 text-amber-600 dark:text-amber-400 rounded-3xl flex flex-col items-center justify-center shadow-lg group-hover:rotate-12 transition-all">
+                                        <span className="text-xl font-black leading-none">{new Date(event.startDate).getDate()}</span>
+                                        <span className="text-[10px] font-black opacity-60 uppercase tracking-widest mt-1">
                                             {new Date(event.startDate).toLocaleString('en-US', { month: 'short' })}
                                         </span>
                                     </div>
                                     <div>
-                                        <div className="font-bold text-lg text-slate-800 dark:text-white group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors">{event.name}</div>
-                                        <div className="text-xs text-slate-400 dark:text-slate-500 font-bold flex flex-wrap items-center gap-x-2 gap-y-1 mt-1">
-                                            <span className="flex items-center gap-1">
+                                        <div className="font-black text-xl text-slate-800 dark:text-white group-hover:text-amber-700 dark:group-hover:text-amber-500 transition-colors uppercase tracking-tight">{event.name}</div>
+                                        <div className="text-xs text-slate-500 dark:text-slate-400 font-bold flex flex-wrap items-center gap-x-4 gap-y-2 mt-2">
+                                            <span className="flex items-center gap-2 bg-white/50 dark:bg-slate-900/50 px-3 py-1.5 rounded-xl shadow-sm border border-black/5 dark:border-white/5">
                                                 🗓️ {new Date(event.startDate).toLocaleDateString('en-GB')}
-                                                <span className="text-[10px] bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-500 px-1.5 py-0.5 rounded-lg border border-amber-100 dark:border-amber-800 font-black">
-                                                    {new Date(event.startDate).toLocaleDateString('ar-u-ca-islamic-nu-latn', {day:'numeric', month:'long', year:'numeric'})}
+                                                <span className="text-[10px] text-amber-600 dark:text-amber-400 font-black">
+                                                    ({new Date(event.startDate).toLocaleDateString('ar-u-ca-islamic-nu-latn', {day:'numeric', month:'long', year:'numeric'})})
                                                 </span>
                                             </span>
-                                            <span className="bg-slate-50 dark:bg-slate-900/30 text-slate-500 dark:text-slate-400 px-2 py-0.5 rounded-lg text-[10px]">{event.teachers?.length || 0} معلمين</span>
+                                            <span className="bg-indigo-500/10 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 px-3 py-1.5 rounded-xl text-[10px] font-black border border-indigo-500/20 dark:border-indigo-800/50">{event.teachers?.length || 0} مشاركين</span>
                                         </div>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-3">
                                     <button
                                         onClick={() => openAssignmentModal(event)}
-                                        className="bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 px-4 py-2 rounded-xl text-sm font-black hover:bg-indigo-100 dark:hover:bg-indigo-800 transition-all shadow-sm"
+                                        className="bg-slate-900 dark:bg-emerald-600 text-white px-5 py-2.5 rounded-2xl text-sm font-black hover:scale-105 transition-all shadow-xl active:scale-95"
                                     >
                                         إدارة الطلاب
                                     </button>
-                                    <button
-                                        onClick={() => openEditModal(event)}
-                                        className="w-10 h-10 flex items-center justify-center bg-slate-50 dark:bg-slate-900/30 text-slate-400 dark:text-slate-300 rounded-xl hover:bg-amber-50 dark:hover:bg-amber-900/50 hover:text-amber-600 dark:hover:text-amber-400 transition-all border border-transparent hover:border-amber-100 dark:hover:border-amber-900 shadow-sm"
-                                    >
-                                        ✏️
-                                    </button>
-                                    <button
-                                        onClick={() => handleDelete(event.id, event.name)}
-                                        className="w-10 h-10 flex items-center justify-center bg-slate-50 dark:bg-slate-900/30 text-slate-400 dark:text-slate-300 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/50 hover:text-red-600 dark:hover:text-red-400 transition-all border border-transparent hover:border-red-100 dark:hover:border-red-900 shadow-sm"
-                                    >
-                                        🗑️
-                                    </button>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => openEditModal(event)}
+                                            className="w-11 h-11 flex items-center justify-center bg-white/50 dark:bg-slate-800/50 text-slate-400 dark:text-slate-500 rounded-xl hover:text-amber-600 transition-all border border-black/5 dark:border-white/5 shadow-sm"
+                                        >
+                                            ✏️
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(event.id, event.name)}
+                                            className="w-11 h-11 flex items-center justify-center bg-white/50 dark:bg-slate-800/50 text-slate-400 dark:text-slate-500 rounded-xl hover:text-red-600 transition-all border border-black/5 dark:border-white/5 shadow-sm"
+                                        >
+                                            🗑️
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     )) : (
-                        <div className="text-center py-20 bg-slate-50/50 dark:bg-slate-900/20 rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-800">
-                            <div className="text-4xl mb-3 opacity-30">🏆</div>
-                            <h3 className="text-slate-400 dark:text-slate-500 font-bold italic">لا يوجد دورات حالياً</h3>
+                        <div className="text-center py-20 bg-white/20 dark:bg-slate-900/20 rounded-[3rem] border-2 border-dashed border-slate-200 dark:border-slate-800">
+                            <div className="text-4xl mb-4 opacity-30">🏆</div>
+                            <h3 className="text-slate-400 dark:text-slate-500 font-black text-lg">لا يوجد فعاليات قرآنية نشطة</h3>
+                            <p className="text-slate-300 dark:text-slate-600 text-sm mt-1">ابدأ بإضافة أول فعالية لتشجيع الطلاب</p>
                         </div>
                     )}
+                </div>
                 </div>
             </div>
 
@@ -461,7 +468,7 @@ export default function ManageEvents({ teachers, students }) {
 
                                 <div className="flex flex-col">
                                     <label className="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">التوزيع الحالي في الدورة</label>
-                                    <div className="flex-1 overflow-y-auto bg-white dark:bg-slate-900/50 border-2 border-slate-50 dark:border-slate-700 rounded-2xl p-4 custom-scrollbar">
+                                    <div className="flex-1 overflow-y-auto premium-glass/50 border-2 border-slate-50 dark:border-slate-700 rounded-2xl p-4 custom-scrollbar">
                                         {loadingAssignments ? (
                                             <div className="text-center py-20 text-slate-400 font-bold">جاري التحميل...</div>
                                         ) : assignments.length > 0 ? (
@@ -474,11 +481,11 @@ export default function ManageEvents({ teachers, students }) {
                                                         <div key={tid} className="p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700">
                                                             <div className="flex justify-between items-center mb-3">
                                                                 <span className="font-black text-indigo-700 dark:text-indigo-400">{teacherName}</span>
-                                                                <span className="text-xs font-bold bg-white dark:bg-slate-900 px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-600 dark:text-slate-300">{teacherAssignments.length} طلاب</span>
+                                                                <span className="text-xs font-bold premium-glass px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-600 dark:text-slate-300">{teacherAssignments.length} طلاب</span>
                                                             </div>
                                                             <div className="p-3 flex flex-wrap gap-2">
                                                                 {teacherAssignments.map(a => (
-                                                                    <div key={a.id} className="flex items-center gap-1 bg-white dark:bg-slate-900 px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-600 text-xs font-bold dark:text-slate-300 group">
+                                                                    <div key={a.id} className="flex items-center gap-1 premium-glass px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-600 text-xs font-bold dark:text-slate-300 group">
                                                                         <span>{a.student.name}</span>
                                                                         <button onClick={() => deleteAssignment(a.id)} className="text-red-400 hover:text-red-600 px-1 font-black">×</button>
                                                                     </div>
@@ -501,7 +508,7 @@ export default function ManageEvents({ teachers, students }) {
 
             {confirmConfig && (
                 <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-[9999] flex items-center justify-center p-4">
-                    <div className="bg-white dark:bg-slate-800 rounded-[2.5rem] p-8 w-full max-w-sm shadow-2xl animate-popIn border border-slate-100/50 dark:border-slate-700">
+                    <div className="premium-glass rounded-[2.5rem] p-8 w-full max-w-sm shadow-2xl animate-popIn border border-slate-100/50 dark:border-slate-700">
                         <div className="text-center">
                             <div className="w-20 h-20 bg-amber-50 dark:bg-amber-900/30 text-amber-500 rounded-full flex items-center justify-center text-4xl mx-auto mb-6 shadow-inner ring-8 ring-amber-50/50 dark:ring-amber-900/20">
                                 ⚠️

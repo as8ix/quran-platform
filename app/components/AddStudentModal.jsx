@@ -48,9 +48,11 @@ export default function AddStudentModal({ isOpen, onClose, onAdd, student, halaq
         setHifzProgress(surahName);
         const surah = quranData.find(s => s.name === surahName);
         if (surah) {
-            const standardJuz = Math.floor((surah.startPage - 1) / 20) + 1;
-            const reversedJuz = 31 - standardJuz;
-            setJuzCount(reversedJuz);
+            // Calculate exact juz based on pages (604 pages total)
+            const pagesMemorized = 605 - surah.startPage;
+            let exactJuz = Math.floor(pagesMemorized / 20);
+            if (exactJuz > 30) exactJuz = 30;
+            setJuzCount(exactJuz);
         }
     };
 
@@ -68,7 +70,7 @@ export default function AddStudentModal({ isOpen, onClose, onAdd, student, halaq
             password,
             hifzProgress: hifzProgress || 'الفاتحة',
             currentHifzSurahId: selectedSurah ? selectedSurah.id : 1,
-            juzCount: parseInt(juzCount),
+            juzCount: parseInt(juzCount) || 0,
             reviewPlan,
             dailyTargetPages: parseFloat(dailyTargetPages),
             halaqaId

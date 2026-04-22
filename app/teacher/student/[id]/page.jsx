@@ -64,7 +64,15 @@ export default function StudentDetailsPage() {
     const [showTypeModal, setShowTypeModal] = useState(false);
     const [isSessionActive, setIsSessionActive] = useState(false);
     const [showCancelModal, setShowCancelModal] = useState(false);
+<<<<<<< HEAD
     const [editingSession, setEditingSession] = useState(null);
+=======
+    const [editingSessionId, setEditingSessionId] = useState(null);
+    const [editingSessionData, setEditingSessionData] = useState(null);
+    const [sessionDate, setSessionDate] = useState('');
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [sessionToDelete, setSessionToDelete] = useState(null);
+>>>>>>> dev
 
     const [user, setUser] = useState(null);
 
@@ -501,7 +509,11 @@ export default function StudentDetailsPage() {
 
     // Auto-calculate clean pages whenever dependencies change
     useEffect(() => {
+<<<<<<< HEAD
         const total = parseFloat(pagesCount || 0);
+=======
+        const total = parseFloat(pagesCount) || 0;
+>>>>>>> dev
         const clean = Math.max(0, total - (parseFloat(errorsCount) || 0) - (parseFloat(alertsCount) || 0));
         setCleanPagesCount(clean);
     }, [pagesCount, errorsCount, alertsCount]);
@@ -523,6 +535,7 @@ export default function StudentDetailsPage() {
         calculateMurajaah();
     }, [mFromSurah, mFromAyah, mToSurah, mToAyah, minorMFromSurah, minorMFromAyah, minorMToSurah, minorMToAyah, murajaahType]);
 
+<<<<<<< HEAD
     const findSurahId = (name) => {
         if (!name) return 1;
         const normalized = name.replace('سورة ', '').trim();
@@ -600,6 +613,16 @@ export default function StudentDetailsPage() {
             toast.error('خطأ في الاتصال');
         }
     };
+=======
+    useEffect(() => {
+        if (isSessionActive && !editingSessionId) {
+            const d = new Date();
+            const tzOffset = d.getTimezoneOffset() * 60000;
+            const localISOTime = (new Date(d - tzOffset)).toISOString().slice(0, 16);
+            setSessionDate(localISOTime);
+        }
+    }, [isSessionActive, editingSessionId]);
+>>>>>>> dev
 
     const handleSaveSession = async (e) => {
         e.preventDefault();
@@ -713,14 +736,26 @@ export default function StudentDetailsPage() {
 
             const isGoalAchieved = hifzMet && reviewMet;
 
+<<<<<<< HEAD
             const response = await fetch('/api/sessions', {
                 method: editingSession ? 'PUT' : 'POST',
+=======
+            const method = editingSessionId ? 'PUT' : 'POST';
+            const endpoint = editingSessionId ? `/api/sessions/${editingSessionId}` : '/api/sessions';
+
+            const response = await fetch(endpoint, {
+                method: method,
+>>>>>>> dev
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     id: editingSession?.id,
                     studentId,
                     // Only send hifz data if (includesHifz) AND (not Khatim) AND (not a Quranic Day session)
+<<<<<<< HEAD
                     hifzSurah: (includesHifz && !isKhatim && !isQuranicDay) ? (editingSession?.hifzSurah || currentSurah?.name) : null,
+=======
+                    hifzSurah: (includesHifz && !isKhatim && !isQuranicDay) ? (editingSessionId && editingSessionData?.hifzSurah ? editingSessionData.hifzSurah : currentSurah?.name) : null,
+>>>>>>> dev
                     hifzFromPage: (includesHifz && !isKhatim && !isQuranicDay) ? parseInt(hifzFromPage) : null,
                     hifzToPage: (includesHifz && !isKhatim && !isQuranicDay) ? parseInt(hifzToPage) : null,
                     hifzFromAyah: (includesHifz && !isKhatim && !isQuranicDay) ? parseInt(hifzFromAyah) : null,
@@ -752,9 +787,14 @@ export default function StudentDetailsPage() {
                     hifzErrors: parseInt(hifzErrors) || 0,
                     hifzAlerts: parseInt(hifzAlerts) || 0,
                     hifzCleanPages: parseFloat(hifzCleanPages) || 0,
+<<<<<<< HEAD
                     isFinishedSurah: (includesHifz && !editingSession) ? isFinishedSurah : false,
+=======
+                    isFinishedSurah: includesHifz ? isFinishedSurah : false,
+>>>>>>> dev
                     isGoalAchieved,
-                    quranicEventId: isQuranicDaySession ? activeEvent?.id : null
+                    quranicEventId: isQuranicDaySession ? activeEvent?.id : null,
+                    sessionDate: sessionDate || null
                 })
             });
 
@@ -772,7 +812,12 @@ export default function StudentDetailsPage() {
                 setMinorCleanPages(0);
                 setIsSessionActive(false); 
                 setSessionType(null);
+<<<<<<< HEAD
                 setEditingSession(null);
+=======
+                setEditingSessionId(null);
+                setEditingSessionData(null);
+>>>>>>> dev
                 fetchStudent();
                 fetchHistory();
             }
@@ -780,6 +825,100 @@ export default function StudentDetailsPage() {
             toast.error('خطأ في الحفظ');
         } finally {
             setSaving(false);
+        }
+    };
+
+    const handleEditSession = (session) => {
+        setEditingSessionId(session.id);
+        setEditingSessionData(session);
+        
+        if (session.date) {
+            const d = new Date(session.date);
+            const tzOffset = d.getTimezoneOffset() * 60000;
+            const localISOTime = (new Date(d - tzOffset)).toISOString().slice(0, 16);
+            setSessionDate(localISOTime);
+        }
+
+        let sType = null;
+        if (session.hifzSurah && (session.murajaahFromSurah || session.minorMurajaahFromSurah)) {
+            sType = 'BOTH';
+        } else if (session.hifzSurah) {
+            sType = 'HIFZ';
+        } else {
+            sType = 'MURAJAAH';
+        }
+        setSessionType(sType);
+
+        if (session.murajaahFromSurah && session.minorMurajaahFromSurah) {
+            setMurajaahType('BOTH');
+        } else if (session.minorMurajaahFromSurah) {
+            setMurajaahType('MINOR');
+        } else {
+            setMurajaahType('MAJOR');
+        }
+
+        if (session.hifzSurah) {
+            setHifzFromPage(session.hifzFromPage || '');
+            setHifzToPage(session.hifzToPage || '');
+            setHifzFromAyah(session.hifzFromAyah || 1);
+            setHifzToAyah(session.hifzToAyah || 1);
+            setHifzErrors(session.hifzErrors || 0);
+            setHifzAlerts(session.hifzAlerts || 0);
+            setHifzCleanPages(session.hifzCleanPages || 0);
+        }
+
+        if (session.murajaahFromSurah) {
+            const fSurah = quranData.find(s => s.name === session.murajaahFromSurah);
+            const tSurah = quranData.find(s => s.name === session.murajaahToSurah);
+            setMFromSurah(fSurah?.id || 1);
+            setMToSurah(tSurah?.id || 1);
+            setMFromAyah(session.murajaahFromAyah || 1);
+            setMToAyah(session.murajaahToAyah || 1);
+            setErrorsCount(session.errorsCount || 0);
+            setAlertsCount(session.alertsCount || 0);
+            setCleanPagesCount(session.cleanPagesCount || 0);
+        }
+
+        if (session.minorMurajaahFromSurah) {
+            const fSurah = quranData.find(s => s.name === session.minorMurajaahFromSurah);
+            const tSurah = quranData.find(s => s.name === session.minorMurajaahToSurah);
+            setMinorMFromSurah(fSurah?.id || 1);
+            setMinorMToSurah(tSurah?.id || 1);
+            setMinorMFromAyah(session.minorMurajaahFromAyah || 1);
+            setMinorMToAyah(session.minorMurajaahToAyah || 1);
+            setMinorErrors(session.minorErrorsCount || 0);
+            setMinorAlerts(session.minorAlertsCount || 0);
+            setMinorCleanPages(session.minorCleanPagesCount || 0);
+        }
+        
+        setNotes(session.notes || '');
+        setPagesCount(session.pagesCount || 0);
+        setIsSessionActive(true);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    const promptDeleteSession = (sessionId) => {
+        setSessionToDelete(sessionId);
+        setShowDeleteModal(true);
+    };
+
+    const handleDeleteSession = async () => {
+        if (!sessionToDelete) return;
+        
+        try {
+            const res = await fetch(`/api/sessions/${sessionToDelete}`, { method: 'DELETE' });
+            if (res.ok) {
+                toast.success('تم حذف الجلسة بنجاح');
+                fetchHistory();
+                fetchStudent();
+            } else {
+                toast.error('حدث خطأ أثناء الحذف');
+            }
+        } catch (error) {
+            toast.error('حدث خطأ أثناء الحذف');
+        } finally {
+            setShowDeleteModal(false);
+            setSessionToDelete(null);
         }
     };
 
@@ -851,7 +990,7 @@ export default function StudentDetailsPage() {
 
     const handleDelete = () => {
         toast((t) => (
-            <div className="bg-white p-6 rounded-2xl shadow-2xl border border-slate-100 flex flex-col gap-4 min-w-[300px]">
+            <div className="premium-glass p-6 rounded-2xl shadow-2xl border border-slate-100 flex flex-col gap-4 min-w-[300px]">
                 <div className="font-bold text-slate-800 text-lg">
                     هل أنت متأكد من حذف هذا الطالب؟
                     <div className="text-sm text-red-500 mt-2 font-medium">سيتم حذف جميع سجلاته نهائياً.</div>
@@ -899,13 +1038,15 @@ export default function StudentDetailsPage() {
 
     return (
         <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-main)] font-noto rtl transition-colors duration-300" dir="rtl">
-            <Navbar
-                userType="teacher"
-                userName={user ? `أهلًا أستاذ ${getFirstName(user.name)} 👋` : 'أهلًا أستاذ 👋'}
-                onLogout={() => router.push('/login')}
-            />
+            <div>
+                <Navbar
+                    userType="teacher"
+                    userName={user ? `أهلًا أستاذ ${getFirstName(user.name)} 👋` : 'أهلًا أستاذ 👋'}
+                    onLogout={() => router.push('/login')}
+                />
+            </div>
 
-            <main className="max-w-6xl mx-auto px-4 py-10">
+            <main className="max-w-6xl mx-auto px-4 pt-28 pb-12">
                 {/* Back Button */}
                 <button
                     onClick={() => router.push('/teacher')}
@@ -935,7 +1076,7 @@ export default function StudentDetailsPage() {
                         <span>🗑️</span> {deleting ? 'جاري الحذف...' : 'حذف'}
                     </button>
                     <button
-                        onClick={() => window.print()}
+                        onClick={() => router.push(`/teacher/student/${student.id}/report`)}
                         className="px-4 py-2 bg-slate-800 dark:bg-slate-700 text-white rounded-xl font-bold hover:bg-slate-900 dark:hover:bg-slate-600 transition-colors flex items-center gap-2 shadow-lg shadow-slate-200 dark:shadow-none"
                     >
                         <span>🖨️</span> طباعة التقرير
@@ -943,7 +1084,7 @@ export default function StudentDetailsPage() {
                 </div>
 
                 {/* Header Card */}
-                <div className="bg-[var(--card-bg)] rounded-[3rem] p-10 shadow-xl shadow-slate-200/50 dark:shadow-none border border-[var(--border-main)] mb-10 flex flex-col md:flex-row justify-between items-center gap-8 relative overflow-hidden">
+                <div className="premium-glass rounded-[3rem] p-10 mb-10 flex flex-col md:flex-row justify-between items-center gap-8 relative overflow-hidden">
                     <div className="absolute top-0 left-0 w-32 h-32 bg-emerald-50 rounded-full -translate-x-10 -translate-y-10 opacity-50"></div>
 
                     <div className="flex items-center gap-8 relative z-10">
@@ -983,7 +1124,7 @@ export default function StudentDetailsPage() {
                     {/* Recording Form */}
                     <div className="lg:col-span-2 space-y-10">
                         {!isSessionActive ? (
-                            <div className="bg-[var(--card-bg)] rounded-[3rem] p-12 shadow-xl shadow-slate-200/50 dark:shadow-none border border-[var(--border-main)] text-center relative overflow-hidden group">
+                            <div className="premium-glass rounded-[3rem] p-12 text-center relative overflow-hidden group">
                                 <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-teal-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                                 <div className="relative z-10">
                                     <div className="text-6xl mb-6 transform group-hover:scale-110 transition-transform duration-500">📖</div>
@@ -1010,12 +1151,13 @@ export default function StudentDetailsPage() {
                                 </div>
                             </div>
                         ) : (
-                            <form onSubmit={handleSaveSession} className="bg-[var(--card-bg)] rounded-[3rem] p-10 shadow-xl shadow-slate-200/50 dark:shadow-none border border-[var(--border-main)] relative animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                <div className="flex justify-between items-center mb-10">
+                            <form onSubmit={handleSaveSession} className="premium-glass rounded-[3rem] p-10 relative animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-10">
                                     <h2 className="text-3xl font-black text-slate-800 dark:text-white flex items-center gap-4">
                                         <span className="p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-2xl">✍️</span>
                                         {sessionType === 'HIFZ' ? 'تسجيل حفظ جديد' : sessionType === 'MURAJAAH' ? 'تسجيل مراجعة' : 'تسجيل حفظ ومراجعة'}
                                     </h2>
+<<<<<<< HEAD
                                     <button
                                         type="button"
                                         onClick={() => {
@@ -1041,6 +1183,27 @@ export default function StudentDetailsPage() {
                                     >
                                         {editingSession ? 'إلغاء التعديل ✕' : 'إلغاء ✕'}
                                     </button>
+=======
+                                    <div className="flex flex-wrap items-center gap-3">
+                                        <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-900/50 p-2 rounded-2xl border border-slate-200 dark:border-slate-700">
+                                            <label className="text-xs font-bold text-slate-500 dark:text-slate-400 mr-2 whitespace-nowrap">تاريخ الجلسة</label>
+                                            <input 
+                                                type="datetime-local" 
+                                                value={sessionDate}
+                                                onChange={(e) => setSessionDate(e.target.value)}
+                                                className="px-4 py-2 bg-white dark:bg-slate-800 border-2 border-transparent focus:border-emerald-400 rounded-xl outline-none font-bold text-sm text-slate-700 dark:text-slate-200 shadow-sm w-full md:w-auto"
+                                                required
+                                            />
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowCancelModal(true)}
+                                            className="px-4 py-3 bg-red-50 text-red-500 rounded-xl text-xs font-black hover:bg-red-100 transition-colors"
+                                        >
+                                            إلغاء ✕
+                                        </button>
+                                    </div>
+>>>>>>> dev
                                 </div>
 
 
@@ -1063,13 +1226,24 @@ export default function StudentDetailsPage() {
                                 )}
 
                                 <div className="space-y-10">
-                                    <div className="bg-red-50 dark:bg-red-900/20 border-r-4 border-red-400 dark:border-red-800 p-4 rounded-2xl flex items-center gap-3 shadow-sm animate-pulse-slow">
-                                        <div className="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-xl flex items-center justify-center text-xl font-bold">⚠️</div>
-                                        <div className="flex-1">
-                                            <p className="text-red-900 dark:text-red-300 font-black text-sm leading-tight mb-0.5">تنبيه هام للمسجل:</p>
-                                            <p className="text-red-700 dark:text-red-400 font-bold text-xs">
-                                                "الصفحة الواحدة مسموح فيها خطأ واحد وتنبيهان" - غير ذلك يرجع الطالب.
-                                            </p>
+                                    {/* Premium Quality Warning Banner (Glassmorphism) */}
+                                    <div className="mb-8 p-5 rounded-[2rem] bg-white/40 dark:bg-slate-950/40 backdrop-blur-2xl border border-white/20 dark:border-slate-800/50 shadow-2xl shadow-slate-200/50 dark:shadow-none overflow-hidden relative group transition-all duration-500 hover:scale-[1.01]">
+                                        {/* Decorative Glows */}
+                                        <div className="absolute -top-12 -right-12 w-32 h-32 bg-red-500/10 dark:bg-red-500/20 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000"></div>
+                                        <div className="absolute -bottom-12 -left-12 w-24 h-24 bg-amber-500/10 dark:bg-amber-500/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-1000"></div>
+                                        
+                                        <div className="flex items-center gap-5 relative z-10">
+                                            <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-amber-500 text-white rounded-2xl flex items-center justify-center text-xl shadow-lg shadow-red-500/20 animate-pulse-slow">
+                                                ⚠️
+                                            </div>
+                                            <div className="flex-1 text-right">
+                                                <div className="text-sm sm:text-base font-black text-slate-800 dark:text-white leading-tight mb-1">
+                                                    معيار جودة الجلسة والتقييم
+                                                </div>
+                                                <div className="text-[11px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 leading-relaxed uppercase tracking-wide">
+                                                    "الصفحة الواحدة مسموح فيها خطأ واحد وتنبيهان" <span className="text-red-500 dark:text-red-400 font-black">- غير ذلك يرجع الطالب -</span>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                     {/* Hifz Section - Logic Refined */}
@@ -1138,15 +1312,15 @@ export default function StudentDetailsPage() {
                                                         <div>
                                                             <label className="block text-xs font-bold text-emerald-600 mb-2 mr-2">من الصفحة</label>
                                                             <div className="flex gap-2">
-                                                                <select value={hifzFromPage} onChange={e => { const p = parseInt(e.target.value); setHifzFromPage(p); if (pageAyahMap && pageAyahMap[p] && currentSurah) { const pageData = pageAyahMap[p][currentSurah.id]; if (pageData && pageData.start) setHifzFromAyah(pageData.start); } }} className="w-2/3 px-4 py-4 bg-white dark:bg-slate-900 border-2 border-transparent focus:border-emerald-500 rounded-2xl outline-none transition-all font-bold text-lg dark:text-white" > {allowedPages.map(p => <option key={p} value={p} className="text-slate-900 dark:text-white dark:bg-slate-900">صفحة {p}</option>)} </select>
-                                                                <div className="w-1/3 relative"><span className="absolute -top-6 right-0 text-[10px] text-emerald-400 font-bold">آية</span><input type="number" value={hifzFromAyah} min="1" max={currentSurah?.ayahs} onFocus={() => hifzFromAyah === 1 && setHifzFromAyah('')} onBlur={() => hifzFromAyah === '' && setHifzFromAyah(1)} onChange={e => { const val = e.target.value; if (val === '') setHifzFromAyah(''); else { const parsed = parseInt(val); const max = currentSurah?.ayahs || 286; if (parsed > max) setHifzFromAyah(max); else setHifzFromAyah(parsed); } }} className="w-full px-4 py-4 bg-white dark:bg-slate-900 border-2 border-transparent focus:border-emerald-500 rounded-2xl outline-none font-bold text-center dark:text-white" placeholder="آية" /></div>
+                                                                <select value={hifzFromPage} onChange={e => { const p = parseInt(e.target.value); setHifzFromPage(p); if (pageAyahMap && pageAyahMap[p] && currentSurah) { const pageData = pageAyahMap[p][currentSurah.id]; if (pageData && pageData.start) setHifzFromAyah(pageData.start); } }} className="w-2/3 px-4 py-4 premium-glass border-2 border-transparent focus:border-emerald-500 rounded-2xl outline-none transition-all font-bold text-lg dark:text-white" > {allowedPages.map(p => <option key={p} value={p} className="text-slate-900 dark:text-white dark:bg-slate-900">صفحة {p}</option>)} </select>
+                                                                <div className="w-1/3 relative"><span className="absolute -top-6 right-0 text-[10px] text-emerald-400 font-bold">آية</span><input type="number" value={hifzFromAyah} min="1" max={currentSurah?.ayahs} onFocus={() => hifzFromAyah === 1 && setHifzFromAyah('')} onBlur={() => hifzFromAyah === '' && setHifzFromAyah(1)} onChange={e => { const val = e.target.value; if (val === '') setHifzFromAyah(''); else { const parsed = parseInt(val); const max = currentSurah?.ayahs || 286; if (parsed > max) setHifzFromAyah(max); else setHifzFromAyah(parsed); } }} className="w-full px-4 py-4 premium-glass border-2 border-transparent focus:border-emerald-500 rounded-2xl outline-none font-bold text-center dark:text-white" placeholder="آية" /></div>
                                                             </div>
                                                         </div>
                                                         <div>
                                                             <label className="block text-xs font-bold text-emerald-600 mb-2 mr-2">إلى الصفحة</label>
                                                             <div className="flex gap-2">
-                                                                <select value={hifzToPage} onChange={e => { const p = parseInt(e.target.value); setHifzToPage(p); if (pageAyahMap && pageAyahMap[p] && currentSurah) { const pageData = pageAyahMap[p][currentSurah.id]; if (pageData) { const endAyah = (typeof pageData === 'object') ? pageData.end : pageData; if (endAyah) setHifzToAyah(endAyah); } } }} className="w-2/3 px-4 py-4 bg-white dark:bg-slate-900 border-2 border-transparent focus:border-emerald-500 rounded-2xl outline-none transition-all font-bold text-lg dark:text-white" > {allowedPages.map(p => <option key={p} value={p} className="text-slate-900 dark:text-white dark:bg-slate-900">صفحة {p}</option>)} </select>
-                                                                <div className="w-1/3 relative"><span className="absolute -top-6 right-0 text-[10px] text-emerald-400 font-bold">آية</span><input type="number" value={hifzToAyah} min="1" max={currentSurah?.ayahs} onFocus={() => hifzToAyah === 1 && setHifzToAyah('')} onBlur={() => hifzToAyah === '' && setHifzToAyah(1)} onChange={e => { const val = e.target.value; if (val === '') setHifzToAyah(''); else { const parsed = parseInt(val); const max = currentSurah?.ayahs || 286; if (parsed > max) setHifzToAyah(max); else setHifzToAyah(parsed); } }} className="w-full px-4 py-4 bg-white dark:bg-slate-900 border-2 border-transparent focus:border-emerald-500 rounded-2xl outline-none font-bold text-center dark:text-white" placeholder="آية" /></div>
+                                                                <select value={hifzToPage} onChange={e => { const p = parseInt(e.target.value); setHifzToPage(p); if (pageAyahMap && pageAyahMap[p] && currentSurah) { const pageData = pageAyahMap[p][currentSurah.id]; if (pageData) { const endAyah = (typeof pageData === 'object') ? pageData.end : pageData; if (endAyah) setHifzToAyah(endAyah); } } }} className="w-2/3 px-4 py-4 premium-glass border-2 border-transparent focus:border-emerald-500 rounded-2xl outline-none transition-all font-bold text-lg dark:text-white" > {allowedPages.map(p => <option key={p} value={p} className="text-slate-900 dark:text-white dark:bg-slate-900">صفحة {p}</option>)} </select>
+                                                                <div className="w-1/3 relative"><span className="absolute -top-6 right-0 text-[10px] text-emerald-400 font-bold">آية</span><input type="number" value={hifzToAyah} min="1" max={currentSurah?.ayahs} onFocus={() => hifzToAyah === 1 && setHifzToAyah('')} onBlur={() => hifzToAyah === '' && setHifzToAyah(1)} onChange={e => { const val = e.target.value; if (val === '') setHifzToAyah(''); else { const parsed = parseInt(val); const max = currentSurah?.ayahs || 286; if (parsed > max) setHifzToAyah(max); else setHifzToAyah(parsed); } }} className="w-full px-4 py-4 premium-glass border-2 border-transparent focus:border-emerald-500 rounded-2xl outline-none font-bold text-center dark:text-white" placeholder="آية" /></div>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -1165,7 +1339,7 @@ export default function StudentDetailsPage() {
                                                                     else setHifzErrors(Math.max(0, parseFloat(val) || 0));
                                                                 }}
                                                                 min="0"
-                                                                className="w-full px-6 py-4 bg-white dark:bg-slate-900 border-2 border-transparent focus:border-red-400 rounded-2xl outline-none transition-all font-bold text-lg dark:text-white"
+                                                                className="w-full px-6 py-4 premium-glass border-2 border-transparent focus:border-red-400 rounded-2xl outline-none transition-all font-bold text-lg dark:text-white"
                                                                 placeholder="0"
                                                             />
                                                         </div>
@@ -1182,7 +1356,7 @@ export default function StudentDetailsPage() {
                                                                     else setHifzAlerts(Math.max(0, parseFloat(val) || 0));
                                                                 }}
                                                                 min="0"
-                                                                className="w-full px-6 py-4 bg-white dark:bg-slate-900 border-2 border-transparent focus:border-orange-400 rounded-2xl outline-none transition-all font-bold text-lg dark:text-white"
+                                                                className="w-full px-6 py-4 premium-glass border-2 border-transparent focus:border-orange-400 rounded-2xl outline-none transition-all font-bold text-lg dark:text-white"
                                                                 placeholder="0"
                                                             />
                                                         </div>
@@ -1190,7 +1364,11 @@ export default function StudentDetailsPage() {
                                                             <label className="block text-xs font-bold text-emerald-600 mb-2 mr-2">صفحات نقية</label>
                                                             <input
                                                                 type="number"
+<<<<<<< HEAD
                                                                 step="0.25"
+=======
+                                                                step="0.5"
+>>>>>>> dev
                                                                 value={hifzCleanPages}
                                                                 onFocus={() => hifzCleanPages === 0 && setHifzCleanPages('')}
                                                                 onBlur={() => hifzCleanPages === '' && setHifzCleanPages(0)}
@@ -1200,7 +1378,7 @@ export default function StudentDetailsPage() {
                                                                     else setHifzCleanPages(Math.max(0, parseFloat(val) || 0));
                                                                 }}
                                                                 min="0"
-                                                                className="w-full px-6 py-4 bg-white dark:bg-slate-900 border-2 border-transparent focus:border-emerald-400 rounded-2xl outline-none transition-all font-bold text-lg dark:text-white"
+                                                                className="w-full px-6 py-4 premium-glass border-2 border-transparent focus:border-emerald-400 rounded-2xl outline-none transition-all font-bold text-lg dark:text-white"
                                                                 placeholder="0"
                                                             />
                                                         </div>
@@ -1251,7 +1429,7 @@ export default function StudentDetailsPage() {
                                                 {reviewableSurahs.length > 0 ? (
                                                     <>
                                                         {(isQuranicDaySession || murajaahType === 'MAJOR' || murajaahType === 'BOTH') && (
-                                                            <div className="p-4 bg-white dark:bg-slate-900 rounded-2xl border border-indigo-100 dark:border-indigo-800 shadow-sm">
+                                                            <div className="p-4 premium-glass rounded-2xl border border-indigo-100 dark:border-indigo-800 shadow-sm">
                                                                 <h4 className="text-sm font-black text-indigo-500 mb-4 px-2">{isQuranicDaySession ? 'المراجعة' : 'المراجعة الكبرى'}</h4>
                                                                 {/* From Section */}
                                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
@@ -1343,7 +1521,11 @@ export default function StudentDetailsPage() {
                                                                     </div>
                                                                     <div>
                                                                         <label className="block text-xs font-bold text-emerald-600 mb-2">نقية</label>
+<<<<<<< HEAD
                                                                         <input type="number" step="0.25" value={cleanPagesCount} onFocus={() => cleanPagesCount === 0 && setCleanPagesCount('')} onBlur={() => cleanPagesCount === '' && setCleanPagesCount(0)} onChange={e => { const v = e.target.value; if (v === '') setCleanPagesCount(''); else setCleanPagesCount(Math.max(0, parseFloat(v) || 0)); }} min="0" className="w-full px-4 py-3 bg-indigo-50/50 dark:bg-slate-800 border-2 border-transparent focus:border-emerald-400 rounded-2xl outline-none font-bold dark:text-white" placeholder="0" />
+=======
+                                                                        <input type="number" step="0.5" value={cleanPagesCount} onFocus={() => cleanPagesCount === 0 && setCleanPagesCount('')} onBlur={() => cleanPagesCount === '' && setCleanPagesCount(0)} onChange={e => { const v = e.target.value; if (v === '') setCleanPagesCount(''); else setCleanPagesCount(Math.max(0, parseFloat(v) || 0)); }} min="0" className="w-full px-4 py-3 bg-indigo-50/50 dark:bg-slate-800 border-2 border-transparent focus:border-emerald-400 rounded-2xl outline-none font-bold dark:text-white" placeholder="0" />
+>>>>>>> dev
                                                                     </div>
                                                                 </div>
 
@@ -1355,7 +1537,7 @@ export default function StudentDetailsPage() {
                                                                             {resultString}
                                                                         </div>
                                                                     </div>
-                                                                    <div className="text-[10px] font-bold text-indigo-400 bg-white dark:bg-slate-900 px-3 py-1.5 rounded-lg border border-indigo-100 dark:border-indigo-800">
+                                                                    <div className="text-[10px] font-bold text-indigo-400 premium-glass px-3 py-1.5 rounded-lg border border-indigo-100 dark:border-indigo-800">
                                                                         {pagesCount} صفحات فعلياً
                                                                     </div>
                                                                 </div>
@@ -1363,7 +1545,7 @@ export default function StudentDetailsPage() {
                                                         )}
 
                                                         {!isQuranicDaySession && (murajaahType === 'MINOR' || murajaahType === 'BOTH') && (
-                                                            <div className="p-4 bg-white dark:bg-slate-900 rounded-2xl border border-indigo-100 dark:border-indigo-800 shadow-sm mt-4">
+                                                            <div className="p-4 premium-glass rounded-2xl border border-indigo-100 dark:border-indigo-800 shadow-sm mt-4">
                                                                 <h4 className="text-sm font-black text-indigo-500 mb-4 px-2">المراجعة الصغرى</h4>
                                                                 {/* From Section */}
                                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
@@ -1474,7 +1656,7 @@ export default function StudentDetailsPage() {
                                                                         <label className="block text-xs font-bold text-emerald-500 mb-2 mr-2">نقية الصغرى</label>
                                                                         <input
                                                                             type="number"
-                                                                            step="0.25"
+                                                                            step="0.5"
                                                                             value={minorCleanPages}
                                                                             onFocus={() => minorCleanPages === 0 && setMinorCleanPages('')}
                                                                             onBlur={() => minorCleanPages === '' && setMinorCleanPages(0)}
@@ -1494,7 +1676,7 @@ export default function StudentDetailsPage() {
                                                                             {minorResultString}
                                                                         </div>
                                                                     </div>
-                                                                    <div className="text-[10px] font-bold text-indigo-400 bg-white dark:bg-slate-900 px-3 py-1.5 rounded-lg border border-indigo-100 dark:border-indigo-800">
+                                                                    <div className="text-[10px] font-bold text-indigo-400 premium-glass px-3 py-1.5 rounded-lg border border-indigo-100 dark:border-indigo-800">
                                                                         {minorPagesCount} صفحات فعلياً
                                                                     </div>
                                                                 </div>
@@ -1537,7 +1719,7 @@ export default function StudentDetailsPage() {
 
                     {/* Side History */}
                     <div className="space-y-8">
-                        <div className="bg-[var(--card-bg)] rounded-[3rem] p-8 shadow-xl shadow-slate-200/50 dark:shadow-none border border-[var(--border-main)] sticky top-24">
+                        <div className="premium-glass rounded-[3rem] p-8 sticky top-24">
                             <h3 className="text-2xl font-black text-slate-800 dark:text-white mb-8 flex items-center gap-4">
                                 <span className="p-2 bg-slate-100 rounded-xl text-lg">📜</span>
                                 سجل الإنجاز
@@ -1556,7 +1738,7 @@ export default function StudentDetailsPage() {
                                     }
 
                                     return (
-                                        <div key={idx} className="space-y-6">
+<div key={idx} className="space-y-6">
                                             {showDateSeparator && (
                                                 <div className="flex items-center gap-4 py-2 mt-4 first:mt-0 relative">
                                                     <div className="h-px bg-slate-200 dark:bg-slate-700 flex-1"></div>
@@ -1578,31 +1760,29 @@ export default function StudentDetailsPage() {
                                                     <div className="absolute top-0 right-0 w-1 h-full bg-emerald-500"></div>
                                                 )}
                                                 
-                                                <div className="absolute top-4 left-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                                                    <button 
-                                                        onClick={() => handleEditSession(session)}
-                                                        className="p-2 bg-white/90 dark:bg-slate-700/90 rounded-xl shadow-lg hover:text-emerald-600 transition-all hover:scale-110"
-                                                        title="تعديل"
-                                                    >
-                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-                                                        </svg>
-                                                    </button>
-                                                    <button 
-                                                        onClick={() => handleDeleteSession(session.id)}
-                                                        className="p-2 bg-white/90 dark:bg-slate-700/90 rounded-xl shadow-lg hover:text-red-600 transition-all hover:scale-110"
-                                                        title="حذف"
-                                                    >
-                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.34 12m-4.74 0-.34-12m10.14-0.45L19 7.14M5 7.14l1.2-1.2h12.6l1.2 1.2m-13.8 0 1.2 13.8a2.25 2.25 0 0 0 2.25 2.25h9.7a2.25 2.25 0 0 0 2.25-2.25L18.8 7.14m-12.6 0h12.6" />
-                                                        </svg>
-                                                    </button>
-                                                </div>
                                                 <div className="flex justify-between items-start mb-4">
-                                                    <span className="text-[10px] font-black text-slate-400 bg-slate-200 dark:bg-slate-800 px-2 py-1 rounded-lg">
-                                                        {new Date(session.date).toLocaleTimeString('ar-SA', { hour: 'numeric', minute: '2-digit' })}
-                                                    </span>
-                                                    <span className="text-xs bg-emerald-100 text-emerald-700 font-black px-3 py-1 rounded-full">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-[10px] font-black text-slate-400 bg-slate-200 dark:bg-slate-800 px-2 py-1 rounded-lg">
+                                                            {new Date(session.date).toLocaleTimeString('ar-SA', { hour: 'numeric', minute: '2-digit' })}
+                                                        </span>
+                                                        <button 
+                                                            type="button"
+                                                            onClick={() => handleEditSession(session)}
+                                                            className="text-slate-300 hover:text-blue-500 hover:bg-blue-50 p-1.5 rounded-lg transition-colors"
+                                                            title="تعديل الجلسة"
+                                                        >
+                                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                                                        </button>
+                                                        <button 
+                                                            type="button"
+                                                            onClick={() => promptDeleteSession(session.id)}
+                                                            className="text-slate-300 hover:text-red-500 hover:bg-red-50 p-1.5 rounded-lg transition-colors"
+                                                            title="حذف الجلسة"
+                                                        >
+                                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                                        </button>
+                                                    </div>
+                                                    <span className="text-xs bg-emerald-100 text-emerald-700 font-black px-3 py-1 rounded-full shadow-sm">
                                                         {session.pagesCount} ص
                                                     </span>
                                                 </div>
@@ -1765,6 +1945,37 @@ export default function StudentDetailsPage() {
         }
     `}</style>
 
+    {/* Delete Session Modal */}
+    {showDeleteModal && (
+        <div className="modal-overlay animate-fadeIn z-[110]" onClick={() => setShowDeleteModal(false)}>
+            <div className="modal-content animate-slideUp max-w-md text-center" onClick={(e) => e.stopPropagation()}>
+                <div className="modal-body py-8">
+                    <div className="w-20 h-20 bg-red-100 dark:bg-red-900/30 text-red-500 rounded-full flex items-center justify-center text-4xl mx-auto mb-6 shadow-inner ring-8 ring-red-50/50 dark:ring-red-900/10">
+                        🗑️
+                    </div>
+                    <h3 className="text-2xl font-black text-slate-800 dark:text-white mb-3">هل أنت متأكد من حذف هذه الجلسة؟</h3>
+                    <p className="text-slate-500 dark:text-slate-400 mb-2 font-bold">لن يمكن التراجع عن هذا الإجراء وسيتم حذفه من السجل نهائياً.</p>
+                </div>
+
+                <div className="modal-footer flex gap-4">
+                    <button
+                        onClick={handleDeleteSession}
+                        className="flex-1 py-4 bg-red-500 text-white rounded-2xl font-black hover:bg-red-600 transition-all active:scale-95 shadow-lg shadow-red-100 dark:shadow-none"
+                    >
+                        نعم، احذفها
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setShowDeleteModal(false)}
+                        className="flex-1 py-4 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-2xl font-black hover:bg-slate-200 dark:hover:bg-slate-600 transition-all active:scale-95"
+                    >
+                        تراجع
+                    </button>
+                </div>
+            </div>
+        </div>
+    )}
+
     {/* Cancel Session Modal */}
     {showCancelModal && (
         <div className="modal-overlay animate-fadeIn z-[110]" onClick={() => setShowCancelModal(false)}>
@@ -1782,6 +1993,8 @@ export default function StudentDetailsPage() {
                         onClick={() => {
                             setIsSessionActive(false);
                             setSessionType(null);
+                            setEditingSessionId(null);
+                            setEditingSessionData(null);
                             setShowCancelModal(false);
                         }}
                         className="flex-1 py-4 bg-red-500 text-white rounded-2xl font-black hover:bg-red-600 transition-all active:scale-95 shadow-lg shadow-red-100 dark:shadow-none"
@@ -1908,7 +2121,6 @@ export default function StudentDetailsPage() {
             student={student}
         />
     )}
-    
 </div>
 );
 }

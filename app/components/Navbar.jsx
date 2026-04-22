@@ -83,8 +83,8 @@ export default function Navbar({ userType, userName, onLogout }) {
     };
 
     return (
-        <nav className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-lg shadow-md border-b border-slate-100 dark:border-slate-800 sticky top-0 z-50 transition-colors duration-300">
-            <div className="max-w-7xl mx-auto px-6 py-4">
+        <nav className="fixed top-4 left-4 right-4 z-50 transition-all duration-500">
+            <div className="max-w-7xl mx-auto premium-glass rounded-[2.5rem] px-6 py-3 sm:py-4 border-white/30 dark:border-slate-800/50 shadow-2xl shadow-slate-200/50 dark:shadow-none">
                 <div className="flex justify-between items-center">
                     <div className="flex items-center gap-3">
                         <img src="/mosque-logo.png" alt="شعار الجامع" className="w-10 h-10 object-contain dark:hidden" />
