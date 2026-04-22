@@ -231,26 +231,26 @@ export default function AttendancePage() {
                             />
                         </div>
 
-                        <div className="flex gap-3 w-full md:w-auto">
+                        <div className="flex flex-wrap gap-2 w-full md:w-auto">
                             <button
                                 onClick={() => openReport('week')}
-                                className="flex-1 md:flex-none px-6 py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-xl font-bold hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-colors flex items-center justify-center gap-2 whitespace-nowrap"
+                                className="flex-1 md:flex-none px-4 md:px-6 py-2.5 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-xl font-bold hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-all flex items-center justify-center gap-2 whitespace-nowrap text-xs md:text-sm"
                             >
                                 <span>📄</span>
                                 تقرير أسبوعي
                             </button>
                             <button
                                 onClick={() => openReport('month')}
-                                className="flex-1 md:flex-none px-6 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 rounded-xl font-bold hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors flex items-center justify-center gap-2 whitespace-nowrap"
+                                className="flex-1 md:flex-none px-4 md:px-6 py-2.5 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 rounded-xl font-bold hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-all flex items-center justify-center gap-2 whitespace-nowrap text-xs md:text-sm"
                             >
                                 <span>📊</span>
                                 تقرير شهري
                             </button>
                             <button
                                 onClick={() => setShowHolidayModal(true)}
-                                className="flex-1 md:flex-none px-6 py-2 bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 rounded-xl font-bold hover:bg-rose-100 dark:hover:bg-rose-900/30 transition-colors flex items-center justify-center gap-2 whitespace-nowrap"
+                                className="flex-1 md:flex-none px-4 md:px-6 py-2.5 bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 rounded-xl font-bold hover:bg-rose-100 dark:hover:bg-rose-900/30 transition-all flex items-center justify-center gap-2 whitespace-nowrap text-xs md:text-sm"
                             >
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 md:w-5 md:h-5">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
                                 </svg>
                                 إدارة الإجازات
