@@ -1758,7 +1758,7 @@ export default function StudentDetailsPage() {
                                                         </button>
                                                         <button 
                                                             type="button"
-                                                            onClick={() => promptDeleteSession(session.id)}
+                                                            onClick={() => handleDeleteSession(session.id)}
                                                             className="text-slate-300 hover:text-red-500 hover:bg-red-50 p-1.5 rounded-lg transition-colors"
                                                             title="حذف الجلسة"
                                                         >
