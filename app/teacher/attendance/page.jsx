@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import Navbar from '../../components/Navbar';
+import ManageHolidaysModal from '../../components/ManageHolidaysModal';
 import { formatHijri } from '../../utils/dateUtils';
 
 export default function AttendancePage() {
@@ -14,6 +15,8 @@ export default function AttendancePage() {
     const [saving, setSaving] = useState(false);
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [user, setUser] = useState(null);
+    const [showHolidayModal, setShowHolidayModal] = useState(false);
+    const [holidays, setHolidays] = useState([]);
 
     const getFirstName = (fullName) => {
         if (!fullName) return '';
@@ -83,25 +86,59 @@ export default function AttendancePage() {
         fetchStudents();
     }, [user]);
 
-    // Fetch Attendance when Date Changes
     useEffect(() => {
-        if (students.length > 0) {
-            fetchAttendanceForDate(date, students);
-        }
-    }, [date]);
+        const loadAll = async () => {
+            if (students.length > 0) {
+                const fetchedHolidays = await fetchHolidays();
+                fetchAttendanceForDate(date, students, fetchedHolidays);
+            }
+        };
+        loadAll();
+    }, [date, students.length]);
 
-    const fetchAttendanceForDate = async (selectedDate, currentStudents) => {
+    const fetchHolidays = async () => {
         try {
+            const res = await fetch('/api/holidays');
+            if (res.ok) {
+                const data = await res.json();
+                setHolidays(data);
+                return data;
+            }
+        } catch (error) {}
+        return [];
+    };
+
+    const isHoliday = holidays.some(h => {
+        const start = new Date(h.startDate).toISOString().split('T')[0];
+        const end = new Date(h.endDate).toISOString().split('T')[0];
+        return date >= start && date <= end;
+    });
+
+    const currentHoliday = holidays.find(h => {
+        const start = new Date(h.startDate).toISOString().split('T')[0];
+        const end = new Date(h.endDate).toISOString().split('T')[0];
+        return date >= start && date <= end;
+    });
+
+    const fetchAttendanceForDate = async (selectedDate, currentStudents, providedHolidays) => {
+        try {
+            const hList = providedHolidays || holidays;
+            const isDateHoliday = hList.some(h => {
+                const start = new Date(h.startDate).toISOString().split('T')[0];
+                const end = new Date(h.endDate).toISOString().split('T')[0];
+                return selectedDate >= start && selectedDate <= end;
+            });
+
             const response = await fetch(`/api/attendance?date=${selectedDate}`);
             if (response.ok) {
                 const data = await response.json();
 
                 // Map existing records
                 const newMap = {};
-                // Default all to PRESENT if no record exists for this date?
-                // Or leave blank? User requests "Daily Sheet". Usually starts as default.
-                // Let's start with PRESENT default, then overwrite with DB data.
-                currentStudents.forEach(s => newMap[s.id] = 'PRESENT');
+                
+                // Default based on holiday status
+                const defaultStatus = isDateHoliday ? 'HOLIDAY' : 'PRESENT';
+                currentStudents.forEach(s => newMap[s.id] = defaultStatus);
 
                 data.forEach(record => {
                     newMap[record.studentId] = record.status;
@@ -209,11 +246,34 @@ export default function AttendancePage() {
                                 <span>📊</span>
                                 تقرير شهري
                             </button>
+                            <button
+                                onClick={() => setShowHolidayModal(true)}
+                                className="flex-1 md:flex-none px-6 py-2 bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 rounded-xl font-bold hover:bg-rose-100 dark:hover:bg-rose-900/30 transition-colors flex items-center justify-center gap-2 whitespace-nowrap"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                                </svg>
+                                إدارة الإجازات
+                            </button>
                         </div>
                     </div>
                 </div>
 
-                <div className="premium-glass rounded-[2.5rem] shadow-2xl shadow-slate-200/50 dark:shadow-none overflow-hidden border border-white/20 dark:border-slate-800/50">
+                {isHoliday && (
+                    <div className="mb-8 p-6 bg-amber-50 dark:bg-amber-900/20 border-2 border-amber-200 dark:border-amber-800 rounded-[2rem] flex items-center gap-4 animate-pulse">
+                        <span className="p-3 bg-amber-100 dark:bg-amber-900/40 rounded-2xl">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-8 h-8 text-amber-600 dark:text-amber-400">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                            </svg>
+                        </span>
+                        <div>
+                            <h3 className="text-xl font-black text-amber-800 dark:text-amber-400">إجازة رسمية: {currentHoliday.name}</h3>
+                            <p className="text-amber-600 dark:text-amber-500 font-bold">تم إيقاف التحضير لهذا اليوم لوجود إجازة مجدولة.</p>
+                        </div>
+                    </div>
+                )}
+
+                <div className={`premium-glass rounded-[2.5rem] shadow-2xl shadow-slate-200/50 dark:shadow-none overflow-hidden border border-white/20 dark:border-slate-800/50 ${isHoliday ? 'opacity-50 pointer-events-none grayscale' : ''}`}>
                     <div className="overflow-x-auto custom-scrollbar p-1 md:p-2">
                         <table className="w-full text-right border-collapse min-w-[350px] md:min-w-[600px]">
                             <thead>
@@ -261,27 +321,21 @@ export default function AttendancePage() {
                     </div>
                 </div>
 
-                <div className="mt-8 flex justify-between items-center">
-                    <button
-                        onClick={() => {
-                            const newMap = {};
-                            students.forEach(s => newMap[s.id] = 'HOLIDAY');
-                            setAttendance(newMap);
-                            toast.success('تم تعيين إجازة لجميع الطلاب لهذا اليوم');
-                        }}
-                        className="px-6 py-3 md:px-8 md:py-4 bg-white/50 dark:bg-slate-800/50 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 rounded-2xl font-black text-sm md:text-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-all active:scale-95 shadow-sm"
-                    >
-                        🏖️ إجازة للجميع
-                    </button>
+                <div className="mt-8 flex justify-end">
                     <button
                         onClick={saveAttendance}
-                        disabled={saving}
+                        disabled={saving || isHoliday}
                         className="px-8 py-3 md:px-12 md:py-4 bg-emerald-600 text-white rounded-2xl font-black text-sm md:text-lg shadow-xl shadow-emerald-200 hover:bg-emerald-700 hover:-translate-y-1 transition-all active:scale-95 disabled:opacity-50"
                     >
-                        {saving ? 'جاري الحفظ...' : 'حفظ الكشف النهائي'}
+                        {saving ? 'جاري الحفظ...' : (isHoliday ? 'التحضير مغلق' : 'حفظ الكشف النهائي')}
                     </button>
                 </div>
             </main>
+
+            <ManageHolidaysModal 
+                isOpen={showHolidayModal} 
+                onClose={() => setShowHolidayModal(false)} 
+            />
         </div>
     );
 }

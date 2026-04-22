@@ -6,6 +6,9 @@ export default function ToasterProvider() {
     return (
         <Toaster
             position="top-center"
+            containerStyle={{
+                zIndex: 99999,
+            }}
             toastOptions={{
                 duration: 4000,
                 style: {

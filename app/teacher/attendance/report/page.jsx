@@ -74,6 +74,7 @@ function ReportContent() {
     const [reportData, setReportData] = useState([]);
     const [dateRange, setDateRange] = useState([]);
     const [title, setTitle] = useState('');
+    const [holidays, setHolidays] = useState([]);
     const [loading, setLoading] = useState(true);
     const [user, setUser] = useState(null);
 
@@ -164,16 +165,19 @@ function ReportContent() {
                     studentsUrl += `?halaqaId=${currentTeacherHalaqaId}`;
                 }
 
-                const [studentsRes, attendanceRes] = await Promise.all([
+                const [studentsRes, attendanceRes, holidaysRes] = await Promise.all([
                     fetch(studentsUrl),
-                    fetch(`/api/attendance?startDate=${startStr}&endDate=${endStr}`)
+                    fetch(`/api/attendance?startDate=${startStr}&endDate=${endStr}`),
+                    fetch('/api/holidays')
                 ]);
 
                 const studentsData = await studentsRes.json();
                 const attendanceData = await attendanceRes.json();
+                const holidaysData = await holidaysRes.json();
 
                 setStudents(studentsData);
                 setReportData(attendanceData);
+                setHolidays(holidaysData);
             } catch (error) {
                 console.error("Error loading report:", error);
             } finally {
@@ -185,20 +189,28 @@ function ReportContent() {
     }, [type, dateParam, user]);
 
     const getStatus = (studentId, dateIso) => {
-        // 1. Check if it's an Off Day (Thu=4, Fri=5, Sat=6)
+        // 1. Check if it's a Holiday (from Global Holidays)
+        const holiday = holidays.find(h => {
+            const start = new Date(h.startDate).toISOString().split('T')[0];
+            const end = new Date(h.endDate).toISOString().split('T')[0];
+            return dateIso >= start && dateIso <= end;
+        });
+        if (holiday) return { type: 'HOLIDAY', name: holiday.name };
+
+        // 2. Check if it's an Off Day (Thu=4, Fri=5, Sat=6)
         const dayOfWeek = new Date(dateIso).getDay();
         if (dayOfWeek === 4 || dayOfWeek === 5 || dayOfWeek === 6) return 'OFF_DAY';
 
-        // 2. Check for actual record
+        // 3. Check for actual record
         const record = reportData.find(r => r.studentId === studentId && new Date(r.date).toISOString().split('T')[0] === dateIso);
 
         if (record) return record.status;
 
-        // 3. Check if future
+        // 4. Check if future
         const today = new Date().toISOString().split('T')[0];
         if (dateIso > today) return 'NONE';
 
-        // 4. Default Present
+        // 5. Default Present
         return 'PRESENT';
     };
 
@@ -207,11 +219,12 @@ function ReportContent() {
         students.forEach(s => {
             dateRange.forEach(d => {
                 const status = getStatus(s.id, d.iso);
-                if (status === 'PRESENT') present++;
-                else if (status === 'LATE') late++;
-                else if (status.includes('ABSENT')) absent++;
+                const statusType = typeof status === 'object' ? status.type : status;
+                if (statusType === 'PRESENT') present++;
+                else if (statusType === 'LATE') late++;
+                else if (statusType && statusType.includes('ABSENT')) absent++;
 
-                if (status !== 'NONE' && status !== 'OFF_DAY') total++;
+                if (statusType !== 'NONE' && statusType !== 'OFF_DAY' && statusType !== 'HOLIDAY') total++;
             });
         });
         return { present, late, absent, total };
@@ -240,6 +253,10 @@ function ReportContent() {
             case 'OFF_DAY': return {
                 icon: <span className="text-slate-400/50 text-xl font-bold">.</span>,
                 bg: 'bg-slate-200/70' // Darker gray
+            };
+            case 'HOLIDAY': return {
+                icon: null,
+                bg: 'bg-slate-300' // Solid Gray for Holiday
             };
             default: return { icon: <span className="text-slate-300">-</span>, bg: 'bg-slate-50' };
         }
@@ -378,11 +395,24 @@ function ReportContent() {
                                                 </td>
                                                 {chunk.map(d => {
                                                     const status = getStatus(student.id, d.iso);
-                                                    const display = getStatusDisplay(status);
+                                                    const statusType = typeof status === 'object' ? status.type : status;
+                                                    const display = getStatusDisplay(statusType);
                                                     return (
-                                                        <td key={d.iso} className={`p-2 text-center border-l border-slate-100 print:border-slate-200 ${display.bg}`}>
-                                                            <div className="flex justify-center items-center h-full">
-                                                                {display.icon}
+                                                        <td key={d.iso} className={`p-2 text-center border-l border-slate-100 print:border-slate-200 relative ${display.bg}`}>
+                                                            <div className="flex justify-center items-center h-full min-h-[40px]">
+                                                                {statusType === 'HOLIDAY' ? (
+                                                                    idx === 0 ? (
+                                                                        <div 
+                                                                            className="absolute inset-0 flex items-center justify-center overflow-visible pointer-events-none z-20"
+                                                                            style={{ height: `${students.length * 56}px`, width: '100%' }}
+                                                                        >
+                                                                            <span className="whitespace-nowrap font-black text-slate-700 text-lg uppercase tracking-widest" 
+                                                                                  style={{ transform: 'rotate(-90deg)', transformOrigin: 'center' }}>
+                                                                                {status.name}
+                                                                            </span>
+                                                                        </div>
+                                                                    ) : null
+                                                                ) : display.icon}
                                                             </div>
                                                         </td>
                                                     );

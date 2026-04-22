@@ -182,3 +182,11 @@ model Exam {
   grade       Float?   // Optional: result
   notes       String?
 }
+
+model Holiday {
+  id        Int      @id @default(autoincrement())
+  name      String   // Reason/Type (e.g. Eid al-Fitr)
+  startDate DateTime
+  endDate   DateTime
+  createdAt DateTime @default(now())
+}
