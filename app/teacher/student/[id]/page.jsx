@@ -1319,11 +1319,7 @@ export default function StudentDetailsPage() {
                                                             <label className="block text-xs font-bold text-emerald-600 mb-2 mr-2">صفحات نقية</label>
                                                             <input
                                                                 type="number"
-<<<<<<< HEAD
-                                                                step="0.25"
-=======
                                                                 step="0.5"
->>>>>>> dev
                                                                 value={hifzCleanPages}
                                                                 onFocus={() => hifzCleanPages === 0 && setHifzCleanPages('')}
                                                                 onBlur={() => hifzCleanPages === '' && setHifzCleanPages(0)}
