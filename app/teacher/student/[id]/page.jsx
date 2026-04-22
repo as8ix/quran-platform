@@ -736,26 +736,17 @@ export default function StudentDetailsPage() {
 
             const isGoalAchieved = hifzMet && reviewMet;
 
-<<<<<<< HEAD
-            const response = await fetch('/api/sessions', {
-                method: editingSession ? 'PUT' : 'POST',
-=======
             const method = editingSessionId ? 'PUT' : 'POST';
             const endpoint = editingSessionId ? `/api/sessions/${editingSessionId}` : '/api/sessions';
 
             const response = await fetch(endpoint, {
                 method: method,
->>>>>>> dev
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    id: editingSession?.id,
+                    id: editingSessionId,
                     studentId,
                     // Only send hifz data if (includesHifz) AND (not Khatim) AND (not a Quranic Day session)
-<<<<<<< HEAD
-                    hifzSurah: (includesHifz && !isKhatim && !isQuranicDay) ? (editingSession?.hifzSurah || currentSurah?.name) : null,
-=======
                     hifzSurah: (includesHifz && !isKhatim && !isQuranicDay) ? (editingSessionId && editingSessionData?.hifzSurah ? editingSessionData.hifzSurah : currentSurah?.name) : null,
->>>>>>> dev
                     hifzFromPage: (includesHifz && !isKhatim && !isQuranicDay) ? parseInt(hifzFromPage) : null,
                     hifzToPage: (includesHifz && !isKhatim && !isQuranicDay) ? parseInt(hifzToPage) : null,
                     hifzFromAyah: (includesHifz && !isKhatim && !isQuranicDay) ? parseInt(hifzFromAyah) : null,
@@ -787,11 +778,7 @@ export default function StudentDetailsPage() {
                     hifzErrors: parseInt(hifzErrors) || 0,
                     hifzAlerts: parseInt(hifzAlerts) || 0,
                     hifzCleanPages: parseFloat(hifzCleanPages) || 0,
-<<<<<<< HEAD
-                    isFinishedSurah: (includesHifz && !editingSession) ? isFinishedSurah : false,
-=======
                     isFinishedSurah: includesHifz ? isFinishedSurah : false,
->>>>>>> dev
                     isGoalAchieved,
                     quranicEventId: isQuranicDaySession ? activeEvent?.id : null,
                     sessionDate: sessionDate || null
@@ -799,7 +786,7 @@ export default function StudentDetailsPage() {
             });
 
             if (response.ok) {
-                toast.success(editingSession ? 'تم تحديث التسميع بنجاح' : 'تم تسجيل التسميع بنجاح');
+                toast.success(editingSessionId ? 'تم تحديث التسميع بنجاح' : 'تم تسجيل التسميع بنجاح');
                 setNotes('');
                 setHifzErrors(0);
                 setHifzAlerts(0);
@@ -812,12 +799,8 @@ export default function StudentDetailsPage() {
                 setMinorCleanPages(0);
                 setIsSessionActive(false); 
                 setSessionType(null);
-<<<<<<< HEAD
-                setEditingSession(null);
-=======
                 setEditingSessionId(null);
                 setEditingSessionData(null);
->>>>>>> dev
                 fetchStudent();
                 fetchHistory();
             }
