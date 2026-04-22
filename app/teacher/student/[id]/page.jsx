@@ -1140,33 +1140,6 @@ export default function StudentDetailsPage() {
                                         <span className="p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-2xl">✍️</span>
                                         {sessionType === 'HIFZ' ? 'تسجيل حفظ جديد' : sessionType === 'MURAJAAH' ? 'تسجيل مراجعة' : 'تسجيل حفظ ومراجعة'}
                                     </h2>
-<<<<<<< HEAD
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            if (editingSession) {
-                                                setEditingSession(null);
-                                                setIsSessionActive(false);
-                                                setSessionType(null);
-                                                setNotes('');
-                                                setHifzErrors(0);
-                                                setHifzAlerts(0);
-                                                setHifzCleanPages(0);
-                                                setErrorsCount(0);
-                                                setAlertsCount(0);
-                                                setCleanPagesCount(0);
-                                                setMinorErrors(0);
-                                                setMinorAlerts(0);
-                                                setMinorCleanPages(0);
-                                            } else {
-                                                setShowCancelModal(true);
-                                            }
-                                        }}
-                                        className="px-4 py-2 bg-red-50 text-red-500 rounded-xl text-xs font-black hover:bg-red-100 transition-colors"
-                                    >
-                                        {editingSession ? 'إلغاء التعديل ✕' : 'إلغاء ✕'}
-                                    </button>
-=======
                                     <div className="flex flex-wrap items-center gap-3">
                                         <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-900/50 p-2 rounded-2xl border border-slate-200 dark:border-slate-700">
                                             <label className="text-xs font-bold text-slate-500 dark:text-slate-400 mr-2 whitespace-nowrap">تاريخ الجلسة</label>
@@ -1186,7 +1159,6 @@ export default function StudentDetailsPage() {
                                             إلغاء ✕
                                         </button>
                                     </div>
->>>>>>> dev
                                 </div>
 
 
