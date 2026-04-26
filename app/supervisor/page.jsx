@@ -1118,6 +1118,17 @@ export default function SupervisorDashboard() {
                                 </button>
                             </div>
 
+                            <button 
+                                onClick={() => router.push(`/supervisor/reports/custom-list?teacherId=${selectedHalaqaForReport.teacherId}`)}
+                                className="w-full mt-4 p-5 bg-slate-50 dark:bg-slate-800/50 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-3xl border-2 border-slate-100 dark:border-slate-800 hover:border-blue-500/30 transition-all group flex items-center gap-4 text-right"
+                            >
+                                <div className="w-12 h-12 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center text-2xl shadow-sm group-hover:scale-110 transition-transform">📋</div>
+                                <div>
+                                    <div className="font-black text-slate-800 dark:text-white text-lg">قائمة بيانات الطلاب</div>
+                                    <div className="text-xs font-bold text-slate-400">اختر الحقول، انسخ كنص، أو اطبعها كجدول رسمي</div>
+                                </div>
+                            </button>
+
                             <button onClick={() => setShowReportTypeModal(false)} className="w-full py-4 text-slate-400 dark:text-slate-500 font-bold hover:text-slate-600 dark:hover:text-slate-300 transition-colors">إلغاء</button>
                         </div>
                     </div>
