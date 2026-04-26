@@ -98,6 +98,14 @@ export default function Navbar({ userType, userName, onLogout, displayId }) {
                     </div>
 
                     <div className="flex items-center gap-2 sm:gap-6">
+                        {(userType === 'teacher' || userType === 'supervisor') && (
+                            <button
+                                onClick={() => window.location.href = '/teacher/attendance'}
+                                className="hidden md:flex items-center gap-2 px-4 py-2 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-xl font-black text-xs hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-all border border-emerald-100 dark:border-emerald-800"
+                            >
+                                📝 التحضير
+                            </button>
+                        )}
                         {/* Theme Toggle */}
                         <button
                             onClick={toggleDarkMode}
