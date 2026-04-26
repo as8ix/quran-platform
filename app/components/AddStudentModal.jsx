@@ -19,6 +19,7 @@ export default function AddStudentModal({ isOpen, onClose, onAdd, student, halaq
     const [nationalId, setNationalId] = useState('');
     const [nationality, setNationality] = useState('');
     const [studentNotes, setStudentNotes] = useState('');
+    const [joinDate, setJoinDate] = useState('');
 
     // Custom UI States
     const [isNationalityOpen, setIsNationalityOpen] = useState(false);
@@ -50,6 +51,7 @@ export default function AddStudentModal({ isOpen, onClose, onAdd, student, halaq
             setNationalId(student.nationalId || '');
             setNationality(student.nationality || '');
             setStudentNotes(student.studentNotes || '');
+            setJoinDate(student.joinDate ? new Date(student.joinDate).toISOString().split('T')[0] : (student.createdAt ? new Date(student.createdAt).toISOString().split('T')[0] : ''));
         } else {
             setName('');
             setUsername('');
@@ -67,6 +69,7 @@ export default function AddStudentModal({ isOpen, onClose, onAdd, student, halaq
             setNationalId('');
             setNationality('');
             setStudentNotes('');
+            setJoinDate(new Date().toISOString().split('T')[0]);
         }
     }, [student, isOpen]);
 
@@ -117,7 +120,8 @@ export default function AddStudentModal({ isOpen, onClose, onAdd, student, halaq
             parentPhone2,
             nationalId,
             nationality,
-            studentNotes
+            studentNotes,
+            joinDate: joinDate ? new Date(joinDate).toISOString() : undefined
         };
 
         if (student) {
@@ -503,6 +507,19 @@ export default function AddStudentModal({ isOpen, onClose, onAdd, student, halaq
                                             </div>
                                         )}
                                     </div>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-[10px] font-black text-slate-500 dark:text-slate-400 mb-2 mr-1">تاريخ الالتحاق بالحلقة</label>
+                                    <input
+                                        type="date"
+                                        className="w-full px-5 py-4 bg-slate-100 dark:bg-slate-800/50 border-2 border-transparent rounded-2xl outline-none text-slate-500 dark:text-slate-400 font-bold cursor-not-allowed opacity-80"
+                                        value={joinDate}
+                                        readOnly
+                                        disabled
+                                    />
                                 </div>
                             </div>
 

@@ -63,7 +63,7 @@ export default function ReportModal({ isOpen, onClose, teacher, teacherNames }) 
                             </button>
                         </div>
 
-                        <div className="modal-body space-y-4 py-6">
+                        <div className="modal-body space-y-4 py-6 max-h-[60vh] overflow-y-auto custom-scrollbar px-2 -mx-2">
                             <button
                                 onClick={() => {
                                     const url = teacherId ? `${basePath}/reports?teacherId=${teacherId}` : `${basePath}/reports`;
@@ -132,16 +132,34 @@ export default function ReportModal({ isOpen, onClose, teacher, teacherNames }) 
                                 </div>
                             </div>
 
-                            <div className="w-full p-5 bg-slate-50/50 dark:bg-slate-900/20 border-2 border-dashed border-slate-100 dark:border-slate-800 rounded-2xl flex items-center justify-between opacity-60">
-                                <div className="flex items-center gap-5 text-right">
-                                    <div className="w-14 h-14 bg-slate-100 dark:bg-slate-800 rounded-xl flex items-center justify-center">
-                                        {icons.lock}
-                                    </div>
-                                    <div>
-                                        <div className="font-black text-lg text-slate-400">تقارير إضافية</div>
-                                        <div className="text-[10px] text-slate-400 font-bold bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-lg inline-block mt-1">قريباً</div>
-                                    </div>
+                            <div className="pt-2">
+                                <div className="flex items-center gap-2 mb-3 px-2">
+                                    <div className="w-1.5 h-6 bg-teal-500 rounded-full"></div>
+                                    <h4 className="font-black text-sm text-slate-600 dark:text-slate-400">تقارير مخصصة</h4>
                                 </div>
+                                <button
+                                    onClick={() => {
+                                        const url = teacherId ? `${basePath}/reports/custom-list?teacherId=${teacherId}` : `${basePath}/reports/custom-list`;
+                                        window.open(url, '_blank');
+                                        onClose();
+                                    }}
+                                    className="w-full p-5 bg-white dark:bg-slate-900/40 border-2 border-slate-100 dark:border-slate-800 rounded-2xl flex items-center justify-between hover:border-teal-500 dark:hover:border-teal-500 hover:shadow-lg transition-all duration-300 group"
+                                >
+                                    <div className="flex items-center gap-5 text-right">
+                                        <div className="w-14 h-14 bg-teal-50 dark:bg-teal-900/20 text-teal-600 dark:text-teal-400 rounded-xl flex items-center justify-center group-hover:bg-teal-100 dark:group-hover:bg-teal-900/30 transition-colors">
+                                            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <div className="font-black text-lg text-slate-800 dark:text-white">قائمة بيانات الطلاب</div>
+                                            <div className="text-xs text-slate-400 dark:text-slate-500 font-bold mt-0.5">اختر الحقول، انسخ كنص، أو اطبعها كجدول رسمي</div>
+                                        </div>
+                                    </div>
+                                    <svg className="w-5 h-5 text-slate-300 dark:text-slate-700 group-hover:text-teal-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+                                    </svg>
+                                </button>
                             </div>
                         </div>
 
