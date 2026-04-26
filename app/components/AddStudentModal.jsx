@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { quranData } from '../data/quranData';
+import { nationalities } from '../data/nationalities';
 
 export default function AddStudentModal({ isOpen, onClose, onAdd, student, halaqaId }) {
     const [name, setName] = useState('');
@@ -12,6 +13,17 @@ export default function AddStudentModal({ isOpen, onClose, onAdd, student, halaq
     const [dailyTargetPages, setDailyTargetPages] = useState('1');
     const [hifzPlanType, setHifzPlanType] = useState('1'); 
     const [loading, setLoading] = useState(false);
+    const [phone, setPhone] = useState('');
+    const [parentPhone, setParentPhone] = useState('');
+    const [parentPhone2, setParentPhone2] = useState('');
+    const [nationalId, setNationalId] = useState('');
+    const [nationality, setNationality] = useState('');
+    const [studentNotes, setStudentNotes] = useState('');
+
+    // Custom UI States
+    const [isNationalityOpen, setIsNationalityOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [showSecondaryFields, setShowSecondaryFields] = useState(false);
 
     useEffect(() => {
         if (student) {
@@ -30,6 +42,14 @@ export default function AddStudentModal({ isOpen, onClose, onAdd, student, halaq
             } else {
                 setHifzPlanType('custom');
             }
+
+            // Set secondary fields
+            setPhone(student.phone || '');
+            setParentPhone(student.parentPhone || '');
+            setParentPhone2(student.parentPhone2 || '');
+            setNationalId(student.nationalId || '');
+            setNationality(student.nationality || '');
+            setStudentNotes(student.studentNotes || '');
         } else {
             setName('');
             setUsername('');
@@ -39,8 +59,26 @@ export default function AddStudentModal({ isOpen, onClose, onAdd, student, halaq
             setReviewPlan('');
             setDailyTargetPages('1');
             setHifzPlanType('1');
+            
+            // Reset secondary fields
+            setPhone('');
+            setParentPhone('');
+            setParentPhone2('');
+            setNationalId('');
+            setNationality('');
+            setStudentNotes('');
         }
     }, [student, isOpen]);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (isNationalityOpen && !event.target.closest('.nationality-dropdown-container')) {
+                setIsNationalityOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [isNationalityOpen]);
 
     if (!isOpen) return null;
 
@@ -73,7 +111,13 @@ export default function AddStudentModal({ isOpen, onClose, onAdd, student, halaq
             juzCount: parseInt(juzCount) || 0,
             reviewPlan,
             dailyTargetPages: parseFloat(dailyTargetPages),
-            halaqaId
+            halaqaId,
+            phone,
+            parentPhone,
+            parentPhone2,
+            nationalId,
+            nationality,
+            studentNotes
         };
 
         if (student) {
@@ -174,16 +218,23 @@ export default function AddStudentModal({ isOpen, onClose, onAdd, student, halaq
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-bold text-slate-500 dark:text-slate-400 mb-2 mr-1">وين واصل في الحفظ؟</label>
-                                <select
-                                    className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-900 border-2 border-transparent focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800 rounded-2xl transition-all outline-none appearance-none dark:text-white font-bold"
-                                    value={hifzProgress}
-                                    onChange={(e) => handleSurahChange(e.target.value)}
-                                >
-                                    <option value="" className="dark:bg-slate-800">اختر السورة...</option>
-                                    {quranData.map(s => (
-                                        <option key={s.id} value={s.name} className="dark:bg-slate-800">{s.name}</option>
-                                    ))}
-                                </select>
+                                <div className="relative">
+                                    <select
+                                        className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-900 border-2 border-transparent focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800 rounded-2xl transition-all outline-none appearance-none dark:text-white font-bold"
+                                        value={hifzProgress}
+                                        onChange={(e) => handleSurahChange(e.target.value)}
+                                    >
+                                        <option value="" className="dark:bg-slate-800">اختر السورة...</option>
+                                        {quranData.map(s => (
+                                            <option key={s.id} value={s.name} className="dark:bg-slate-800">{s.name}</option>
+                                        ))}
+                                    </select>
+                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                                        </svg>
+                                    </div>
+                                </div>
                             </div>
                             <div>
                                 <label className="block text-sm font-bold text-slate-500 dark:text-slate-400 mb-2 mr-1">عدد الأجزاء المحفوظة</label>
@@ -199,21 +250,28 @@ export default function AddStudentModal({ isOpen, onClose, onAdd, student, halaq
                         <div className="bg-slate-50 dark:bg-slate-900/50 p-6 rounded-3xl border border-slate-100 dark:border-slate-800 space-y-6">
                             <div>
                                 <label className="block text-sm font-bold text-emerald-600 dark:text-emerald-400 mb-3 mr-1">خطة المراجعة</label>
-                                <select
-                                    className="w-full px-5 py-4 bg-white dark:bg-slate-800 border-2 border-transparent focus:border-emerald-500 rounded-2xl transition-all outline-none appearance-none dark:text-white font-bold shadow-sm"
-                                    value={['نصف جزء', 'جزء', 'جزئين', 'ثلاث'].includes(reviewPlan) ? reviewPlan : (reviewPlan ? 'custom' : '')}
-                                    onChange={(e) => {
-                                        if (e.target.value === 'custom') setReviewPlan('صفحة');
-                                        else setReviewPlan(e.target.value);
-                                    }}
-                                >
-                                    <option value="">اختر خطة المراجعة...</option>
-                                    <option value="نصف جزء">نصف جزء</option>
-                                    <option value="جزء">جزء كامل</option>
-                                    <option value="جزئين">جزئين</option>
-                                    <option value="ثلاث">ثلاثة أجزاء</option>
-                                    <option value="custom">تحديد خاص (صفحات)...</option>
-                                </select>
+                                <div className="relative">
+                                    <select
+                                        className="w-full px-5 py-4 bg-white dark:bg-slate-800 border-2 border-transparent focus:border-emerald-500 rounded-2xl transition-all outline-none appearance-none dark:text-white font-bold shadow-sm"
+                                        value={['نصف جزء', 'جزء', 'جزئين', 'ثلاث'].includes(reviewPlan) ? reviewPlan : (reviewPlan ? 'custom' : '')}
+                                        onChange={(e) => {
+                                            if (e.target.value === 'custom') setReviewPlan('صفحة');
+                                            else setReviewPlan(e.target.value);
+                                        }}
+                                    >
+                                        <option value="">اختر خطة المراجعة...</option>
+                                        <option value="نصف جزء">نصف جزء</option>
+                                        <option value="جزء">جزء كامل</option>
+                                        <option value="جزئين">جزئين</option>
+                                        <option value="ثلاث">ثلاثة أجزاء</option>
+                                        <option value="custom">تحديد خاص (صفحات)...</option>
+                                    </select>
+                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none text-emerald-400">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                                        </svg>
+                                    </div>
+                                </div>
 
                                 {/* Custom Review Amount */}
                                 {reviewPlan && !['نصف جزء', 'جزء', 'جزئين', 'ثلاث'].includes(reviewPlan) && (
@@ -231,19 +289,26 @@ export default function AddStudentModal({ isOpen, onClose, onAdd, student, halaq
 
                             <div>
                                 <label className="block text-sm font-bold text-teal-600 dark:text-teal-400 mb-3 mr-1">الهدف اليومي للمقدار الجديد</label>
-                                <select
-                                    className="w-full px-5 py-4 bg-white dark:bg-slate-800 border-2 border-transparent focus:border-emerald-500 rounded-2xl transition-all outline-none appearance-none dark:text-white font-bold shadow-sm"
-                                    value={hifzPlanType}
-                                    onChange={(e) => {
-                                        setHifzPlanType(e.target.value);
-                                        if (e.target.value !== 'custom') setDailyTargetPages(e.target.value);
-                                    }}
-                                >
-                                    <option value="0.5">نصف صفحة</option>
-                                    <option value="1">صفحة واحدة</option>
-                                    <option value="2">صفحتين</option>
-                                    <option value="custom">تحديد مخصص...</option>
-                                </select>
+                                <div className="relative">
+                                    <select
+                                        className="w-full px-5 py-4 bg-white dark:bg-slate-800 border-2 border-transparent focus:border-emerald-500 rounded-2xl transition-all outline-none appearance-none dark:text-white font-bold shadow-sm"
+                                        value={hifzPlanType}
+                                        onChange={(e) => {
+                                            setHifzPlanType(e.target.value);
+                                            if (e.target.value !== 'custom') setDailyTargetPages(e.target.value);
+                                        }}
+                                    >
+                                        <option value="0.5">نصف صفحة</option>
+                                        <option value="1">صفحة واحدة</option>
+                                        <option value="2">صفحتين</option>
+                                        <option value="custom">تحديد مخصص...</option>
+                                    </select>
+                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none text-teal-400">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                                        </svg>
+                                    </div>
+                                </div>
 
                                 {hifzPlanType === 'custom' && (
                                     <div className="mt-3 animate-fadeIn">
@@ -258,6 +323,200 @@ export default function AddStudentModal({ isOpen, onClose, onAdd, student, halaq
                                     </div>
                                 )}
                             </div>
+                        </div>
+
+                        {/* Secondary/Optional Data Section */}
+                        <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
+                            <button
+                                type="button"
+                                onClick={() => setShowSecondaryFields(!showSecondaryFields)}
+                                className="w-full flex items-center justify-between group py-2"
+                            >
+                                <h4 className="text-sm font-black text-slate-400 group-hover:text-emerald-500 transition-colors uppercase tracking-[0.2em] flex items-center gap-2">
+                                    <span className="w-6 h-0.5 bg-slate-200 dark:bg-slate-800 group-hover:bg-emerald-200"></span>
+                                    بيانات إضافية (اختياري)
+                                    <span className="w-6 h-0.5 bg-slate-200 dark:bg-slate-800 group-hover:bg-emerald-200"></span>
+                                </h4>
+                                <div className={`w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-900 flex items-center justify-center transition-all ${showSecondaryFields ? 'rotate-180 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600' : 'text-slate-400'}`}>
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-4 h-4">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                                    </svg>
+                                </div>
+                            </button>
+                            
+                            {showSecondaryFields && (
+                                <div className="mt-6 space-y-6 animate-fadeIn">
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                <div>
+                                    <label className="block text-[10px] font-black text-slate-500 dark:text-slate-400 mb-2 mr-1">رقم جوال الطالب</label>
+                                    <input
+                                        type="text"
+                                        dir="ltr"
+                                        className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-900 border-2 border-transparent focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-800 rounded-2xl transition-all outline-none text-left dark:text-white font-bold"
+                                        placeholder="05xxxxxxxx"
+                                        value={phone}
+                                        onChange={(e) => setPhone(e.target.value)}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-black text-slate-500 dark:text-slate-400 mb-2 mr-1">رقم جوال ولي الأمر (1)</label>
+                                    <input
+                                        type="text"
+                                        dir="ltr"
+                                        className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-900 border-2 border-transparent focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-800 rounded-2xl transition-all outline-none text-left dark:text-white font-bold"
+                                        placeholder="05xxxxxxxx"
+                                        value={parentPhone}
+                                        onChange={(e) => setParentPhone(e.target.value)}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-black text-slate-500 dark:text-slate-400 mb-2 mr-1">رقم جوال ولي الأمر (2)</label>
+                                    <input
+                                        type="text"
+                                        dir="ltr"
+                                        className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-900 border-2 border-transparent focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-800 rounded-2xl transition-all outline-none text-left dark:text-white font-bold"
+                                        placeholder="05xxxxxxxx"
+                                        value={parentPhone2}
+                                        onChange={(e) => setParentPhone2(e.target.value)}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                <div>
+                                    <label className="block text-[10px] font-black text-slate-500 dark:text-slate-400 mb-2 mr-1">رقم الهوية / الإقامة</label>
+                                    <input
+                                        type="text"
+                                        className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-900 border-2 border-transparent focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-800 rounded-2xl transition-all outline-none dark:text-white font-bold"
+                                        placeholder="1xxxxxxxxx"
+                                        value={nationalId}
+                                        onChange={(e) => setNationalId(e.target.value)}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-black text-slate-500 dark:text-slate-400 mb-2 mr-1">الجنسية</label>
+                                    <div className="relative nationality-dropdown-container">
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsNationalityOpen(!isNationalityOpen)}
+                                            className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-900 border-2 border-transparent focus:border-indigo-500 bg-white dark:bg-slate-900 rounded-2xl transition-all outline-none dark:text-white font-bold flex justify-between items-center shadow-sm"
+                                        >
+                                            <span className={nationality ? 'text-slate-900 dark:text-white' : 'text-slate-400'}>
+                                                {nationality || 'اختر الجنسية...'}
+                                            </span>
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className={`w-4 h-4 transition-transform duration-300 ${isNationalityOpen ? 'rotate-180' : ''}`}>
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                                            </svg>
+                                        </button>
+
+                                        {isNationalityOpen && (
+                                            <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-[2rem] shadow-2xl z-[100] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                                                <div className="p-3 border-b border-slate-50 dark:border-slate-700">
+                                                    <input
+                                                        type="text"
+                                                        placeholder="ابحث عن جنسية..."
+                                                        className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 rounded-xl outline-none text-sm font-bold dark:text-white"
+                                                        value={searchQuery}
+                                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                                        onClick={(e) => e.stopPropagation()}
+                                                        autoFocus
+                                                    />
+                                                </div>
+                                                <div className="max-h-[300px] overflow-y-auto custom-scrollbar p-2">
+                                                    {(() => {
+                                                        const normalizeArabic = (text) => {
+                                                            if (!text) return '';
+                                                            return text
+                                                                .replace(/[أإآ]/g, 'ا')
+                                                                .replace(/ى/g, 'ي')
+                                                                .replace(/ة/g, 'ه')
+                                                                .replace(/[\u064B-\u0652]/g, ''); // Remove Tashkeel
+                                                        };
+
+                                                        const arabicMatch = (source, query) => {
+                                                            const s = source.toLowerCase();
+                                                            const q = query.toLowerCase();
+                                                            if (s.includes(q)) return true;
+
+                                                            const hasSpecificChars = /[أإآةى]/.test(q);
+                                                            if (hasSpecificChars) {
+                                                                // If user typed specific chars, don't normalize those out
+                                                                return s.includes(q);
+                                                            } else {
+                                                                // If user typed generic chars, use normalization
+                                                                return normalizeArabic(s).includes(normalizeArabic(q));
+                                                            }
+                                                        };
+
+                                                        const query = searchQuery;
+
+                                                        return ['arab', 'islamic', 'other'].map(group => {
+                                                            const groupItems = nationalities.filter(n => {
+                                                                return n.group === group && (arabicMatch(n.label, query) || arabicMatch(n.value, query));
+                                                            });
+                                                            
+                                                            if (groupItems.length === 0) return null;
+                                                            
+                                                            return (
+                                                                <div key={group} className="mb-2">
+                                                                    <div className="px-3 py-1 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                                                        {group === 'arab' ? 'الدول العربية' : group === 'islamic' ? 'الدول الإسلامية' : 'دول أخرى'}
+                                                                    </div>
+                                                                    {groupItems.map(n => (
+                                                                        <button
+                                                                            key={n.value}
+                                                                            type="button"
+                                                                            onClick={() => {
+                                                                                setNationality(n.value);
+                                                                                setIsNationalityOpen(false);
+                                                                                setSearchQuery('');
+                                                                            }}
+                                                                            className={`w-full text-right px-4 py-3 rounded-xl text-sm font-bold transition-colors flex items-center justify-between group ${nationality === n.value ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400' : 'hover:bg-slate-50 dark:hover:bg-slate-900/50 text-slate-700 dark:text-slate-300'}`}
+                                                                        >
+                                                                            <span>{n.label}</span>
+                                                                            {nationality === n.value && <span className="text-indigo-500">✓</span>}
+                                                                        </button>
+                                                                    ))}
+                                                                </div>
+                                                            );
+                                                        });
+                                                    })()}
+                                                    {nationalities.filter(n => {
+                                                        const normalizeArabic = (text) => {
+                                                            if (!text) return '';
+                                                            return text.replace(/[أإآ]/g, 'ا').replace(/ى/g, 'ي').replace(/ة/g, 'ه').replace(/[\u064B-\u0652]/g, '');
+                                                        };
+                                                        const arabicMatch = (source, query) => {
+                                                            const s = source.toLowerCase();
+                                                            const q = query.toLowerCase();
+                                                            if (s.includes(q)) return true;
+                                                            const hasSpecificChars = /[أإآةى]/.test(q);
+                                                            if (hasSpecificChars) return s.includes(q);
+                                                            return normalizeArabic(s).includes(normalizeArabic(q));
+                                                        };
+                                                        return arabicMatch(n.label, searchQuery);
+                                                    }).length === 0 && (
+                                                        <div className="p-4 text-center text-sm text-slate-400 font-bold italic">لا يوجد نتائج</div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-[10px] font-black text-slate-500 dark:text-slate-400 mb-2 mr-1">ملاحظات إضافية</label>
+                                <textarea
+                                    className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-900 border-2 border-transparent focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-800 rounded-2xl transition-all outline-none dark:text-white font-bold resize-none min-h-[100px]"
+                                    placeholder="أي ملاحظات تتعلق بحالة الطالب أو احتياجاته..."
+                                    value={studentNotes}
+                                    onChange={(e) => setStudentNotes(e.target.value)}
+                                ></textarea>
+                                </div>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

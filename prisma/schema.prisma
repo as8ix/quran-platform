@@ -54,11 +54,21 @@ model Student {
   halaqaId     Int?
   halaqa       Halaqa?  @relation(fields: [halaqaId], references: [id])
   
+  // Secondary/Optional Data
+  phone        String?
+  parentPhone  String?
+  parentPhone2 String?
+  nationalId   String?  // National ID or Passport
+  nationality  String?  // Student nationality
+  joinDate     DateTime? @default(now())
+  studentNotes String?   // General notes about the student
+  
   attendance   Attendance[]
   sessions     Session[]
   notifications Notification[]
   eventAssignments EventAssignment[]
   exams        Exam[]
+  updatedAt    DateTime @updatedAt @default(now())
 }
 
 model Attendance {

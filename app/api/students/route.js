@@ -162,7 +162,14 @@ export async function POST(request) {
                 juzCount: parseInt(juzCount) || 0,
                 reviewPlan,
                 dailyTargetPages: parseFloat(body.dailyTargetPages) || 1.0,
-                halaqaId: body.halaqaId ? parseInt(body.halaqaId) : null
+                halaqa: body.halaqaId ? { connect: { id: parseInt(body.halaqaId) } } : undefined,
+                phone: body.phone,
+                parentPhone: body.parentPhone,
+                parentPhone2: body.parentPhone2,
+                nationalId: body.nationalId,
+                nationality: body.nationality,
+                studentNotes: body.studentNotes,
+                joinDate: body.joinDate ? new Date(body.joinDate) : undefined
             }
         });
 
@@ -191,7 +198,14 @@ export async function PUT(request) {
                 juzCount: parseInt(juzCount) || 0,
                 reviewPlan,
                 dailyTargetPages: parseFloat(body.dailyTargetPages) || 1.0,
-                halaqaId: halaqaId ? parseInt(halaqaId) : null
+                halaqa: halaqaId ? { connect: { id: parseInt(halaqaId) } } : { disconnect: true },
+                phone: body.phone,
+                parentPhone: body.parentPhone,
+                parentPhone2: body.parentPhone2,
+                nationalId: body.nationalId,
+                nationality: body.nationality,
+                studentNotes: body.studentNotes,
+                joinDate: body.joinDate ? new Date(body.joinDate) : undefined
             }
         });
 

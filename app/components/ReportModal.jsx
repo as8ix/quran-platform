@@ -126,7 +126,7 @@ export default function ReportModal({ isOpen, onClose, teacher, teacherNames }) 
                                         </div>
                                         <div className="text-center">
                                             <div className="font-black text-slate-800 dark:text-white">التقرير الشهري</div>
-                                            <div className="text-[10px] text-slate-400 dark:text-slate-500 font-bold mt-1">إحصائيات الشهر كاملاً</div>
+                                            <div className="text-[10px] text-slate-400 dark:text-slate-500 font-bold mt-1">كشف غياب الشهر</div>
                                         </div>
                                     </button>
                                 </div>
