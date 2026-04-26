@@ -205,87 +205,138 @@ export default function ManageEvents({ teachers, students }) {
         });
     };
 
+    const getArabicCount = (count, singular, dual, plural, singularAccusative) => {
+        if (count === 0) return `لا يوجد ${plural}`;
+        if (count === 1) return singular;
+        if (count === 2) return dual;
+        if (count >= 3 && count <= 10) return `${count} ${plural}`;
+        if (count >= 11) return `${count} ${singularAccusative}`;
+        return `${count} ${singular}`;
+    };
+
     return (
         <>
-            <div className="premium-glass rounded-[3rem] p-8 shadow-2xl border border-white/20 dark:border-slate-800/50 flex flex-col h-full mt-10 reveal relative overflow-hidden group">
-                <div className="premium-glow-amber opacity-10 group-hover:opacity-20 transition-opacity"></div>
-                <div className="relative z-10 flex flex-col h-full">
-                <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-2xl font-black text-slate-800 dark:text-white flex items-center gap-3">
-                        <span className="w-10 h-10 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-2xl flex items-center justify-center text-xl">🏆</span>
-                        إدارة الأيام القرآنية
-                    </h2>
-                    <button
-                        onClick={() => {
-                            setEditingId(null);
-                            setNewEvent({ name: '', startDate: '', endDate: '', isActive: false, teacherIds: [], allowOpenTesting: false });
-                            setShowModal(true);
-                        }}
-                        className="bg-amber-600 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg shadow-amber-100 hover:bg-amber-700 transition-all active:scale-95"
-                    >
-                        + دورة جديدة
-                    </button>
-                </div>
+            <div className="premium-glass rounded-[2rem] sm:rounded-[3rem] p-6 sm:p-10 shadow-2xl shadow-slate-200/50 dark:shadow-none border border-white/20 dark:border-slate-800/50 flex flex-col h-full mt-6 sm:mt-10 reveal relative overflow-hidden group">
+                <div className="premium-glow-indigo opacity-10 group-hover:opacity-20 transition-all duration-700"></div>
+                <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-amber-500/10 rounded-full blur-[100px] group-hover:bg-amber-500/20 transition-all duration-1000"></div>
+                <div className="absolute -top-24 -right-24 w-64 h-64 bg-indigo-500/5 rounded-full blur-[100px] group-hover:bg-indigo-500/10 transition-all duration-1000"></div>
 
-                <div className="space-y-4 max-h-[600px] overflow-y-auto pl-2 custom-scrollbar flex-1 pb-4">
-                    {loading ? (
-                        <div className="text-center py-20 opacity-50 dark:text-slate-400">جاري تحميل الفعاليات...</div>
-                    ) : events.length > 0 ? events.map((event) => (
-                        <div key={event.id} className={`group p-6 bg-white/30 dark:bg-slate-900/40 rounded-[2rem] border-2 ${event.isActive ? 'border-amber-500/50 dark:border-amber-500/30' : 'border-white/10 dark:border-slate-800/50'} hover:bg-white/60 dark:hover:bg-slate-800/60 hover:shadow-2xl hover:shadow-amber-500/10 transition-all duration-500 relative overflow-hidden`}>
-                            {event.isActive && <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/10 rounded-full blur-3xl animate-pulse"></div>}
-                            <div className="flex justify-between items-center relative z-10">
-                                <div className="flex items-center gap-5">
-                                    <div className="w-16 h-16 bg-gradient-to-br from-white to-amber-50 dark:from-slate-800 dark:to-slate-900 border-2 border-amber-100 dark:border-amber-900/50 text-amber-600 dark:text-amber-400 rounded-3xl flex flex-col items-center justify-center shadow-lg group-hover:rotate-12 transition-all">
-                                        <span className="text-xl font-black leading-none">{new Date(event.startDate).getDate()}</span>
-                                        <span className="text-[10px] font-black opacity-60 uppercase tracking-widest mt-1">
-                                            {new Date(event.startDate).toLocaleString('en-US', { month: 'short' })}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <div className="font-black text-xl text-slate-800 dark:text-white group-hover:text-amber-700 dark:group-hover:text-amber-500 transition-colors uppercase tracking-tight">{event.name}</div>
-                                        <div className="text-xs text-slate-500 dark:text-slate-400 font-bold flex flex-wrap items-center gap-x-4 gap-y-2 mt-2">
-                                            <span className="flex items-center gap-2 bg-white/50 dark:bg-slate-900/50 px-3 py-1.5 rounded-xl shadow-sm border border-black/5 dark:border-white/5">
-                                                🗓️ {new Date(event.startDate).toLocaleDateString('en-GB')}
-                                                <span className="text-[10px] text-amber-600 dark:text-amber-400 font-black">
-                                                    ({new Date(event.startDate).toLocaleDateString('ar-u-ca-islamic-nu-latn', {day:'numeric', month:'long', year:'numeric'})})
-                                                </span>
+                <div className="relative z-10 flex flex-col h-full">
+                    <div className="flex flex-col sm:flex-row justify-between items-center gap-6 mb-8 pb-6 border-b border-slate-100/50 dark:border-slate-800/50 text-center sm:text-right">
+                        <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-5">
+                            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-amber-400 to-amber-600 text-white rounded-2xl flex items-center justify-center text-xl sm:text-2xl shadow-lg shadow-amber-500/20 group-hover:rotate-12 transition-all duration-500">
+                                🏆
+                            </div>
+                            <div>
+                                <h2 className="text-2xl sm:text-3xl font-black text-slate-800 dark:text-white tracking-tight">إدارة الأيام القرآنية</h2>
+                                <p className="text-[10px] sm:text-xs font-bold text-slate-400 dark:text-slate-500 mt-1 uppercase tracking-widest">تخطيط ومتابعة الفعاليات الخاصة</p>
+                            </div>
+                        </div>
+                        <button
+                            onClick={() => {
+                                setEditingId(null);
+                                setNewEvent({ name: '', startDate: '', endDate: '', isActive: false, teacherIds: [], allowOpenTesting: false });
+                                setShowModal(true);
+                            }}
+                            className="w-full sm:w-auto bg-slate-900 dark:bg-amber-600 text-white px-8 py-3.5 sm:py-4 rounded-[1.2rem] sm:rounded-[1.5rem] text-sm font-black shadow-xl hover:bg-black dark:hover:bg-amber-500 transition-all active:scale-95 flex items-center justify-center gap-3 group/btn"
+                        >
+                            <span className="bg-white/20 p-1 rounded-lg group-hover/btn:rotate-90 transition-transform text-xs">➕</span>
+                            دورة جديدة
+                        </button>
+                    </div>
+
+                    <div className="space-y-6 max-h-[600px] overflow-y-auto pl-2 custom-scrollbar flex-1 pb-4">
+                        {loading ? (
+                            <div className="flex flex-col items-center justify-center py-20 gap-4 opacity-50">
+                                <div className="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
+                                <div className="text-slate-400 font-black text-sm">جاري تحميل الفعاليات...</div>
+                            </div>
+                        ) : events.length > 0 ? events.map((event) => (
+                            <div key={event.id} className={`group/card p-6 sm:p-8 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md rounded-[2rem] sm:rounded-[2.5rem] border-2 transition-all duration-500 relative overflow-hidden ${event.isActive ? 'border-amber-400 shadow-2xl shadow-amber-500/10' : 'border-slate-100 dark:border-slate-800/50 hover:border-amber-200 dark:hover:border-slate-700 shadow-sm'}`}>
+                                {event.isActive && (
+                                    <>
+                                        <div className="absolute top-0 right-0 px-4 sm:px-6 py-1.5 sm:py-2 bg-amber-500 text-white text-[8px] sm:text-[10px] font-black rounded-bl-2xl sm:rounded-bl-3xl shadow-lg z-20 animate-pulse">
+                                            دورة نشطة حالياً
+                                        </div>
+                                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-400/20 dark:via-amber-400/10 to-transparent animate-shimmer skew-x-12 z-0 pointer-events-none"></div>
+                                    </>
+                                )}
+                                
+                                <div className="flex flex-col lg:flex-row justify-between items-center gap-6 sm:gap-8 relative z-10">
+                                    <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 w-full lg:w-auto text-center sm:text-right">
+                                        <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-white to-amber-50 dark:from-slate-800 dark:to-slate-900 border-2 border-amber-100 dark:border-amber-900/50 text-amber-600 dark:text-amber-400 rounded-[1.5rem] sm:rounded-[2rem] flex flex-col items-center justify-center shadow-xl group-hover/card:scale-110 transition-all duration-500 relative overflow-hidden shrink-0">
+                                            <div className="absolute inset-0 bg-amber-500/5 animate-pulse"></div>
+                                            <span className="text-xl sm:text-2xl font-black leading-none relative z-10">{new Date(event.startDate).getDate()}</span>
+                                            <span className="text-[8px] sm:text-[10px] font-black opacity-60 uppercase tracking-widest mt-1 relative z-10">
+                                                {new Date(event.startDate).toLocaleString('en-US', { month: 'short' })}
                                             </span>
-                                            <span className="bg-indigo-500/10 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 px-3 py-1.5 rounded-xl text-[10px] font-black border border-indigo-500/20 dark:border-indigo-800/50">{event.teachers?.length || 0} مشاركين</span>
+                                        </div>
+                                        
+                                        <div className="flex-1 w-full sm:w-auto">
+                                            <h3 className="font-black text-xl sm:text-2xl text-slate-800 dark:text-white mb-2 sm:mb-3 tracking-tight">{event.name}</h3>
+                                            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 sm:gap-3">
+                                                <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800/50 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl sm:rounded-2xl border border-slate-200 dark:border-slate-700/50 shadow-sm">
+                                                    <span className="text-xs">📅</span>
+                                                    <span className="text-[10px] sm:text-xs font-black text-slate-600 dark:text-slate-300">
+                                                        {new Date(event.startDate).toLocaleDateString('ar-u-ca-islamic-nu-latn', {day:'numeric', month:'long', year:'numeric'})}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center gap-2 bg-indigo-50 dark:bg-indigo-900/20 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl sm:rounded-2xl border border-indigo-100 dark:border-indigo-800/30">
+                                                    <span className="text-[10px] sm:text-indigo-500 text-indigo-500">👥</span>
+                                                    <span className="text-[9px] sm:text-[10px] font-black text-indigo-700 dark:text-indigo-400">
+                                                        {getArabicCount(event.teachers?.length || 0, 'معلم مشارك واحد', 'معلمان مشاركان', 'معلمين مشاركين', 'معلماً مشاركاً')}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto">
+                                        <button
+                                            onClick={() => openAssignmentModal(event)}
+                                            className="w-full sm:w-auto lg:flex-none bg-emerald-600 hover:bg-emerald-500 text-white px-8 py-3.5 sm:py-4 rounded-xl sm:rounded-2xl text-sm font-black shadow-lg shadow-emerald-500/20 transition-all active:scale-95 flex items-center justify-center gap-3 group/manage"
+                                        >
+                                            <span className="group-hover/manage:animate-bounce">🛡️</span>
+                                            إدارة الطلاب
+                                        </button>
+                                        
+                                        <div className="flex gap-2 w-full sm:w-auto">
+                                            <button
+                                                onClick={() => openEditModal(event)}
+                                                className="flex-1 sm:w-14 sm:h-14 py-3 sm:py-0 flex items-center justify-center bg-white dark:bg-slate-800 text-slate-400 dark:text-slate-500 rounded-xl sm:rounded-2xl hover:bg-amber-50 dark:hover:bg-amber-900/30 hover:text-amber-600 transition-all border border-slate-100 dark:border-slate-700 shadow-sm group/edit"
+                                                title="تعديل"
+                                            >
+                                                <svg className="w-5 h-5 sm:w-6 sm:h-6 group-hover/edit:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                </svg>
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(event.id, event.name)}
+                                                className="flex-1 sm:w-14 sm:h-14 py-3 sm:py-0 flex items-center justify-center bg-white dark:bg-slate-800 text-slate-400 dark:text-slate-500 rounded-xl sm:rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-600 transition-all border border-slate-100 dark:border-slate-700 shadow-sm group/del"
+                                                title="حذف"
+                                            >
+                                                <svg className="w-5 h-5 sm:w-6 sm:h-6 group-hover/del:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-3">
-                                    <button
-                                        onClick={() => openAssignmentModal(event)}
-                                        className="bg-slate-900 dark:bg-emerald-600 text-white px-5 py-2.5 rounded-2xl text-sm font-black hover:scale-105 transition-all shadow-xl active:scale-95"
-                                    >
-                                        إدارة الطلاب
-                                    </button>
-                                    <div className="flex gap-2">
-                                        <button
-                                            onClick={() => openEditModal(event)}
-                                            className="w-11 h-11 flex items-center justify-center bg-white/50 dark:bg-slate-800/50 text-slate-400 dark:text-slate-500 rounded-xl hover:text-amber-600 transition-all border border-black/5 dark:border-white/5 shadow-sm"
-                                        >
-                                            ✏️
-                                        </button>
-                                        <button
-                                            onClick={() => handleDelete(event.id, event.name)}
-                                            className="w-11 h-11 flex items-center justify-center bg-white/50 dark:bg-slate-800/50 text-slate-400 dark:text-slate-500 rounded-xl hover:text-red-600 transition-all border border-black/5 dark:border-white/5 shadow-sm"
-                                        >
-                                            🗑️
-                                        </button>
+                            </div>
+                        )) : (
+                            <div className="text-center py-20 bg-slate-50/50 dark:bg-slate-900/30 rounded-[3rem] border-2 border-dashed border-slate-200 dark:border-slate-800">
+                                <div className="flex justify-center mb-6 opacity-10">
+                                    <div className="w-24 h-24 bg-slate-400 dark:bg-slate-600 rounded-full flex items-center justify-center">
+                                        <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                                        </svg>
                                     </div>
                                 </div>
+                                <h3 className="text-slate-400 dark:text-slate-500 font-black text-xl">لا يوجد فعاليات قرآنية نشطة</h3>
+                                <p className="text-slate-300 dark:text-slate-600 font-bold mt-2">ابدأ بإضافة أول فعالية لتشجيع الطلاب والمشاركة</p>
                             </div>
-                        </div>
-                    )) : (
-                        <div className="text-center py-20 bg-white/20 dark:bg-slate-900/20 rounded-[3rem] border-2 border-dashed border-slate-200 dark:border-slate-800">
-                            <div className="text-4xl mb-4 opacity-30">🏆</div>
-                            <h3 className="text-slate-400 dark:text-slate-500 font-black text-lg">لا يوجد فعاليات قرآنية نشطة</h3>
-                            <p className="text-slate-300 dark:text-slate-600 text-sm mt-1">ابدأ بإضافة أول فعالية لتشجيع الطلاب</p>
-                        </div>
-                    )}
-                </div>
+                        )}
+                    </div>
                 </div>
             </div>
 

@@ -47,15 +47,46 @@
   }
 
   .premium-glass {
-    @apply bg-white/20 dark:bg-slate-950/40 backdrop-blur-2xl border border-white/30 dark:border-slate-800/50 shadow-xl shadow-slate-200/40 dark:shadow-none;
+    @apply bg-white/20 dark:bg-slate-950/40 backdrop-blur-2xl border border-white/30 dark:border-slate-800/50 shadow-xl shadow-slate-200/40 dark:shadow-none relative overflow-hidden;
   }
 
   .premium-glow-red {
-    @apply absolute top-0 right-0 w-32 h-32 bg-red-500/10 dark:bg-red-500/20 rounded-full blur-3xl transition-opacity duration-1000;
+    @apply absolute top-0 right-0 w-80 h-80 bg-red-500/40 dark:bg-red-500/40 rounded-full blur-[80px] transition-opacity duration-1000 pointer-events-none;
   }
 
   .premium-glow-amber {
-    @apply absolute bottom-0 left-0 w-32 h-32 bg-amber-500/10 dark:bg-amber-500/10 rounded-full blur-3xl transition-opacity duration-1000;
+    @apply absolute bottom-0 left-0 w-80 h-80 bg-amber-500/40 dark:bg-amber-500/40 rounded-full blur-[80px] transition-opacity duration-1000 pointer-events-none;
+  }
+
+  @keyframes spin-slow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  .animate-spin-slow {
+    animation: spin-slow 20s linear infinite;
+  }
+
+  .premium-glow-emerald {
+    @apply absolute -top-40 -right-40 w-[35rem] h-[35rem] bg-emerald-500/20 dark:bg-emerald-500/25 rounded-full blur-[160px] pointer-events-none;
+    animation: spin-slow 25s linear infinite;
+  }
+
+  .premium-glow-purple {
+    @apply absolute -bottom-40 -left-40 w-[35rem] h-[35rem] bg-purple-500/20 dark:bg-purple-500/25 rounded-full blur-[160px] pointer-events-none;
+    animation: spin-slow 30s linear infinite reverse;
+  }
+
+  .premium-glow-indigo {
+    @apply absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-indigo-500/20 dark:bg-indigo-500/30 rounded-full blur-[120px] transition-opacity duration-1000 pointer-events-none;
+  }
+
+  .card-glow-emerald {
+    @apply absolute -top-12 -right-12 w-56 h-56 bg-emerald-500/45 dark:bg-emerald-500/50 rounded-full blur-[40px] transition-opacity duration-700 pointer-events-none;
+  }
+
+  .card-glow-purple {
+    @apply absolute -bottom-12 -left-12 w-56 h-56 bg-purple-500/45 dark:bg-purple-500/50 rounded-full blur-[40px] transition-opacity duration-700 pointer-events-none;
   }
 
   .btn-primary {
@@ -93,7 +124,7 @@
   }
 
   .animate-pulse-slow {
-    animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
 
   .reveal {
@@ -140,13 +171,22 @@
     animation: bounce-subtle 3s ease-in-out infinite;
   }
 
-  @keyframes pulse-glow {
-    0%, 100% { opacity: 0.5; transform: scale(1); }
-    50% { opacity: 0.8; transform: scale(1.1); }
+  .animate-pulse-glow {
+    animation: pulse-glow 6s ease-in-out infinite;
   }
 
-  .animate-pulse-glow {
-    animation: pulse-glow 4s ease-in-out infinite;
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.85; }
+  }
+
+  @keyframes shimmer {
+    0% { transform: translateX(-100%) skewX(-12deg); }
+    100% { transform: translateX(200%) skewX(-12deg); }
+  }
+
+  .animate-shimmer {
+    animation: shimmer 2.5s infinite;
   }
 }
 

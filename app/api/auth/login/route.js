@@ -37,6 +37,7 @@ export async function POST(request) {
 
             return NextResponse.json({
                 id: student.id,
+                displayId: student.displayId,
                 name: student.name,
                 username: student.username,
                 role: 'STUDENT'
@@ -88,6 +89,7 @@ export async function POST(request) {
 
         return NextResponse.json({
             id: user.id,
+            displayId: user.displayId,
             name: user.name,
             username: user.username,
             role: user.role,

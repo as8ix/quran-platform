@@ -214,6 +214,7 @@ export default function QuranicDaysDashboard() {
                 <Navbar
                     userType={user?.role?.toLowerCase() || 'teacher'}
                     userName={user ? `أهلاً ${user.name.split(' ')[0]} 👋` : ''}
+                    displayId={user?.displayId}
                 />
             )}
 

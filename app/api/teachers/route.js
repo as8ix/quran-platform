@@ -11,21 +11,17 @@ export async function GET() {
       },
       select: {
         id: true,
+        displayId: true,
         name: true,
         username: true,
         password: true,
-        createdAt: true,
-        _count: {
-          select: {
-            teacherHalaqas: true,
-            assistantHalaqas: true
-          }
-        }
+        createdAt: true
       }
     });
 
     return NextResponse.json(teachers);
   } catch (error) {
+    console.error("GET Teachers Error:", error);
     return NextResponse.json({ error: 'Failed to fetch teachers' }, { status: 500 });
   }
 }
@@ -44,10 +40,18 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Username already exists' }, { status: 400 });
     }
 
+    // Get next displayId
+    const lastTeacher = await prisma.user.findFirst({
+      where: { role: 'TEACHER' },
+      orderBy: { displayId: 'desc' }
+    });
+    const nextDisplayId = (lastTeacher?.displayId || 0) + 1;
+
     const teacher = await prisma.user.create({
       data: {
         name,
         username,
+        displayId: nextDisplayId,
         password, // In a real app, hash this!
         role: 'TEACHER'
       }

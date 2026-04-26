@@ -286,7 +286,7 @@ export default function StudentDashboard() {
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white font-noto rtl transition-colors duration-300" dir="rtl">
-            <Navbar userType="student" userName={`أهلًا ${student.name} 👋`} onLogout={() => router.push('/login')} />
+            <Navbar userType="student" userName={`أهلًا ${student.name} 👋`} onLogout={() => router.push('/login')} displayId={student.displayId} />
 
             {showProfileModal && (
                 <ProfileModal 

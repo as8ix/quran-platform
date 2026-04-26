@@ -50,7 +50,7 @@ const HIJRI_MONTHS = [
     { value: 12, label: 'ذو الحجة' }
 ];
 
-function TeacherAttendanceReportContent() {
+function SupervisorAttendanceReportContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const type = searchParams.get('type') || 'week';
@@ -81,7 +81,7 @@ function TeacherAttendanceReportContent() {
         const storedUser = sessionStorage.getItem('user');
         if (storedUser) {
             const parsed = JSON.parse(storedUser);
-            if (parsed.role !== 'TEACHER') {
+            if (parsed.role !== 'SUPERVISOR') {
                 router.push('/login');
             }
             setUser(parsed);
@@ -140,7 +140,11 @@ function TeacherAttendanceReportContent() {
                 const startStr = startDate.toISOString().split('T')[0];
                 const endStr = endDate.toISOString().split('T')[0];
 
-                const paramTeacherId = searchParams.get('teacherId') || user.id;
+                const paramTeacherId = searchParams.get('teacherId');
+                if (!paramTeacherId) {
+                    setLoading(false);
+                    return;
+                }
                 const targetTeacherId = parseInt(paramTeacherId);
 
                 // Find teacher's halaqaId
@@ -237,7 +241,7 @@ function TeacherAttendanceReportContent() {
         }
     };
 
-    if (loading) return <div className="p-10 text-center font-bold text-slate-500">جاري إعداد التقرير...</div>;
+    if (loading) return <div className="p-10 text-center font-bold text-slate-500">جاري إعداد تقرير المشرف...</div>;
 
     return (
         <div className="min-h-screen bg-white font-noto p-8 text-right" dir="rtl">
@@ -288,7 +292,7 @@ function TeacherAttendanceReportContent() {
                             />
                         </div>
                     )}
-                    <button onClick={() => router.push('/teacher')} className="mr-4 px-6 py-2 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition-all">← عودة للوحة المعلم</button>
+                    <button onClick={() => router.push('/supervisor')} className="mr-4 px-6 py-2 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition-all">← عودة للوحة المشرف</button>
                 </div>
                 <button
                     onClick={() => window.print()}
@@ -302,7 +306,7 @@ function TeacherAttendanceReportContent() {
             <div className="bg-slate-50 rounded-[2rem] p-8 mb-8 border border-slate-100 shadow-sm print:shadow-none print:border-none print:bg-transparent print:p-0">
                 <div className="flex justify-between items-end mb-6">
                     <div>
-                        <h1 className="text-3xl font-black text-slate-900 mb-2">تقرير الحضور والغياب (المعلم)</h1>
+                        <h1 className="text-3xl font-black text-slate-900 mb-2">تقرير الحضور والغياب (إدارة عامة)</h1>
                         <p className="text-slate-500 font-medium text-lg">{title}</p>
                     </div>
                     <div className="flex gap-4">
@@ -389,10 +393,10 @@ function TeacherAttendanceReportContent() {
     );
 }
 
-export default function TeacherAttendanceReport() {
+export default function SupervisorAttendanceReport() {
     return (
         <Suspense fallback={<div className="p-10 text-center">جاري التحميل...</div>}>
-            <TeacherAttendanceReportContent />
+            <SupervisorAttendanceReportContent />
         </Suspense>
     );
 }

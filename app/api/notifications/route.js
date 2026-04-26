@@ -12,8 +12,14 @@ export async function GET(request) {
         }
 
         const whereClause = {};
-        if (userId) whereClause.userId = parseInt(userId);
-        if (studentId) whereClause.studentId = parseInt(studentId);
+        if (userId) {
+            const parsedId = Number(userId);
+            if (!isNaN(parsedId)) whereClause.userId = parsedId;
+        }
+        if (studentId) {
+            const parsedId = Number(studentId);
+            if (!isNaN(parsedId)) whereClause.studentId = parsedId;
+        }
 
         const notifications = await prisma.notification.findMany({
             where: whereClause,
@@ -24,6 +30,7 @@ export async function GET(request) {
 
         return NextResponse.json(notifications);
     } catch (error) {
+        console.error('API Notifications GET Error:', error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
@@ -49,14 +56,14 @@ export async function POST(request) {
 
         const notification = await prisma.notification.create({
             data: {
-                userId: userId ? parseInt(userId) : null,
-                studentId: studentId ? parseInt(studentId) : null,
+                userId: userId ? Number(userId) : null,
+                studentId: studentId ? Number(studentId) : null,
                 title,
                 message,
                 type: type || 'INFO',
                 attachmentUrl,
                 attachmentType,
-                senderId: senderId ? parseInt(senderId) : null,
+                senderId: senderId ? Number(senderId) : null,
                 senderRole,
                 isRead: false
             }
@@ -64,6 +71,7 @@ export async function POST(request) {
 
         return NextResponse.json(notification);
     } catch (error) {
+        console.error('API Notifications POST Error:', error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }

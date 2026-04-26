@@ -145,10 +145,17 @@ export async function POST(request) {
         const body = await request.json();
         const { name, username, password, hifzProgress, currentHifzSurahId, juzCount, reviewPlan } = body;
 
+        // Get next displayId
+        const lastStudent = await prisma.student.findFirst({
+            orderBy: { displayId: 'desc' }
+        });
+        const nextDisplayId = (lastStudent?.displayId || 0) + 1;
+
         const newStudent = await prisma.student.create({
             data: {
                 name,
                 username,
+                displayId: nextDisplayId,
                 password,
                 hifzProgress,
                 currentHifzSurahId: parseInt(currentHifzSurahId) || 1,

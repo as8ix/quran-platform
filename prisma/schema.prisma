@@ -13,6 +13,7 @@ datasource db {
 
 model User {
   id        Int      @id @default(autoincrement())
+  displayId Int?     // Category-specific ID (e.g., Teacher #1, Supervisor #1)
   username  String   @unique
   password  String
   name      String
@@ -39,6 +40,7 @@ model Halaqa {
 
 model Student {
   id           Int      @id @default(autoincrement())
+  displayId    Int?     // Student-specific ID (e.g., Student #1)
   name         String
   username     String   @unique
   password     String

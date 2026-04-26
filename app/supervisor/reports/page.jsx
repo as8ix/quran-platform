@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import { formatHijri } from '../../utils/dateUtils';
 
-function TeacherWeeklyReportContent() {
+function SupervisorWeeklyReportContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const paramTeacherId = searchParams.get('teacherId');
@@ -34,7 +34,7 @@ function TeacherWeeklyReportContent() {
         const storedUser = sessionStorage.getItem('user');
         if (storedUser) {
             const parsed = JSON.parse(storedUser);
-            if (parsed.role !== 'TEACHER') {
+            if (parsed.role !== 'SUPERVISOR') {
                 router.push('/login');
             }
             setUser(parsed);
@@ -44,15 +44,14 @@ function TeacherWeeklyReportContent() {
     }, [router]);
 
     useEffect(() => {
-        if (user && (paramTeacherId || user.id)) fetchReport();
+        if (user && paramTeacherId) fetchReport();
     }, [user, startDate, endDate, paramTeacherId]);
 
     const fetchReport = async () => {
-        const targetId = paramTeacherId || user?.id;
-        if (!targetId) return;
+        if (!user || !paramTeacherId) return;
         setLoading(true);
         try {
-            const res = await fetch(`/api/reports/weekly?teacherId=${targetId}&startDate=${startDate}&endDate=${endDate}`);
+            const res = await fetch(`/api/reports/weekly?teacherId=${paramTeacherId}&startDate=${startDate}&endDate=${endDate}`);
             if (res.ok) {
                 setReportData(await res.json());
             } else {
@@ -102,7 +101,7 @@ function TeacherWeeklyReportContent() {
                     </div>
                 </div>
                 <div className="flex gap-3">
-                    <button onClick={() => router.push('/teacher')} className="px-6 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold hover:bg-slate-50 transition-colors shadow-sm">← عودة للوحة المعلم</button>
+                    <button onClick={() => router.push('/supervisor')} className="px-6 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold hover:bg-slate-50 transition-colors shadow-sm">← عودة للوحة المشرف</button>
                     <button onClick={() => window.print()} className="flex items-center gap-2 px-6 py-2.5 bg-slate-900 text-white rounded-xl font-bold shadow-lg hover:bg-slate-800 transition-colors">
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 00-2 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
                         طباعة / PDF
@@ -113,7 +112,7 @@ function TeacherWeeklyReportContent() {
             <div className="bg-slate-50 rounded-[2rem] p-8 mb-8 border border-slate-100 shadow-sm print:shadow-none print:border-none print:bg-transparent print:p-0">
                 <div className="flex justify-between items-start mb-8">
                     <div>
-                        <h1 className="text-3xl font-black text-slate-900 mb-1">التقرير المجمع الشامل (المعلم)</h1>
+                        <h1 className="text-3xl font-black text-slate-900 mb-1">التقرير المجمع الشامل (إدارة عامة)</h1>
                         <p className="text-slate-500 font-medium text-lg">الفترة من: {startHijri} إلى {endHijri}</p>
                     </div>
                     <img src="/mosque-logo.png" alt="شعار الحلقة" className="w-16 h-16 object-contain opacity-70" />
@@ -128,9 +127,9 @@ function TeacherWeeklyReportContent() {
                 </div>
 
                 {loading ? (
-                    <div className="text-center py-20 text-emerald-600 font-bold animate-pulse">جاري صياغة التقرير...</div>
+                    <div className="text-center py-20 text-emerald-600 font-bold animate-pulse">جاري صياغة تقرير المشرف...</div>
                 ) : reportData.length === 0 ? (
-                    <div className="text-center py-20 text-slate-400 font-bold">لا توجد بيانات لهذه الفترة</div>
+                    <div className="text-center py-20 text-slate-400 font-bold">لا توجد بيانات لهذه الفترة أو لم يتم اختيار معلم</div>
                 ) : (
                     <div className="bg-white rounded-[1.5rem] shadow-xl shadow-slate-200/50 overflow-hidden border border-slate-100 print:shadow-none print:rounded-none print:border-0 print:bg-transparent">
                         <table className="w-full border-collapse text-sm">
@@ -178,10 +177,10 @@ function TeacherWeeklyReportContent() {
     );
 }
 
-export default function TeacherWeeklyReport() {
+export default function SupervisorWeeklyReport() {
     return (
         <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="w-10 h-10 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin"></div></div>}>
-            <TeacherWeeklyReportContent />
+            <SupervisorWeeklyReportContent />
         </Suspense>
     );
 }
