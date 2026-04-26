@@ -75,6 +75,26 @@ function SupervisorWeeklyReportContent() {
         return { present, late, absentExcused, absentUnexcused, total: present + absentExcused + absentUnexcused };
     };
 
+    const [sortBy, setSortBy] = useState('name'); // 'name', 'attendance', 'pages', 'combined'
+
+    const sortedData = [...reportData].sort((a, b) => {
+        if (sortBy === 'name') return a.name.localeCompare(b.name, 'ar');
+        
+        const attA = getAttendanceStats(a.attendance);
+        const attB = getAttendanceStats(b.attendance);
+        const pagesA = a.sessions.reduce((sum, s) => sum + (s.pagesCount || 0), 0);
+        const pagesB = b.sessions.reduce((sum, s) => sum + (s.pagesCount || 0), 0);
+
+        if (sortBy === 'attendance') return attB.present - attA.present;
+        if (sortBy === 'pages') return pagesB - pagesA;
+        if (sortBy === 'combined') {
+            const scoreA = attA.present + pagesA;
+            const scoreB = attB.present + pagesB;
+            return scoreB - scoreA;
+        }
+        return 0;
+    });
+
     const totalPresent = reportData.reduce((sum, s) => sum + getAttendanceStats(s.attendance).present, 0);
     const totalLate = reportData.reduce((sum, s) => sum + getAttendanceStats(s.attendance).late, 0);
     const totalAbsent = reportData.reduce((sum, s) => {
@@ -89,30 +109,62 @@ function SupervisorWeeklyReportContent() {
 
     return (
         <div className="min-h-screen bg-white font-noto p-8 text-right" dir="rtl">
-            <div className="no-print flex flex-wrap justify-between items-center gap-4 mb-8 bg-slate-50 rounded-3xl p-6 border border-slate-100 shadow-sm">
-                <div className="flex gap-4 items-end flex-wrap">
-                    <div>
-                        <label className="block text-xs font-bold text-slate-600 mb-2">من تاريخ</label>
-                        <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="px-4 py-2 bg-white border border-slate-200 rounded-xl font-bold text-slate-900 outline-none focus:border-emerald-500 shadow-sm" />
+            <div className="no-print flex flex-col gap-6 mb-8 bg-slate-50 rounded-3xl p-6 border border-slate-100 shadow-sm">
+                <div className="flex flex-wrap justify-between items-center gap-4">
+                    <div className="flex gap-4 items-end flex-wrap">
+                        <div>
+                            <label className="block text-xs font-bold text-slate-600 mb-2">من تاريخ</label>
+                            <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="px-4 py-2 bg-white border border-slate-200 rounded-xl font-bold text-slate-900 outline-none focus:border-emerald-500 shadow-sm" />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-slate-600 mb-2">إلى تاريخ</label>
+                            <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="px-4 py-2 bg-white border border-slate-200 rounded-xl font-bold text-slate-900 outline-none focus:border-emerald-500 shadow-sm" />
+                        </div>
                     </div>
-                    <div>
-                        <label className="block text-xs font-bold text-slate-600 mb-2">إلى تاريخ</label>
-                        <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="px-4 py-2 bg-white border border-slate-200 rounded-xl font-bold text-slate-900 outline-none focus:border-emerald-500 shadow-sm" />
+                    <div className="flex gap-3">
+                        <button onClick={() => router.push('/supervisor')} className="px-6 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold hover:bg-slate-50 transition-colors shadow-sm">← عودة للوحة المشرف</button>
+                        <button onClick={() => window.print()} className="flex items-center gap-2 px-6 py-2.5 bg-slate-900 text-white rounded-xl font-bold shadow-lg hover:bg-slate-800 transition-colors">
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 00-2 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
+                            طباعة / PDF
+                        </button>
                     </div>
                 </div>
-                <div className="flex gap-3">
-                    <button onClick={() => router.push('/supervisor')} className="px-6 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold hover:bg-slate-50 transition-colors shadow-sm">← عودة للوحة المشرف</button>
-                    <button onClick={() => window.print()} className="flex items-center gap-2 px-6 py-2.5 bg-slate-900 text-white rounded-xl font-bold shadow-lg hover:bg-slate-800 transition-colors">
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 00-2 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
-                        طباعة / PDF
-                    </button>
+
+                <div className="flex flex-col gap-3 pt-4 border-t border-slate-200/60">
+                    <label className="text-xs font-black text-slate-500">ترتيب الطلاب حسب:</label>
+                    <div className="flex flex-wrap gap-2">
+                        <button 
+                            onClick={() => setSortBy('name')}
+                            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${sortBy === 'name' ? 'bg-emerald-600 text-white border-emerald-600 shadow-md shadow-emerald-200' : 'bg-white text-slate-600 border-slate-200 hover:border-emerald-300'}`}
+                        >
+                            أبجديًا (الاسم)
+                        </button>
+                        <button 
+                            onClick={() => setSortBy('attendance')}
+                            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${sortBy === 'attendance' ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-200' : 'bg-white text-slate-600 border-slate-200 hover:border-indigo-300'}`}
+                        >
+                            الأكثر حضورًا
+                        </button>
+                        <button 
+                            onClick={() => setSortBy('pages')}
+                            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${sortBy === 'pages' ? 'bg-amber-600 text-white border-amber-600 shadow-md shadow-amber-200' : 'bg-white text-slate-600 border-slate-200 hover:border-amber-300'}`}
+                        >
+                            الأكثر تسميعًا (أوجه)
+                        </button>
+                        <button 
+                            onClick={() => setSortBy('combined')}
+                            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${sortBy === 'combined' ? 'bg-slate-800 text-white border-slate-800 shadow-md shadow-slate-300' : 'bg-white text-slate-600 border-slate-200 hover:border-slate-400'}`}
+                        >
+                            الأعلى إنجازاً (حضور + تسميع)
+                        </button>
+                    </div>
                 </div>
             </div>
 
             <div className="bg-slate-50 rounded-[2rem] p-8 mb-8 border border-slate-100 shadow-sm print:shadow-none print:border-none print:bg-transparent print:p-0">
                 <div className="flex justify-between items-start mb-8">
                     <div>
-                        <h1 className="text-3xl font-black text-slate-900 mb-1">التقرير المجمع الشامل (إدارة عامة)</h1>
+                        <h1 className="text-3xl font-black text-slate-900 mb-1">التقرير المجمع الشامل {reportData.length > 0 ? `(${reportData[0].halaqaName})` : ''}</h1>
                         <p className="text-slate-500 font-medium text-lg">الفترة من: {startHijri} إلى {endHijri}</p>
                     </div>
                     <img src="/mosque-logo.png" alt="شعار الحلقة" className="w-16 h-16 object-contain opacity-70" />
@@ -146,7 +198,7 @@ function SupervisorWeeklyReportContent() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-50 print:divide-slate-200">
-                                {reportData.map((student, idx) => {
+                                {sortedData.map((student, idx) => {
                                     const att = getAttendanceStats(student.attendance);
                                     const hifzDays = new Set(student.sessions.filter(s => s.hifzSurah).map(s => new Date(s.date).toISOString().split('T')[0])).size;
                                     const majorDays = new Set(student.sessions.filter(s => s.murajaahFromSurah).map(s => new Date(s.date).toISOString().split('T')[0])).size;
