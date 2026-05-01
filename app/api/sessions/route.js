@@ -90,33 +90,33 @@ export async function POST(request) {
             if (student) {
                 // Determine Next Surah
                 let currentSurahId = student.currentHifzSurahId;
+                let nextSurahId = null;
 
-                if (currentSurahId <= 2) {
-                    // Finished Baqarah (2) or Fatiha (1) -> KHATIM
-                    // User requested to show Khatim immediately after Baqarah
+                if (currentSurahId === 1) {
+                    // Finished Fatiha (1) -> Start from An-Nas (114)
+                    nextSurahId = 114;
+                } else if (currentSurahId === 2) {
+                    // Finished Baqarah (2) -> KHATIM
                     await prisma.student.update({
                         where: { id: parseInt(studentId) },
                         data: {
-                            juzCount: 31, // Special flag for Khatim
+                            juzCount: 30, 
                             hifzProgress: "خاتم للقرآن الكريم"
                         }
                     });
                 } else {
-                    // Normal progression (descending order 114 -> 3)
-                    let nextSurahId = currentSurahId - 1;
+                    // Normal upward progression (descending order 114 -> 3)
+                    nextSurahId = (currentSurahId || 114) - 1;
+                }
 
+                if (nextSurahId) {
                     const nextSurah = quranData.find(s => s.id === nextSurahId);
                     if (nextSurah) {
-                        const pagesMemorized = 605 - nextSurah.startPage;
-                        let exactJuz = Math.floor(pagesMemorized / 20);
-                        if (exactJuz > 30) exactJuz = 30;
-
                         await prisma.student.update({
                             where: { id: parseInt(studentId) },
                             data: {
                                 currentHifzSurahId: nextSurahId,
-                                hifzProgress: nextSurah.name,
-                                juzCount: exactJuz
+                                hifzProgress: nextSurah.name
                             }
                         });
                     }

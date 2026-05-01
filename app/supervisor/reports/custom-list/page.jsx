@@ -11,6 +11,7 @@ export default function SupervisorCustomListReport() {
     const [user, setUser] = useState(null);
     
     const teacherIdParam = searchParams.get('teacherId');
+    const halaqaIdParam = searchParams.get('halaqaId');
 
     useEffect(() => {
         const storedUser = sessionStorage.getItem('user');
@@ -24,6 +25,10 @@ export default function SupervisorCustomListReport() {
     if (!user) return null;
 
     return (
-        <CustomStudentList userRole="SUPERVISOR" initialTeacherId={teacherIdParam} />
+        <CustomStudentList 
+            userRole="SUPERVISOR" 
+            initialTeacherId={teacherIdParam} 
+            initialHalaqaId={halaqaIdParam} 
+        />
     );
 }

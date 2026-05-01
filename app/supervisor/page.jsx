@@ -154,9 +154,15 @@ export default function SupervisorDashboard() {
         }
     };
 
-    const paidStudents = students.filter(s => s.feeStatus === 'PAID').length;
-    const pendingStudents = students.length - paidStudents;
-    const paymentPercentage = students.length > 0 ? Math.round((paidStudents / students.length) * 100) : 0;
+    const [activeTerm, setActiveTerm] = useState('feeStatusTerm1');
+    
+    const paidStudentsT1 = students.filter(s => s.feeStatusTerm1 === 'PAID').length;
+    const paidStudentsT2 = students.filter(s => s.feeStatusTerm2 === 'PAID').length;
+    const paidStudentsSummer = students.filter(s => s.feeStatusSummer === 'PAID').length;
+    
+    const currentPaidCount = activeTerm === 'feeStatusTerm1' ? paidStudentsT1 : (activeTerm === 'feeStatusTerm2' ? paidStudentsT2 : paidStudentsSummer);
+    const currentPendingCount = students.length - currentPaidCount;
+    const currentPercentage = students.length > 0 ? Math.round((currentPaidCount / students.length) * 100) : 0;
 
     const filteredTeachers = teachers
         .filter(t => normalizeText(t.name).includes(normalizeText(searchTeacher)))
@@ -491,7 +497,19 @@ export default function SupervisorDashboard() {
                                         <div key={h.id} onMouseEnter={() => setHoveredHalaqaId(h.id)} onMouseLeave={() => setHoveredHalaqaId(null)} className={`flex items-center gap-4 p-5 rounded-[2rem] border-2 transition-all duration-500 group/item cursor-default ${isHovered ? 'bg-white dark:bg-slate-800 border-emerald-500 -translate-y-1 scale-[1.05]' : 'bg-slate-50/50 dark:bg-slate-900/30 border-transparent shadow-sm'}`} style={{ boxShadow: isHovered ? `0 20px 40px -10px ${chartColors[i % chartColors.length]}30` : 'none' }}>
                                             <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-xl shadow-lg transition-transform duration-500 group-hover/item:rotate-12" style={{ backgroundColor: `${chartColors[i % chartColors.length]}15`, color: chartColors[i % chartColors.length], border: `1px solid ${chartColors[i % chartColors.length]}30` }}>🏫</div>
                                             <div className="flex-1">
-                                                <div className="flex justify-between items-center mb-2"><span className={`font-black text-sm transition-colors ${isHovered ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-700 dark:text-slate-300'}`}>{h.name}</span><span className="text-[10px] font-black text-slate-400 dark:text-slate-500">{percentage}%</span></div>
+                                                <div className="flex justify-between items-center mb-2">
+                                                    <span className={`font-black text-sm transition-colors ${isHovered ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-700 dark:text-slate-300'}`}>{h.name}</span>
+                                                    <div className="flex items-center gap-2">
+                                                        <button 
+                                                            onClick={(e) => { e.stopPropagation(); router.push(`/supervisor/reports/custom-list?halaqaId=${h.id}`); }}
+                                                            className="p-1.5 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 rounded-lg text-emerald-600 dark:text-emerald-400 transition-all active:scale-90"
+                                                            title="عرض كشف بيانات الحلقة"
+                                                        >
+                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                                        </button>
+                                                        <span className="text-[10px] font-black text-slate-400 dark:text-slate-500">{percentage}%</span>
+                                                    </div>
+                                                </div>
                                                 <div className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden"><div className="h-full rounded-full transition-all duration-1000 ease-out" style={{ width: `${percentage}%`, backgroundColor: chartColors[i % chartColors.length] }}></div></div>
                                                 <div className="flex justify-between items-center mt-2"><span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 italic">سعة الحلقة</span><span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 px-2 py-0.5 rounded-lg">{h.count} طالب</span></div>
                                             </div>
@@ -516,22 +534,38 @@ export default function SupervisorDashboard() {
                                     <span className="w-16 h-16 bg-gradient-to-br from-emerald-400 to-teal-600 text-white rounded-3xl flex items-center justify-center text-3xl shadow-xl shadow-emerald-200 dark:shadow-none">💰</span>
                                 </div>
                                 <p className="text-slate-500 dark:text-slate-400 text-lg font-bold mb-8 max-w-2xl">
-                                    تتبع حالة تحصيل الرسوم والاشتراكات الشهرية لطلاب الجامع بشكل مركزي ودقيق.
+                                    تتبع حالة تحصيل الرسوم للفترة الحالية بشكل مركزي ودقيق.
                                 </p>
+                                
+                                <div className="flex gap-2 mb-8 justify-end lg:justify-start">
+                                    {[
+                                        { id: 'feeStatusTerm1', label: 'الترم الأول' },
+                                        { id: 'feeStatusTerm2', label: 'الترم الثاني' },
+                                        { id: 'feeStatusSummer', label: 'الصيف' }
+                                    ].map(term => (
+                                        <button
+                                            key={term.id}
+                                            onClick={() => setActiveTerm(term.id)}
+                                            className={`px-4 py-2 rounded-xl text-[10px] font-black transition-all border ${activeTerm === term.id ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white/50 dark:bg-slate-800/50 text-slate-500 border-slate-200 dark:border-slate-700'}`}
+                                        >
+                                            {term.label}
+                                        </button>
+                                    ))}
+                                </div>
                                 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div className="p-6 bg-white/50 dark:bg-slate-900/40 backdrop-blur-md rounded-3xl border border-slate-100 dark:border-slate-800 flex items-center gap-5">
                                         <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-2xl flex items-center justify-center text-xl font-black">✓</div>
                                         <div>
                                             <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">تم السداد</div>
-                                            <div className="text-2xl font-black text-slate-800 dark:text-white">{paidStudents} طالب</div>
+                                            <div className="text-2xl font-black text-slate-800 dark:text-white">{currentPaidCount} طالب</div>
                                         </div>
                                     </div>
                                     <div className="p-6 bg-white/50 dark:bg-slate-900/40 backdrop-blur-md rounded-3xl border border-slate-100 dark:border-slate-800 flex items-center gap-5">
                                         <div className="w-12 h-12 bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-2xl flex items-center justify-center text-xl font-black">!</div>
                                         <div>
                                             <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">بانتظار السداد</div>
-                                            <div className="text-2xl font-black text-slate-800 dark:text-white">{pendingStudents} طالب</div>
+                                            <div className="text-2xl font-black text-slate-800 dark:text-white">{currentPendingCount} طالب</div>
                                         </div>
                                     </div>
                                 </div>
@@ -545,22 +579,21 @@ export default function SupervisorDashboard() {
                                             cx="96" cy="96" r="80" 
                                             stroke="currentColor" strokeWidth="16" fill="transparent" 
                                             strokeDasharray={502.6}
-                                            strokeDashoffset={502.6 - (502.6 * paymentPercentage / 100)}
+                                            strokeDashoffset={502.6 - (502.6 * currentPercentage / 100)}
                                             className="text-emerald-500 transition-all duration-1000 ease-out" 
                                         />
                                     </svg>
                                     <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                        <span className="text-3xl font-black text-slate-800 dark:text-white">{paymentPercentage}%</span>
+                                        <span className="text-3xl font-black text-slate-800 dark:text-white">{currentPercentage}%</span>
                                         <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">نسبة التحصيل</span>
                                     </div>
                                 </div>
                                 
                                 <button 
-                                    onClick={() => router.push('/supervisor/reports/custom-list?preselect=feeStatus')}
+                                    onClick={() => router.push(`/supervisor/reports/custom-list?preselect=${activeTerm}`)}
                                     className="w-full py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-black shadow-xl hover:opacity-90 transition-all active:scale-95 flex items-center justify-center gap-3"
                                 >
                                     <span>📊 عرض كشف الرسوم</span>
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
                                 </button>
                             </div>
                         </div>

@@ -143,7 +143,7 @@ export async function GET(request) {
 export async function POST(request) {
     try {
         const body = await request.json();
-        const { name, username, password, hifzProgress, currentHifzSurahId, juzCount, reviewPlan, feeStatus } = body;
+        const { name, username, password, hifzProgress, currentHifzSurahId, juzCount, reviewPlan, feeStatusTerm1, feeStatusTerm2, feeStatusSummer } = body;
 
         // Get next displayId
         const lastStudent = await prisma.student.findFirst({
@@ -151,15 +151,20 @@ export async function POST(request) {
         });
         const nextDisplayId = (lastStudent?.displayId || 0) + 1;
 
+        // Generate a default username if empty to avoid unique constraint conflict on empty strings
+        const finalUsername = username && username.trim() !== '' 
+            ? username 
+            : `std_${nextDisplayId}_${Math.floor(Math.random() * 1000)}`;
+
         const newStudent = await prisma.student.create({
             data: {
                 name,
-                username,
+                username: finalUsername,
                 displayId: nextDisplayId,
-                password,
-                hifzProgress,
+                password: password || '123456', // Default password if empty
+                hifzProgress: hifzProgress || 'الفاتحة',
                 currentHifzSurahId: parseInt(currentHifzSurahId) || 1,
-                juzCount: parseInt(juzCount) || 0,
+                juzCount: parseFloat(juzCount) || 0,
                 reviewPlan,
                 dailyTargetPages: parseFloat(body.dailyTargetPages) || 1.0,
                 halaqa: body.halaqaId ? { connect: { id: parseInt(body.halaqaId) } } : undefined,
@@ -169,22 +174,27 @@ export async function POST(request) {
                 nationalId: body.nationalId,
                 nationality: body.nationality,
                 studentNotes: body.studentNotes,
-                feeStatus: feeStatus || 'PENDING',
+                feeStatusTerm1: feeStatusTerm1 || 'PENDING',
+                feeStatusTerm2: feeStatusTerm2 || 'PENDING',
+                feeStatusSummer: feeStatusSummer || 'PENDING',
                 joinDate: body.joinDate ? new Date(body.joinDate) : undefined
             }
         });
-
         return NextResponse.json(newStudent);
     } catch (error) {
-        console.error("POST Students Error:", error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        console.error('Error creating student:', error);
+        // Handle unique constraint error
+        if (error.code === 'P2002') {
+            return NextResponse.json({ error: 'اسم المستخدم هذا مسجل مسبقاً، يرجى اختيار اسم آخر' }, { status: 400 });
+        }
+        return NextResponse.json({ error: error.message || 'Failed to create student' }, { status: 500 });
     }
 }
 
 export async function PUT(request) {
     try {
         const body = await request.json();
-        const { id, name, username, password, hifzProgress, currentHifzSurahId, juzCount, reviewPlan, halaqaId, feeStatus } = body;
+        const { id, name, username, password, hifzProgress, currentHifzSurahId, juzCount, reviewPlan, halaqaId, feeStatusTerm1, feeStatusTerm2, feeStatusSummer } = body;
 
         if (!id) return NextResponse.json({ error: 'Student ID required' }, { status: 400 });
 
@@ -206,7 +216,9 @@ export async function PUT(request) {
                 nationalId: body.nationalId,
                 nationality: body.nationality,
                 studentNotes: body.studentNotes,
-                feeStatus: feeStatus,
+                feeStatusTerm1: feeStatusTerm1,
+                feeStatusTerm2: feeStatusTerm2,
+                feeStatusSummer: feeStatusSummer,
                 joinDate: body.joinDate ? new Date(body.joinDate) : undefined
             }
         });

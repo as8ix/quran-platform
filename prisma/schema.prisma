@@ -61,8 +61,10 @@ model Student {
   nationalId   String?  // National ID or Passport
   nationality  String?  // Student nationality
   joinDate     DateTime? @default(now())
-  studentNotes String?   // General notes about the student
-  feeStatus    String?   @default("PENDING") // PENDING, PAID
+  studentNotes     String?   // General notes about the student
+  feeStatusTerm1   String?   @default("PENDING") // PENDING, PAID
+  feeStatusTerm2   String?   @default("PENDING") // PENDING, PAID
+  feeStatusSummer  String?   @default("PENDING") // PENDING, PAID
   
   attendance   Attendance[]
   sessions     Session[]

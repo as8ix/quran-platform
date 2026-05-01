@@ -4,12 +4,19 @@ import { useState, useEffect, useRef } from 'react';
 import { toast } from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 
-export default function CustomStudentList({ userRole, initialTeacherId }) {
+export default function CustomStudentList({ userRole, initialTeacherId, initialHalaqaId }) {
     const router = useRouter();
     const [students, setStudents] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [halaqaFilter, setHalaqaFilter] = useState('all');
+    const [halaqaFilter, setHalaqaFilter] = useState(initialHalaqaId ? initialHalaqaId.toString() : 'all');
     const [paymentFilter, setPaymentFilter] = useState('all');
+    const [paymentFilterTerm, setPaymentFilterTerm] = useState('feeStatusTerm1');
+
+    useEffect(() => {
+        if (initialHalaqaId) {
+            setHalaqaFilter(initialHalaqaId.toString());
+        }
+    }, [initialHalaqaId]);
     
     // Available fields to select
     const [fields, setFields] = useState({
@@ -22,7 +29,9 @@ export default function CustomStudentList({ userRole, initialTeacherId }) {
         parentPhone2: { label: 'جوال ولي الأمر (2)', selected: false },
         halaqa: { label: 'الحلقة', selected: false },
         joinDate: { label: 'تاريخ الالتحاق', selected: false },
-        feeStatus: { label: 'الرسوم', selected: false }
+        feeStatusTerm1: { label: 'رسوم الترم 1', selected: false },
+        feeStatusTerm2: { label: 'رسوم الترم 2', selected: false },
+        feeStatusSummer: { label: 'رسوم الصيف', selected: false }
     });
 
     useEffect(() => {
@@ -31,13 +40,28 @@ export default function CustomStudentList({ userRole, initialTeacherId }) {
         // Handle URL parameters for pre-selecting fields
         const searchParams = new URLSearchParams(window.location.search);
         const preselect = searchParams.get('preselect');
-        if (preselect && fields[preselect]) {
-            setFields(prev => ({
-                ...prev,
-                [preselect]: { ...prev[preselect], selected: true }
-            }));
-        }
-    }, [initialTeacherId]);
+        
+        setFields(prev => {
+            const newFields = { ...prev };
+            
+            // If we have a specific halaqa, show the halaqa column by default
+            if (initialHalaqaId) {
+                newFields.halaqa = { ...newFields.halaqa, selected: true };
+            }
+            
+            // Handle preselect from URL
+            if (preselect && newFields[preselect]) {
+                newFields[preselect] = { ...newFields[preselect], selected: true };
+                
+                // If preselecting a fee term, also set the filter term
+                if (preselect.startsWith('feeStatus')) {
+                    setPaymentFilterTerm(preselect);
+                }
+            }
+            
+            return newFields;
+        });
+    }, [initialTeacherId, initialHalaqaId]);
 
     const fetchStudents = async () => {
         setLoading(true);
@@ -60,6 +84,18 @@ export default function CustomStudentList({ userRole, initialTeacherId }) {
             if (response.ok) {
                 const data = await response.json();
                 setStudents(data);
+
+                // Automatically set halaqa filter if there's only one unique halaqa and no filter is set yet
+                if (halaqaFilter === 'all' && !initialHalaqaId) {
+                    const hMap = new Map();
+                    data.forEach(s => {
+                        if (s.halaqa) hMap.set(s.halaqa.id, s.halaqa.name);
+                    });
+                    if (hMap.size === 1) {
+                        const firstId = hMap.keys().next().value;
+                        setHalaqaFilter(firstId.toString());
+                    }
+                }
             } else {
                 toast.error('فشل في جلب بيانات الطلاب');
             }
@@ -95,7 +131,9 @@ export default function CustomStudentList({ userRole, initialTeacherId }) {
             case 'parentPhone2': return student.parentPhone2 || 'غير مسجل';
             case 'halaqa': return student.halaqa?.name || 'غير محدد';
             case 'joinDate': return formatDate(student.joinDate);
-            case 'feeStatus': return student.feeStatus === 'PAID' ? 'تم الدفع ✅' : 'لم يتم الدفع ❌';
+            case 'feeStatusTerm1': return student.feeStatusTerm1 === 'PAID' ? 'سدد ✅' : 'لم يسدد ❌';
+            case 'feeStatusTerm2': return student.feeStatusTerm2 === 'PAID' ? 'سدد ✅' : 'لم يسدد ❌';
+            case 'feeStatusSummer': return student.feeStatusSummer === 'PAID' ? 'سدد ✅' : 'لم يسدد ❌';
             default: return '';
         }
     };
@@ -108,8 +146,8 @@ export default function CustomStudentList({ userRole, initialTeacherId }) {
     const filteredStudents = students.filter(student => {
         const matchesHalaqa = halaqaFilter === 'all' || student.halaqa?.id?.toString() === halaqaFilter.toString();
         const matchesPayment = paymentFilter === 'all' || 
-            (paymentFilter === 'PAID' && student.feeStatus === 'PAID') ||
-            (paymentFilter === 'PENDING' && student.feeStatus !== 'PAID');
+            (paymentFilter === 'PAID' && student[paymentFilterTerm] === 'PAID') ||
+            (paymentFilter === 'PENDING' && student[paymentFilterTerm] !== 'PAID');
         return matchesHalaqa && matchesPayment;
     });
 
@@ -220,6 +258,21 @@ export default function CustomStudentList({ userRole, initialTeacherId }) {
                         <span className="w-2 h-2 bg-indigo-500 rounded-full"></span>
                         تصفية حسب حالة الرسوم:
                     </label>
+                    <div className="grid grid-cols-3 gap-2 mb-2">
+                        {[
+                            { id: 'feeStatusTerm1', label: 'الترم 1' },
+                            { id: 'feeStatusTerm2', label: 'الترم 2' },
+                            { id: 'feeStatusSummer', label: 'الصيف' }
+                        ].map(t => (
+                            <button
+                                key={t.id}
+                                onClick={() => setPaymentFilterTerm(t.id)}
+                                className={`py-2 rounded-xl text-[10px] font-black transition-all border ${paymentFilterTerm === t.id ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-slate-500 border-slate-200'}`}
+                            >
+                                {t.label}
+                            </button>
+                        ))}
+                    </div>
                     <div className="flex gap-2">
                         {[
                             { id: 'all', label: 'الكل' },
@@ -229,7 +282,7 @@ export default function CustomStudentList({ userRole, initialTeacherId }) {
                             <button
                                 key={opt.id}
                                 onClick={() => setPaymentFilter(opt.id)}
-                                className={`flex-1 py-4 rounded-2xl font-black text-sm transition-all border-2 ${paymentFilter === opt.id ? 'bg-slate-900 text-white border-slate-900 shadow-lg' : 'bg-slate-50 text-slate-500 border-transparent hover:border-slate-200'}`}
+                                className={`flex-1 py-3 rounded-2xl font-black text-xs transition-all border-2 ${paymentFilter === opt.id ? 'bg-slate-900 text-white border-slate-900 shadow-lg' : 'bg-slate-50 text-slate-500 border-transparent hover:border-slate-200'}`}
                             >
                                 {opt.label}
                             </button>
