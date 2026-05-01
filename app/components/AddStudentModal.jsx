@@ -28,6 +28,15 @@ export default function AddStudentModal({ isOpen, onClose, onAdd, student, halaq
     const [isNationalityOpen, setIsNationalityOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [showSecondaryFields, setShowSecondaryFields] = useState(false);
+    const [userRole, setUserRole] = useState(null);
+
+    useEffect(() => {
+        const storedUser = sessionStorage.getItem('user');
+        if (storedUser) {
+            const user = JSON.parse(storedUser);
+            setUserRole(user.role);
+        }
+    }, []);
 
     useEffect(() => {
         if (student) {
@@ -521,12 +530,16 @@ export default function AddStudentModal({ isOpen, onClose, onAdd, student, halaq
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-[10px] font-black text-slate-500 dark:text-slate-400 mb-2 mr-1">رسوم الترم الأول</label>
+                                    <label className="block text-[10px] font-black text-slate-500 dark:text-slate-400 mb-2 mr-1">
+                                        رسوم الترم الأول
+                                        {userRole !== 'SUPERVISOR' && <span className="text-rose-500 mr-1">(للمشرف فقط)</span>}
+                                    </label>
                                     <div className="relative">
                                         <select
-                                            className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-900 border-2 border-transparent focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800 rounded-2xl transition-all outline-none appearance-none dark:text-white font-bold text-xs"
+                                            className={`w-full px-5 py-4 bg-slate-50 dark:bg-slate-900 border-2 border-transparent focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800 rounded-2xl transition-all outline-none appearance-none dark:text-white font-bold text-xs ${userRole !== 'SUPERVISOR' ? 'cursor-not-allowed opacity-70' : ''}`}
                                             value={feeStatusTerm1}
                                             onChange={(e) => setFeeStatusTerm1(e.target.value)}
+                                            disabled={userRole !== 'SUPERVISOR'}
                                         >
                                             <option value="PENDING">❌ لم يتم الدفع</option>
                                             <option value="PAID">✅ تم الدفع</option>
@@ -534,12 +547,16 @@ export default function AddStudentModal({ isOpen, onClose, onAdd, student, halaq
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-[10px] font-black text-slate-500 dark:text-slate-400 mb-2 mr-1">رسوم الترم الثاني</label>
+                                    <label className="block text-[10px] font-black text-slate-500 dark:text-slate-400 mb-2 mr-1">
+                                        رسوم الترم الثاني
+                                        {userRole !== 'SUPERVISOR' && <span className="text-rose-500 mr-1">(للمشرف فقط)</span>}
+                                    </label>
                                     <div className="relative">
                                         <select
-                                            className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-900 border-2 border-transparent focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800 rounded-2xl transition-all outline-none appearance-none dark:text-white font-bold text-xs"
+                                            className={`w-full px-5 py-4 bg-slate-50 dark:bg-slate-900 border-2 border-transparent focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800 rounded-2xl transition-all outline-none appearance-none dark:text-white font-bold text-xs ${userRole !== 'SUPERVISOR' ? 'cursor-not-allowed opacity-70' : ''}`}
                                             value={feeStatusTerm2}
                                             onChange={(e) => setFeeStatusTerm2(e.target.value)}
+                                            disabled={userRole !== 'SUPERVISOR'}
                                         >
                                             <option value="PENDING">❌ لم يتم الدفع</option>
                                             <option value="PAID">✅ تم الدفع</option>
@@ -547,12 +564,16 @@ export default function AddStudentModal({ isOpen, onClose, onAdd, student, halaq
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-[10px] font-black text-slate-500 dark:text-slate-400 mb-2 mr-1">رسوم الدورة الصيفية</label>
+                                    <label className="block text-[10px] font-black text-slate-500 dark:text-slate-400 mb-2 mr-1">
+                                        رسوم الدورة الصيفية
+                                        {userRole !== 'SUPERVISOR' && <span className="text-rose-500 mr-1">(للمشرف فقط)</span>}
+                                    </label>
                                     <div className="relative">
                                         <select
-                                            className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-900 border-2 border-transparent focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800 rounded-2xl transition-all outline-none appearance-none dark:text-white font-bold text-xs"
+                                            className={`w-full px-5 py-4 bg-slate-50 dark:bg-slate-900 border-2 border-transparent focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800 rounded-2xl transition-all outline-none appearance-none dark:text-white font-bold text-xs ${userRole !== 'SUPERVISOR' ? 'cursor-not-allowed opacity-70' : ''}`}
                                             value={feeStatusSummer}
                                             onChange={(e) => setFeeStatusSummer(e.target.value)}
+                                            disabled={userRole !== 'SUPERVISOR'}
                                         >
                                             <option value="PENDING">❌ لم يتم الدفع</option>
                                             <option value="PAID">✅ تم الدفع</option>

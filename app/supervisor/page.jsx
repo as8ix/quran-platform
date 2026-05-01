@@ -12,6 +12,7 @@ import ManageEvents from '../components/ManageEvents';
 import { useTheme } from '../components/ThemeProvider';
 import DevStats from '../components/DevStats';
 import Link from 'next/link';
+import AddStudentModal from '../components/AddStudentModal';
 
 
 export default function SupervisorDashboard() {
@@ -83,6 +84,12 @@ export default function SupervisorDashboard() {
     const [students, setStudents] = useState([]);
     const [searchTeacherInHalaqa, setSearchTeacherInHalaqa] = useState('');
     const [searchAssistantInHalaqa, setSearchAssistantInHalaqa] = useState('');
+
+    const [showEditStudentModal, setShowEditStudentModal] = useState(false);
+    const [studentToEdit, setStudentToEdit] = useState(null);
+    const [currentHalaqaIdForStudent, setCurrentHalaqaIdForStudent] = useState(null);
+    const [searchStudentInModal, setSearchStudentInModal] = useState('');
+    const [togglingId, setTogglingId] = useState(null);
 
     useEffect(() => {
         const storedUser = sessionStorage.getItem('user');
@@ -295,6 +302,42 @@ export default function SupervisorDashboard() {
             toast.error('خطأ في الاتصال');
         } finally {
             setLoadingStudents(false);
+        }
+    };
+
+    const handleEditStudent = (student) => {
+        setStudentToEdit(student);
+        setCurrentHalaqaIdForStudent(student.halaqaId);
+        setShowEditStudentModal(true);
+    };
+
+    const handleToggleFee = async (studentId, fieldKey, currentStatus) => {
+        const newStatus = currentStatus === 'PAID' ? 'PENDING' : 'PAID';
+        setTogglingId(`${studentId}-${fieldKey}`);
+        
+        try {
+            const response = await fetch('/api/students', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id: studentId,
+                    [fieldKey]: newStatus
+                })
+            });
+            
+            if (response.ok) {
+                // Update local state for the modal
+                setSelectedHalaqaStudents(prev => prev.map(s => 
+                    s.id === studentId ? { ...s, [fieldKey]: newStatus } : s
+                ));
+                toast.success('تم تحديث حالة الرسوم');
+            } else {
+                toast.error('فشل تحديث الرسوم');
+            }
+        } catch (error) {
+            toast.error('خطأ في الاتصال');
+        } finally {
+            setTogglingId(null);
         }
     };
 
@@ -1113,11 +1156,22 @@ export default function SupervisorDashboard() {
                     <div className="absolute inset-0 bg-slate-900/40 dark:bg-slate-900/60 animate-fadeIn" onClick={() => setShowStudentsModal(false)}></div>
                     <div className="relative w-full max-w-2xl bg-white/95 dark:bg-slate-900/90 backdrop-blur-xl rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.3)] animate-slideUp border border-white/20 dark:border-slate-800 overflow-hidden flex flex-col max-h-[85vh]">
                         {/* Premium Emerald Header */}
-                        <div className="relative p-8 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white rounded-t-[2.5rem]">
+                        <div className="relative p-6 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white rounded-t-[2.5rem]">
                             <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full -mr-24 -mt-24 blur-3xl"></div>
                             <div className="relative z-10 flex flex-col items-center text-center">
-                                <h3 className="text-3xl font-black tracking-tight mb-1">طلاب {selectedHalaqaName}</h3>
-                                <p className="text-emerald-100 font-bold text-sm">قائمة الطلاب المسجلين حالياً</p>
+                                <h3 className="text-2xl font-black tracking-tight mb-1">طلاب {selectedHalaqaName}</h3>
+                                <div className="mt-4 w-full max-w-xs relative">
+                                    <input 
+                                        type="text" 
+                                        placeholder="بحث عن طالب..." 
+                                        value={searchStudentInModal}
+                                        onChange={(e) => setSearchStudentInModal(e.target.value)}
+                                        className="w-full px-4 py-2 bg-white/20 border border-white/30 rounded-xl text-white placeholder-white/60 outline-none focus:bg-white/30 transition-all text-sm font-bold"
+                                    />
+                                    <svg className="absolute left-3 top-2.5 w-4 h-4 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                </div>
                             </div>
                         </div>
 
@@ -1129,18 +1183,60 @@ export default function SupervisorDashboard() {
                                 </div>
                             ) : selectedHalaqaStudents.length > 0 ? (
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    {selectedHalaqaStudents.map((s, idx) => (
+                                    {selectedHalaqaStudents
+                                        .filter(s => s.name.toLowerCase().includes(searchStudentInModal.toLowerCase()))
+                                        .map((s, idx) => (
                                         <div key={s.id} className="flex items-center gap-4 p-4 bg-slate-50/50 dark:bg-slate-800/30 rounded-[1.5rem] border border-transparent hover:border-emerald-500/20 transition-all group">
                                             <div className="w-10 h-10 flex-shrink-0 bg-white dark:bg-slate-800 rounded-2xl text-[11px] font-black text-slate-400 group-hover:text-emerald-600 shadow-sm flex items-center justify-center">
                                                 {idx + 1}
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <div className="font-black text-sm text-slate-800 dark:text-white truncate leading-tight">{s.name}</div>
-                                                <div className="text-[10px] font-bold text-slate-400 mt-1">#{s.displayId || s.id}</div>
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">الرسوم:</span>
+                                                    <div className="flex gap-1.5">
+                                                        {[
+                                                            { key: 'feeStatusTerm1', label: 'ت1' },
+                                                            { key: 'feeStatusTerm2', label: 'ت2' },
+                                                            { key: 'feeStatusSummer', label: 'ص' }
+                                                        ].map(term => {
+                                                            const isToggling = togglingId === `${s.id}-${term.key}`;
+                                                            return (
+                                                                <button
+                                                                    key={term.key}
+                                                                    disabled={isToggling}
+                                                                    onClick={() => handleToggleFee(s.id, term.key, s[term.key])}
+                                                                    title={`${term.label}: ${s[term.key] === 'PAID' ? 'تم الدفع' : 'لم يدفع'}`}
+                                                                    className={`w-5 h-5 rounded-md flex items-center justify-center transition-all ${
+                                                                        isToggling ? 'animate-pulse bg-slate-200' :
+                                                                        s[term.key] === 'PAID' ? 'bg-emerald-500 text-white shadow-sm' : 'bg-slate-200 dark:bg-slate-700 text-slate-400'
+                                                                    }`}
+                                                                >
+                                                                    {isToggling ? (
+                                                                        <div className="w-2 h-2 border border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
+                                                                    ) : (
+                                                                        <span className="text-[7px] font-black">{term.label}</span>
+                                                                    )}
+                                                                </button>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <div className="relative flex h-2 w-2 flex-shrink-0">
-                                                <div className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></div>
-                                                <div className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></div>
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={() => handleEditStudent(s)}
+                                                    className="p-2 bg-white dark:bg-slate-800 text-slate-400 hover:text-emerald-500 rounded-xl transition-all border border-transparent hover:border-emerald-500/20 shadow-sm"
+                                                    title="تعديل بيانات الطالب"
+                                                >
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                                    </svg>
+                                                </button>
+                                                <div className="relative flex h-2 w-2 flex-shrink-0">
+                                                    <div className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></div>
+                                                    <div className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></div>
+                                                </div>
                                             </div>
                                         </div>
                                     ))}
@@ -1234,6 +1330,21 @@ export default function SupervisorDashboard() {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {showEditStudentModal && (
+                <AddStudentModal
+                    isOpen={showEditStudentModal}
+                    onClose={() => setShowEditStudentModal(false)}
+                    onAdd={() => {
+                        setShowEditStudentModal(false);
+                        fetchAllData();
+                        // Re-fetch current halaqa students if modal is still open
+                        if (selectedHalaqaForReport) handleViewStudents(selectedHalaqaForReport);
+                    }}
+                    student={studentToEdit}
+                    halaqaId={currentHalaqaIdForStudent}
+                />
             )}
         </div>
     );

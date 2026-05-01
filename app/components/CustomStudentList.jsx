@@ -11,6 +11,8 @@ export default function CustomStudentList({ userRole, initialTeacherId, initialH
     const [halaqaFilter, setHalaqaFilter] = useState(initialHalaqaId ? initialHalaqaId.toString() : 'all');
     const [paymentFilter, setPaymentFilter] = useState('all');
     const [paymentFilterTerm, setPaymentFilterTerm] = useState('feeStatusTerm1');
+    const [financeMode, setFinanceMode] = useState(false);
+    const [togglingId, setTogglingId] = useState(null);
 
     useEffect(() => {
         if (initialHalaqaId) {
@@ -107,6 +109,51 @@ export default function CustomStudentList({ userRole, initialTeacherId, initialH
         }
     };
 
+    const handleToggleFee = async (studentId, fieldKey, currentStatus) => {
+        if (userRole !== 'SUPERVISOR') return;
+        
+        const newStatus = currentStatus === 'PAID' ? 'PENDING' : 'PAID';
+        setTogglingId(`${studentId}-${fieldKey}`);
+        
+        try {
+            const response = await fetch('/api/students', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id: studentId,
+                    [fieldKey]: newStatus
+                })
+            });
+            
+            if (response.ok) {
+                setStudents(prev => prev.map(s => 
+                    s.id === studentId ? { ...s, [fieldKey]: newStatus } : s
+                ));
+                toast.success('تم تحديث حالة الرسوم');
+            } else {
+                toast.error('فشل تحديث الرسوم');
+            }
+        } catch (error) {
+            toast.error('خطأ في الاتصال');
+        } finally {
+            setTogglingId(null);
+        }
+    };
+
+    const toggleFinanceMode = () => {
+        const newMode = !financeMode;
+        setFinanceMode(newMode);
+        
+        setFields(prev => {
+            const next = { ...prev };
+            const feeKeys = ['feeStatusTerm1', 'feeStatusTerm2', 'feeStatusSummer'];
+            feeKeys.forEach(k => {
+                next[k] = { ...next[k], selected: newMode };
+            });
+            return next;
+        });
+    };
+
     const toggleField = (fieldKey) => {
         setFields(prev => ({
             ...prev,
@@ -190,6 +237,13 @@ export default function CustomStudentList({ userRole, initialTeacherId, initialH
                         <p className="text-slate-500 text-sm mt-1 font-medium">حدد المعلومات التي ترغب في عرضها وطباعتها أو نسخها.</p>
                     </div>
                     <div className="flex gap-3">
+                        <button 
+                            onClick={toggleFinanceMode}
+                            className={`px-6 py-2.5 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2 ${financeMode ? 'bg-emerald-600 text-white' : 'bg-emerald-50 text-emerald-600 border border-emerald-100 hover:bg-emerald-100'}`}
+                        >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            {financeMode ? 'إيقاف وضع المالية' : 'وضع المالية السريع'}
+                        </button>
                         <button 
                             onClick={() => router.push(userRole === 'SUPERVISOR' ? '/supervisor' : '/teacher')} 
                             className="px-6 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold hover:bg-slate-50 transition-colors shadow-sm"
@@ -317,11 +371,44 @@ export default function CustomStudentList({ userRole, initialTeacherId, initialH
                                     <td className="p-4 font-bold text-center text-slate-800 border-r border-slate-50 print:border-slate-200">
                                         {idx + 1}
                                     </td>
-                                    {selectedKeys.map(k => (
-                                        <td key={k} className="p-4 text-center font-bold text-slate-800 border-r border-slate-50 print:border-slate-200">
-                                            {getFieldValue(student, k)}
-                                        </td>
-                                    ))}
+                                    {selectedKeys.map(k => {
+                                        const isFeeField = k.startsWith('feeStatus');
+                                        const val = student[k];
+                                        
+                                        if (isFeeField && userRole === 'SUPERVISOR') {
+                                            const isToggling = togglingId === `${student.id}-${k}`;
+                                            return (
+                                                <td key={k} className="p-2 text-center border-r border-slate-50 print:border-slate-200">
+                                                    <button
+                                                        disabled={isToggling}
+                                                        onClick={() => handleToggleFee(student.id, k, val)}
+                                                        className={`w-full py-2 px-3 rounded-xl text-xs font-black transition-all transform active:scale-95 flex items-center justify-center gap-2 no-print ${
+                                                            val === 'PAID' 
+                                                            ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100' 
+                                                            : 'bg-rose-50 text-rose-600 hover:bg-rose-100'
+                                                        } ${isToggling ? 'opacity-50' : ''}`}
+                                                    >
+                                                        {isToggling ? (
+                                                            <div className="w-3 h-3 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin"></div>
+                                                        ) : (
+                                                            <>
+                                                                {val === 'PAID' ? 'سدد ✅' : 'لم يسدد ❌'}
+                                                            </>
+                                                        )}
+                                                    </button>
+                                                    <span className="hidden print:block font-bold">
+                                                        {val === 'PAID' ? 'سدد ✅' : 'لم يسدد ❌'}
+                                                    </span>
+                                                </td>
+                                            );
+                                        }
+
+                                        return (
+                                            <td key={k} className="p-4 text-center font-bold text-slate-800 border-r border-slate-50 print:border-slate-200">
+                                                {getFieldValue(student, k)}
+                                            </td>
+                                        );
+                                    })}
                                 </tr>
                             )) : (
                                 <tr>
