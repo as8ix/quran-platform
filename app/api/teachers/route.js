@@ -15,7 +15,13 @@ export async function GET() {
         name: true,
         username: true,
         password: true,
-        createdAt: true
+        createdAt: true,
+        _count: {
+          select: {
+            teacherHalaqas: true,
+            assistantHalaqas: true
+          }
+        }
       }
     });
 

@@ -239,13 +239,13 @@ export default function LandingPage() {
               <div className="mb-4 rounded-2xl overflow-hidden border-2 border-slate-200 dark:border-slate-700">
                 <img
                   src="/images/recording-session.png"
-                  alt="تسجيل التسميع"
+                  alt="لوحة المشرف"
                   className="w-full h-auto"
                 />
               </div>
-              <h3 className="text-xl font-black text-slate-800 dark:text-white mb-2">تسجيل التسميع</h3>
+              <h3 className="text-xl font-black text-slate-800 dark:text-white mb-2">لوحة المشرف</h3>
               <p className="text-slate-600 dark:text-slate-400 text-sm">
-                نموذج سهل وشامل لتسجيل جلسات الحفظ والمراجعة
+                نظام متكامل للمشرفين لمتابعة الحلقات والمعلمين وإحصائيات الجامع بشكل شامل
               </p>
             </div>
           </div>
