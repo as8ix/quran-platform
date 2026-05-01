@@ -143,7 +143,7 @@ export async function GET(request) {
 export async function POST(request) {
     try {
         const body = await request.json();
-        const { name, username, password, hifzProgress, currentHifzSurahId, juzCount, reviewPlan } = body;
+        const { name, username, password, hifzProgress, currentHifzSurahId, juzCount, reviewPlan, feeStatus } = body;
 
         // Get next displayId
         const lastStudent = await prisma.student.findFirst({
@@ -169,6 +169,7 @@ export async function POST(request) {
                 nationalId: body.nationalId,
                 nationality: body.nationality,
                 studentNotes: body.studentNotes,
+                feeStatus: feeStatus || 'PENDING',
                 joinDate: body.joinDate ? new Date(body.joinDate) : undefined
             }
         });
@@ -183,7 +184,7 @@ export async function POST(request) {
 export async function PUT(request) {
     try {
         const body = await request.json();
-        const { id, name, username, password, hifzProgress, currentHifzSurahId, juzCount, reviewPlan, halaqaId } = body;
+        const { id, name, username, password, hifzProgress, currentHifzSurahId, juzCount, reviewPlan, halaqaId, feeStatus } = body;
 
         if (!id) return NextResponse.json({ error: 'Student ID required' }, { status: 400 });
 
@@ -205,6 +206,7 @@ export async function PUT(request) {
                 nationalId: body.nationalId,
                 nationality: body.nationality,
                 studentNotes: body.studentNotes,
+                feeStatus: feeStatus,
                 joinDate: body.joinDate ? new Date(body.joinDate) : undefined
             }
         });

@@ -20,6 +20,7 @@ export default function AddStudentModal({ isOpen, onClose, onAdd, student, halaq
     const [nationality, setNationality] = useState('');
     const [studentNotes, setStudentNotes] = useState('');
     const [joinDate, setJoinDate] = useState('');
+    const [feeStatus, setFeeStatus] = useState('PENDING');
 
     // Custom UI States
     const [isNationalityOpen, setIsNationalityOpen] = useState(false);
@@ -51,6 +52,7 @@ export default function AddStudentModal({ isOpen, onClose, onAdd, student, halaq
             setNationalId(student.nationalId || '');
             setNationality(student.nationality || '');
             setStudentNotes(student.studentNotes || '');
+            setFeeStatus(student.feeStatus || 'PENDING');
             setJoinDate(student.joinDate ? new Date(student.joinDate).toISOString().split('T')[0] : (student.createdAt ? new Date(student.createdAt).toISOString().split('T')[0] : ''));
         } else {
             setName('');
@@ -69,6 +71,7 @@ export default function AddStudentModal({ isOpen, onClose, onAdd, student, halaq
             setNationalId('');
             setNationality('');
             setStudentNotes('');
+            setFeeStatus('PENDING');
             setJoinDate(new Date().toISOString().split('T')[0]);
         }
     }, [student, isOpen]);
@@ -121,6 +124,7 @@ export default function AddStudentModal({ isOpen, onClose, onAdd, student, halaq
             nationalId,
             nationality,
             studentNotes,
+            feeStatus,
             joinDate: joinDate ? new Date(joinDate).toISOString() : undefined
         };
 
@@ -506,6 +510,24 @@ export default function AddStudentModal({ isOpen, onClose, onAdd, student, halaq
                                                 </div>
                                             </div>
                                         )}
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-black text-slate-500 dark:text-slate-400 mb-2 mr-1">حالة الرسوم</label>
+                                    <div className="relative">
+                                        <select
+                                            className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-900 border-2 border-transparent focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800 rounded-2xl transition-all outline-none appearance-none dark:text-white font-bold"
+                                            value={feeStatus}
+                                            onChange={(e) => setFeeStatus(e.target.value)}
+                                        >
+                                            <option value="PENDING">❌ لم يتم الدفع</option>
+                                            <option value="PAID">✅ تم الدفع</option>
+                                        </select>
+                                        <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                                            </svg>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

@@ -8,10 +8,12 @@ export default function CustomStudentList({ userRole, initialTeacherId }) {
     const router = useRouter();
     const [students, setStudents] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [halaqaFilter, setHalaqaFilter] = useState('all');
+    const [paymentFilter, setPaymentFilter] = useState('all');
     
     // Available fields to select
     const [fields, setFields] = useState({
-        displayId: { label: 'رقم التسلسل', selected: true },
+        displayId: { label: 'رقم التسلسل', selected: false },
         name: { label: 'اسم الطالب', selected: true },
         nationalId: { label: 'رقم الهوية', selected: true },
         nationality: { label: 'الجنسية', selected: true },
@@ -19,11 +21,22 @@ export default function CustomStudentList({ userRole, initialTeacherId }) {
         parentPhone: { label: 'جوال ولي الأمر (1)', selected: false },
         parentPhone2: { label: 'جوال ولي الأمر (2)', selected: false },
         halaqa: { label: 'الحلقة', selected: false },
-        joinDate: { label: 'تاريخ الالتحاق', selected: false }
+        joinDate: { label: 'تاريخ الالتحاق', selected: false },
+        feeStatus: { label: 'الرسوم', selected: false }
     });
 
     useEffect(() => {
         fetchStudents();
+        
+        // Handle URL parameters for pre-selecting fields
+        const searchParams = new URLSearchParams(window.location.search);
+        const preselect = searchParams.get('preselect');
+        if (preselect && fields[preselect]) {
+            setFields(prev => ({
+                ...prev,
+                [preselect]: { ...prev[preselect], selected: true }
+            }));
+        }
     }, [initialTeacherId]);
 
     const fetchStudents = async () => {
@@ -82,9 +95,23 @@ export default function CustomStudentList({ userRole, initialTeacherId }) {
             case 'parentPhone2': return student.parentPhone2 || 'غير مسجل';
             case 'halaqa': return student.halaqa?.name || 'غير محدد';
             case 'joinDate': return formatDate(student.joinDate);
+            case 'feeStatus': return student.feeStatus === 'PAID' ? 'تم الدفع ✅' : 'لم يتم الدفع ❌';
             default: return '';
         }
     };
+
+    const uniqueHalaqas = Array.from(new Set(students.map(s => s.halaqa?.id).filter(id => id))).map(id => {
+        const student = students.find(s => s.halaqa?.id === id);
+        return { id, name: student.halaqa.name };
+    });
+
+    const filteredStudents = students.filter(student => {
+        const matchesHalaqa = halaqaFilter === 'all' || student.halaqa?.id?.toString() === halaqaFilter.toString();
+        const matchesPayment = paymentFilter === 'all' || 
+            (paymentFilter === 'PAID' && student.feeStatus === 'PAID') ||
+            (paymentFilter === 'PENDING' && student.feeStatus !== 'PAID');
+        return matchesHalaqa && matchesPayment;
+    });
 
     const handleCopyText = () => {
         const selectedKeys = Object.keys(fields).filter(k => fields[k].selected);
@@ -94,7 +121,7 @@ export default function CustomStudentList({ userRole, initialTeacherId }) {
         text += '-'.repeat(text.length) + '\n';
         
         // Rows
-        students.forEach((student, index) => {
+        filteredStudents.forEach((student, index) => {
             text += selectedKeys.map(k => getFieldValue(student, k)).join(' | ') + '\n';
         });
 
@@ -169,6 +196,48 @@ export default function CustomStudentList({ userRole, initialTeacherId }) {
                 </div>
             </div>
 
+            <div className="no-print mb-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-6 bg-white rounded-3xl border border-slate-100 shadow-sm flex flex-col gap-3">
+                    <label className="text-xs font-black text-slate-500 flex items-center gap-2">
+                        <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
+                        تصفية حسب الحلقة:
+                    </label>
+                    <select
+                        value={halaqaFilter}
+                        onChange={(e) => setHalaqaFilter(e.target.value)}
+                        className="w-full p-4 bg-slate-50 border-2 border-transparent focus:border-emerald-500 rounded-2xl outline-none font-bold text-slate-700 transition-all appearance-none cursor-pointer"
+                        style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2.5' d='M19.5 8.25l-7.5 7.5-7.5-7.5' /%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'left 1.5rem center', backgroundSize: '1rem' }}
+                    >
+                        <option value="all">كل الحلقات</option>
+                        <option value="none">طلاب بدون حلقة</option>
+                        {uniqueHalaqas.map(h => (
+                            <option key={h.id} value={h.id}>{h.name}</option>
+                        ))}
+                    </select>
+                </div>
+                <div className="p-6 bg-white rounded-3xl border border-slate-100 shadow-sm flex flex-col gap-3">
+                    <label className="text-xs font-black text-slate-500 flex items-center gap-2">
+                        <span className="w-2 h-2 bg-indigo-500 rounded-full"></span>
+                        تصفية حسب حالة الرسوم:
+                    </label>
+                    <div className="flex gap-2">
+                        {[
+                            { id: 'all', label: 'الكل' },
+                            { id: 'PAID', label: 'المسددين ✅' },
+                            { id: 'PENDING', label: 'المتأخرين ❌' }
+                        ].map(opt => (
+                            <button
+                                key={opt.id}
+                                onClick={() => setPaymentFilter(opt.id)}
+                                className={`flex-1 py-4 rounded-2xl font-black text-sm transition-all border-2 ${paymentFilter === opt.id ? 'bg-slate-900 text-white border-slate-900 shadow-lg' : 'bg-slate-50 text-slate-500 border-transparent hover:border-slate-200'}`}
+                            >
+                                {opt.label}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            </div>
+
             <div className="bg-slate-50 rounded-[2rem] p-8 mb-8 border border-slate-100 shadow-sm print:shadow-none print:border-none print:bg-transparent print:p-0">
                 <div className="flex justify-between items-start mb-8">
                     <div>
@@ -190,7 +259,7 @@ export default function CustomStudentList({ userRole, initialTeacherId }) {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50 print:divide-slate-200">
-                            {students.length > 0 ? students.map((student, idx) => (
+                            {filteredStudents.length > 0 ? filteredStudents.map((student, idx) => (
                                 <tr key={student.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/40'}>
                                     <td className="p-4 font-bold text-center text-slate-800 border-r border-slate-50 print:border-slate-200">
                                         {idx + 1}
@@ -203,8 +272,8 @@ export default function CustomStudentList({ userRole, initialTeacherId }) {
                                 </tr>
                             )) : (
                                 <tr>
-                                    <td colSpan={selectedKeys.length + 1} className="p-8 text-center text-slate-500 font-bold">
-                                        لا توجد بيانات للطلاب
+                                    <td colSpan={selectedKeys.length + 1} className="p-8 text-center text-slate-500 font-bold italic">
+                                        لا توجد بيانات تطابق الفلاتر المختارة
                                     </td>
                                 </tr>
                             )}
