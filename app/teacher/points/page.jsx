@@ -140,12 +140,11 @@ export default function TeacherPointsPage() {
             if (res.ok) {
                 setStudents(await res.json());
             }
-            const pRes = await fetch('/api/points');
+            const pRes = await fetch(`/api/points?teacherId=${user.id}`);
             if (pRes.ok) {
                 const logs = await pRes.json();
-                // Filter logs to show only for teacher's students
-                const myLogs = logs.filter(l => l.student.halaqa?.teacherId === user.id);
-                setPointsLog(myLogs);
+                // Server now filters by teacherId, so we can use logs directly
+                setPointsLog(logs);
             }
         } catch (error) {
             toast.error('خطأ في جلب البيانات');

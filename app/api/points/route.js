@@ -6,23 +6,66 @@ export async function GET(request) {
         const { searchParams } = new URL(request.url);
         const studentId = searchParams.get('studentId');
         const halaqaId = searchParams.get('halaqaId');
+        const teacherId = searchParams.get('teacherId');
 
         let where = {};
         if (studentId) where.studentId = parseInt(studentId);
         if (halaqaId) where.student = { halaqaId: parseInt(halaqaId) };
+        
+        if (teacherId) {
+            // Find halaqas where this user is teacher or assistant
+            const myHalaqas = await prisma.halaqa.findMany({
+                where: {
+                    OR: [
+                        { teacherId: parseInt(teacherId) },
+                        { assistants: { some: { id: parseInt(teacherId) } } }
+                    ]
+                },
+                select: { id: true }
+            });
+            const myHalaqaIds = myHalaqas.map(h => h.id);
+
+            // Find specific event assignments for this teacher
+            const specificAssignments = await prisma.eventAssignment.findMany({
+                where: {
+                    teacherId: parseInt(teacherId),
+                    event: { isActive: true }
+                },
+                select: { studentId: true }
+            });
+            const allowedStudentIds = specificAssignments.map(a => a.studentId);
+
+            where.student = {
+                OR: [
+                    { halaqaId: { in: myHalaqaIds } },
+                    { id: { in: allowedStudentIds } }
+                ]
+            };
+        }
 
         const points = await prisma.point.findMany({
             where,
             include: {
                 student: {
-                    select: { name: true }
+                    select: { 
+                        name: true,
+                        halaqa: {
+                            select: {
+                                id: true,
+                                teacherId: true,
+                                name: true
+                            }
+                        }
+                    }
                 }
             },
-            orderBy: { createdAt: 'desc' }
+            orderBy: { createdAt: 'desc' },
+            take: 100 // Limit to last 100 for better performance
         });
 
         return NextResponse.json(points);
     } catch (error) {
+        console.error("GET Points Error:", error);
         return NextResponse.json({ error: 'Failed to fetch points' }, { status: 500 });
     }
 }
