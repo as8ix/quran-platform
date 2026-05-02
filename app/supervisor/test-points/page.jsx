@@ -136,13 +136,22 @@ export default function TestPointsPage() {
                         <h1 className="text-4xl font-black text-slate-800 dark:text-white mb-2">نظام نقاط الباركود 🏷️</h1>
                         <p className="text-slate-500 dark:text-slate-400 font-bold text-lg">الآن يدعم الكاميرا الخلفية والشاشة الكاملة</p>
                     </div>
-                    <button 
-                        onClick={() => setIsScanning(!isScanning)}
-                        className={`flex items-center gap-3 px-8 py-4 rounded-2xl font-black transition-all shadow-xl active:scale-95 ${isScanning ? 'bg-rose-500 text-white shadow-rose-200' : 'bg-emerald-600 text-white shadow-emerald-200'}`}
-                    >
-                        <span className="text-2xl">{isScanning ? '🛑' : '📷'}</span>
-                        {isScanning ? 'إغلاق الكاميرا' : 'فتح الكاميرا الخلفية'}
-                    </button>
+                    <div className="flex flex-wrap gap-3">
+                        <button 
+                            onClick={() => window.open('/supervisor/test-points/print', '_blank')}
+                            className="flex items-center gap-3 px-6 py-4 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl font-black text-slate-600 dark:text-slate-300 hover:border-emerald-500 transition-all shadow-sm active:scale-95"
+                        >
+                            <span>🖨️</span>
+                            طباعة البطاقات
+                        </button>
+                        <button 
+                            onClick={() => setIsScanning(!isScanning)}
+                            className={`flex items-center gap-3 px-8 py-4 rounded-2xl font-black transition-all shadow-xl active:scale-95 ${isScanning ? 'bg-rose-500 text-white shadow-rose-200' : 'bg-emerald-600 text-white shadow-emerald-200'}`}
+                        >
+                            <span className="text-2xl">{isScanning ? '🛑' : '📷'}</span>
+                            {isScanning ? 'إغلاق الكاميرا' : 'فتح الكاميرا للرصد'}
+                        </button>
+                    </div>
                 </div>
 
                 {/* Configuration Bar */}
