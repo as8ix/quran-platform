@@ -15,6 +15,7 @@ export default function TestPointsPage() {
     const [pointsData, setPointsData] = useState({ amount: 10, reason: 'حضور مبكر', category: 'ATTENDANCE' });
     const [isScanning, setIsScanning] = useState(false);
     const html5QrCodeRef = useRef(null);
+    const isProcessingRef = useRef(false);
 
     useEffect(() => {
         fetchTestData();
@@ -22,6 +23,7 @@ export default function TestPointsPage() {
 
     useEffect(() => {
         if (isScanning) {
+            isProcessingRef.current = false;
             startScanner();
         } else {
             stopScanner();
@@ -65,12 +67,17 @@ export default function TestPointsPage() {
     const lastScannedRef = useRef({ id: null, time: 0 });
 
     const onScanSuccess = (decodedText) => {
+        if (isProcessingRef.current) return; // IGNORE IF ALREADY PROCESSING
+
         const studentId = parseInt(decodedText);
         if (isNaN(studentId)) return;
 
+        isProcessingRef.current = true; // LOCK IMMEDIATELY
+        
         const now = Date.now();
         // Prevent duplicate scans within 3 seconds for the same student
         if (lastScannedRef.current.id === studentId && (now - lastScannedRef.current.time) < 3000) {
+            isProcessingRef.current = false; // RELEASE LOCK
             return;
         }
 
