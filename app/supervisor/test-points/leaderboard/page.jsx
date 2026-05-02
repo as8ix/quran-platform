@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Navbar from '../../../components/Navbar';
 import { useTheme } from '../../../components/ThemeProvider';
 
@@ -9,23 +9,13 @@ export default function LeaderboardPage() {
     const [leaderboard, setLeaderboard] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        fetchLeaderboard();
-        
-        // Live Update: Fetch every 5 seconds
-        const interval = setInterval(fetchLeaderboard, 5000);
-        
-        return () => clearInterval(interval);
-    }, []);
-
-    const fetchLeaderboard = async () => {
-        setLoading(true);
+    const fetchLeaderboard = useCallback(async (isInitial = false) => {
+        if (isInitial) setLoading(true);
         try {
             const res = await fetch('/api/points');
             if (res.ok) {
                 const points = await res.json();
                 
-                // Aggregate points by student
                 const studentMap = {};
                 points.forEach(p => {
                     if (!studentMap[p.studentId]) {
@@ -48,9 +38,15 @@ export default function LeaderboardPage() {
         } catch (error) {
             console.error(error);
         } finally {
-            setLoading(false);
+            if (isInitial) setLoading(false);
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        fetchLeaderboard(true);
+        const interval = setInterval(() => fetchLeaderboard(false), 5000);
+        return () => clearInterval(interval);
+    }, [fetchLeaderboard]);
 
     if (!mounted || loading) return <div className="min-h-screen flex items-center justify-center">جاري التحميل...</div>;
 
@@ -61,7 +57,6 @@ export default function LeaderboardPage() {
         <div className="min-h-screen bg-slate-50 dark:bg-slate-950 rtl font-noto pb-20" dir="rtl">
             <Navbar userType="supervisor" userName="لوحة الصدارة" />
 
-            {/* Background Decorations */}
             <div className="fixed inset-0 pointer-events-none overflow-hidden opacity-20">
                 <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-amber-500 rounded-full blur-[120px] animate-pulse"></div>
                 <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-emerald-500 rounded-full blur-[120px] animate-pulse"></div>
@@ -77,10 +72,8 @@ export default function LeaderboardPage() {
                     <p className="text-slate-500 dark:text-slate-400 font-bold text-lg">ترتيب الطلاب حسب مجموع النقاط المكتسبة</p>
                 </div>
 
-                {/* Podium Section */}
                 {topThree.length > 0 && (
                     <div className="flex flex-col md:flex-row items-end justify-center gap-4 mb-20 px-4">
-                        {/* 2nd Place */}
                         {topThree[1] && (
                             <div className="order-2 md:order-1 flex-1 w-full md:w-auto">
                                 <div className="premium-glass p-6 rounded-[2.5rem] border-t-4 border-slate-300 flex flex-col items-center text-center relative group hover:scale-105 transition-all">
@@ -92,7 +85,6 @@ export default function LeaderboardPage() {
                             </div>
                         )}
 
-                        {/* 1st Place */}
                         {topThree[0] && (
                             <div className="order-1 md:order-2 flex-[1.2] w-full md:w-auto mb-6 md:mb-0">
                                 <div className="premium-glass p-8 rounded-[3rem] border-t-8 border-amber-500 bg-gradient-to-b from-amber-50/50 to-white/50 dark:from-amber-900/10 dark:to-slate-900/50 flex flex-col items-center text-center relative group hover:scale-105 transition-all shadow-2xl shadow-amber-200/20">
@@ -105,7 +97,6 @@ export default function LeaderboardPage() {
                             </div>
                         )}
 
-                        {/* 3rd Place */}
                         {topThree[2] && (
                             <div className="order-3 flex-1 w-full md:w-auto">
                                 <div className="premium-glass p-6 rounded-[2.5rem] border-t-4 border-amber-700 flex flex-col items-center text-center relative group hover:scale-105 transition-all">
@@ -119,7 +110,6 @@ export default function LeaderboardPage() {
                     </div>
                 )}
 
-                {/* The Rest List */}
                 <div className="space-y-4">
                     <h2 className="text-2xl font-black text-slate-800 dark:text-white mb-6 px-4">الترتيب العام</h2>
                     {theRest.map((student, index) => (
