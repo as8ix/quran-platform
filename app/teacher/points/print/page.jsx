@@ -81,11 +81,10 @@ export default function PrintCardsPage() {
                             </div>
 
                             {/* Card Body */}
-                            <div className="p-3 flex flex-col items-center text-center">
-                                <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-xl mb-2">🎓</div>
+                            <div className="p-3 flex-1 flex flex-col items-center justify-center text-center">
+                                {/* Logo/Emoji Space Removed as requested */}
                                 <h3 className="text-sm font-black text-slate-800 mb-0.5">{student.name}</h3>
                                 <p className="text-[8px] font-bold text-slate-400 mb-0.5">الحلقة: {student.halaqa?.name}</p>
-                                <p className="text-[8px] font-bold text-emerald-600 mb-3 italic">المعلم: {user.name || '---'}</p>
 
                                 <div className="p-2 bg-white rounded-2xl shadow-inner border border-slate-50 mb-2">
                                     <QRCodeSVG value={student.id.toString()} size={85} level="H" includeMargin={true} />
