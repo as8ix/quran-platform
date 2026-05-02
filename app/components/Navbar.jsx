@@ -133,26 +133,7 @@ export default function Navbar({ userType, userName, onLogout, displayId }) {
                     </div>
 
                     <div className="flex items-center gap-2 sm:gap-6">
-                        {userType === 'teacher' && (
-                            <div className="flex items-center gap-1.5 sm:gap-2">
-                                <button
-                                    onClick={() => window.location.href = '/teacher/attendance'}
-                                    className="flex items-center gap-1 sm:gap-2 px-2.5 sm:px-4 py-2 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-xl font-black text-xs hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-all border border-emerald-100 dark:border-emerald-800"
-                                >
-                                    <span>📝</span>
-                                    <span className="hidden sm:inline">التحضير</span>
-                                </button>
-                                {pointsEnabled && (
-                                    <button
-                                        onClick={() => window.location.href = '/teacher/points'}
-                                        className="flex items-center gap-1 sm:gap-2 px-2.5 sm:px-4 py-2 bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-500 rounded-xl font-black text-xs hover:bg-amber-100 dark:hover:bg-amber-900/50 transition-all border border-amber-100 dark:border-amber-800"
-                                    >
-                                        <span>🪙</span>
-                                        <span className="hidden sm:inline">رصد النقاط</span>
-                                    </button>
-                                )}
-                            </div>
-                        )}
+                        {/* Theme Toggle */}
                         {/* Theme Toggle */}
                         <button
                             onClick={toggleDarkMode}
