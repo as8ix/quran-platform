@@ -71,7 +71,18 @@ model Student {
   notifications Notification[]
   eventAssignments EventAssignment[]
   exams        Exam[]
+  points       Point[]
   updatedAt    DateTime @updatedAt @default(now())
+}
+
+model Point {
+  id        Int      @id @default(autoincrement())
+  studentId Int
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  amount    Int
+  reason    String
+  category  String   // QURAN, SPORTS, CULTURAL, SOCIAL, ATTENDANCE
+  createdAt DateTime @default(now())
 }
 
 model Attendance {
