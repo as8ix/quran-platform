@@ -218,13 +218,33 @@ export default function TeacherPointsPage() {
                         <p className="text-slate-500 dark:text-slate-400 font-bold text-lg">قم بمسح الباركود الخاص بالطالب لرصد النقاط</p>
                     </div>
                     <div className="flex flex-wrap gap-3">
-                        <button 
-                            onClick={() => router.push('/supervisor/test-points/leaderboard')}
-                            className="flex items-center gap-3 px-6 py-4 bg-amber-500 text-white rounded-2xl font-black shadow-lg shadow-amber-200 transition-all active:scale-95"
-                        >
-                            <span>🏆</span>
-                            لوحة الصدارة
-                        </button>
+                        {(() => {
+                            const hId = students.length > 0 ? students[0].halaqaId : user?.halaqaId;
+                            return (
+                                <>
+                                    <button 
+                                        onClick={() => window.location.href = `/teacher/points/leaderboard${hId ? `?halaqaId=${hId}` : ''}`}
+                                        className="flex items-center gap-3 px-6 py-4 bg-amber-500 text-white rounded-2xl font-black shadow-lg shadow-amber-200 transition-all active:scale-95"
+                                    >
+                                        <span>🏆</span>
+                                        لوحة الصدارة
+                                    </button>
+                                    <button 
+                                        onClick={() => {
+                                            if (hId) {
+                                                window.location.href = `/teacher/points/print?halaqaId=${hId}`;
+                                            } else {
+                                                toast.error('لم يتم العثور على حلقة لطباعة بطاقاتها');
+                                            }
+                                        }}
+                                        className="flex items-center gap-3 px-6 py-4 bg-slate-800 text-white rounded-2xl font-black shadow-lg transition-all active:scale-95 border border-slate-700"
+                                    >
+                                        <span>🖨️</span>
+                                        طباعة البطاقات
+                                    </button>
+                                </>
+                            );
+                        })()}
                         <button 
                             onClick={() => isPointsEnabled && setIsScanning(!isScanning)}
                             disabled={!isPointsEnabled}

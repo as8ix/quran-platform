@@ -16,7 +16,6 @@ export default function LeaderboardPage() {
     const topThreeRef = useRef(null);
 
     const [user, setUser] = useState(null);
-
     const [halaqaName, setHalaqaName] = useState('الترتيب العام');
 
     useEffect(() => {
@@ -66,8 +65,7 @@ export default function LeaderboardPage() {
                             totalPoints: 0,
                             scansCount: 0,
                             categories: {},
-                            // Mocking trend for now
-                            trend: Math.random() > 0.7 ? 'up' : Math.random() > 0.7 ? 'down' : 'stable'
+                            trend: 'stable'
                         };
                     }
                     studentMap[p.studentId].totalPoints += p.amount;
@@ -223,9 +221,6 @@ export default function LeaderboardPage() {
                                 <div className="w-12 h-12 bg-emerald-600 dark:bg-emerald-500 text-white rounded-2xl flex items-center justify-center text-lg font-black shadow-md">
                                     {index + 4}
                                 </div>
-                                {student.trend === 'up' && <span className="text-[10px] text-emerald-500 font-black">↑</span>}
-                                {student.trend === 'down' && <span className="text-[10px] text-rose-500 font-black">↓</span>}
-                                {student.trend === 'stable' && <span className="text-[10px] text-slate-400 font-black">•</span>}
                             </div>
                             <div className="flex-1">
                                 <h3 className="text-lg font-black text-slate-800 dark:text-white">{student.name}</h3>

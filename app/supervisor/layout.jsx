@@ -15,7 +15,13 @@ export default function SupervisorLayout({ children }) {
         }
 
         const user = JSON.parse(storedUser);
-        if (user.role.toLowerCase() !== 'supervisor') {
+        const isSupervisor = user.role.toUpperCase() === 'SUPERVISOR';
+        const isTeacher = user.role.toUpperCase() === 'TEACHER';
+        
+        // Allow teachers ONLY for points leaderboard and print pages
+        const isPointsPath = window.location.pathname.includes('/test-points/');
+
+        if (!isSupervisor && !(isTeacher && isPointsPath)) {
             router.push('/login');
             return;
         }

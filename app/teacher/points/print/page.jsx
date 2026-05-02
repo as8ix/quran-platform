@@ -46,7 +46,7 @@ export default function PrintCardsPage() {
     return (
         <div className="min-h-screen bg-white dark:bg-slate-900 rtl font-noto" dir="rtl">
             <div className="no-print">
-                <Navbar userType={user.role?.toLowerCase() || 'supervisor'} userName="طباعة البطاقات" />
+                <Navbar userType={user.role?.toLowerCase() || 'teacher'} userName="طباعة البطاقات" />
                 <div className="max-w-4xl mx-auto pt-28 px-4 mb-10">
                     <div className="bg-emerald-600 text-white p-8 rounded-[2rem] shadow-xl flex justify-between items-center">
                         <div>
@@ -84,7 +84,8 @@ export default function PrintCardsPage() {
                             <div className="p-6 flex flex-col items-center text-center">
                                 <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center text-2xl mb-4">🎓</div>
                                 <h3 className="text-xl font-black text-slate-800 mb-1">{student.name}</h3>
-                                <p className="text-[10px] font-bold text-slate-400 mb-6">الحلقة: {student.halaqa?.name}</p>
+                                <p className="text-[10px] font-bold text-slate-400 mb-1">الحلقة: {student.halaqa?.name}</p>
+                                <p className="text-[10px] font-bold text-emerald-600 mb-6 italic">المعلم: {user.name || '---'}</p>
 
                                 <div className="p-4 bg-white rounded-3xl shadow-inner border-2 border-slate-50 mb-4">
                                     <QRCodeSVG value={student.id.toString()} size={140} level="H" includeMargin={true} />
