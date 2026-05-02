@@ -76,6 +76,9 @@ model Student {
   exams        Exam[]
   points       Point[]
   updatedAt    DateTime @updatedAt @default(now())
+
+  @@index([halaqaId])
+  @@index([username])
 }
 
 model Point {
@@ -86,6 +89,9 @@ model Point {
   reason    String
   category  String   // QURAN, SPORTS, CULTURAL, SOCIAL, ATTENDANCE
   createdAt DateTime @default(now())
+
+  @@index([studentId])
+  @@index([createdAt])
 }
 
 model Attendance {
@@ -94,6 +100,9 @@ model Attendance {
   student   Student  @relation(fields: [studentId], references: [id])
   date      DateTime @default(now())
   status    String   // PRESENT, ABSENT_EXCUSED, ABSENT_UNEXCUSED
+
+  @@index([studentId])
+  @@index([date])
 }
 
 model Session {
@@ -145,6 +154,10 @@ model Session {
   // Quranic Days Relation
   quranicEventId Int?
   quranicEvent   QuranicEvent? @relation(fields: [quranicEventId], references: [id])
+
+  @@index([studentId])
+  @@index([date])
+  @@index([hifzSurah])
 }
 
 model QuranicEvent {
