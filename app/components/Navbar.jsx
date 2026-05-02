@@ -112,7 +112,7 @@ export default function Navbar({ userType, userName, onLogout, displayId }) {
 
     return (
         <nav className="fixed top-2 sm:top-4 left-2 sm:left-4 right-2 sm:right-4 z-50 transition-all duration-500">
-            <div className="max-w-7xl mx-auto premium-glass rounded-[1.5rem] sm:rounded-[2.5rem] px-4 sm:px-6 py-2.5 sm:py-4 border-white/30 dark:border-slate-800/50 shadow-2xl shadow-slate-200/50 dark:shadow-none">
+            <div className="max-w-7xl mx-auto premium-glass !overflow-visible rounded-[1.5rem] sm:rounded-[2.5rem] px-4 sm:px-6 py-2.5 sm:py-4 border-white/30 dark:border-slate-800/50 shadow-2xl shadow-slate-200/50 dark:shadow-none">
                 <div className="flex justify-between items-center gap-2">
                     <div 
                         className="flex items-center gap-2 sm:gap-3 shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
@@ -204,6 +204,17 @@ export default function Navbar({ userType, userName, onLogout, displayId }) {
                                             </div>
                                         )}
                                     </div>
+                                    {notifications.length > 0 && (
+                                        <div 
+                                            onClick={() => {
+                                                setShowNotifications(false);
+                                                window.location.href = '/notifications';
+                                            }}
+                                            className="p-3 text-center bg-slate-50/50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800 cursor-pointer hover:text-emerald-600 transition-colors"
+                                        >
+                                            <span className="text-xs font-black">عرض كافة الإشعارات 🔗</span>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>
@@ -233,35 +244,6 @@ export default function Navbar({ userType, userName, onLogout, displayId }) {
                 </div>
             </div>
 
-            {/* Sub-Navbar Back Button as per User Design */}
-            {pathname !== '/' && !['/student', '/teacher', '/supervisor'].includes(pathname) && (
-                <div className="fixed top-[100px] sm:top-[120px] right-4 sm:right-10 z-[70]">
-                    <button 
-                        onClick={() => {
-                            if (pathname.includes('/test-points/leaderboard')) {
-                                if (userType === 'teacher') router.push('/teacher/points');
-                                else router.push('/supervisor');
-                            } else {
-                                const paths = pathname.split('/').filter(Boolean);
-                                if (paths.length > 1) {
-                                    const parentPath = '/' + paths.slice(0, -1).join('/');
-                                    router.push(parentPath);
-                                } else {
-                                    router.back();
-                                }
-                            }
-                        }}
-                        className="group flex items-center gap-3 text-slate-500 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all bg-white/80 dark:bg-slate-900/80 backdrop-blur-md px-4 py-2 rounded-2xl shadow-xl border border-white/20 dark:border-slate-800 active:scale-95"
-                    >
-                        <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-white transition-all shadow-lg border border-white/10 dark:border-slate-700">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-5 h-5 sm:w-6 sm:h-6">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-                            </svg>
-                        </div>
-                        <span className="text-sm sm:text-base font-black">عودة للقائمة الرئيسية</span>
-                    </button>
-                </div>
-            )}
         </nav>
     );
 }

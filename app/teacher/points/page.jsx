@@ -212,6 +212,19 @@ export default function TeacherPointsPage() {
             <Navbar userType="teacher" userName={user?.name} />
             
             <main className="max-w-6xl mx-auto px-4 pt-28 pb-12">
+                {/* Custom Back Button for this page only */}
+                <button 
+                    onClick={() => router.push('/teacher')}
+                    className="group flex items-center gap-2 mb-8 text-slate-400 hover:text-emerald-600 transition-all font-black text-sm"
+                >
+                    <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-white transition-all shadow-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-4 h-4 rotate-180">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                        </svg>
+                    </div>
+                    <span>العودة للوحة التحكم</span>
+                </button>
+
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
                     <div>
                         <h1 className="text-4xl font-black text-slate-800 dark:text-white mb-2">رصد نقاط طلابي 🏷️</h1>

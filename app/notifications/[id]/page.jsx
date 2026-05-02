@@ -77,18 +77,29 @@ export default function NotificationDetails() {
         <div className="min-h-screen bg-slate-50 dark:bg-slate-950 rtl transition-colors duration-300" dir="rtl">
             <Navbar userType={user?.role?.toLowerCase() || 'student'} userName={user?.name} onLogout={() => router.push('/login')} />
 
-            <main className="max-w-2xl mx-auto px-4 md:px-6 py-6 md:py-10">
-                <button
-                    onClick={() => router.back()}
-                    className="mb-8 flex items-center gap-3 text-slate-600 dark:text-slate-400 hover:text-emerald-600 transition-all group"
-                >
-                    <span className="font-bold text-sm md:text-base">عودة للقائمة الرئيسية</span>
-                    <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-white dark:bg-slate-800 shadow-md flex items-center justify-center group-hover:scale-110 transition-transform border border-slate-100 dark:border-slate-700">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 md:h-5 md:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-                        </svg>
-                    </div>
-                </button>
+            <main className="max-w-2xl mx-auto px-4 md:px-6 pb-12 pt-44">
+                <div className="flex flex-col sm:flex-row gap-3 mb-8">
+                    <button
+                        onClick={() => window.location.replace('/notifications')}
+                        className="flex-1 flex items-center justify-center gap-3 py-3 px-6 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-emerald-500 transition-all font-bold shadow-sm"
+                    >
+                        <span>🔙</span> قائمة الإشعارات
+                    </button>
+                    <button
+                        onClick={() => {
+                            try {
+                                const stored = JSON.parse(sessionStorage.getItem('user'));
+                                const path = stored?.role === 'SUPERVISOR' ? '/supervisor' : stored?.role === 'TEACHER' ? '/teacher' : '/student';
+                                window.location.replace(path);
+                            } catch (e) {
+                                window.location.replace('/');
+                            }
+                        }}
+                        className="flex-1 flex items-center justify-center gap-3 py-3 px-6 bg-emerald-600 text-white rounded-2xl border border-emerald-600 hover:bg-emerald-700 transition-all font-bold shadow-lg"
+                    >
+                        <span>🏠</span> العودة للرئيسية
+                    </button>
+                </div>
 
                 <div className={`premium-glass rounded-[2.5rem] shadow-2xl overflow-hidden border-t-8 transition-all ${
                     notification.type === 'WARNING' ? 'border-red-500' : 

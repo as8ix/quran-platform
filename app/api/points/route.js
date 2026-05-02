@@ -1,7 +1,5 @@
+import { prisma } from '@/app/lib/prisma';
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
 
 export async function GET(request) {
     try {
@@ -61,5 +59,33 @@ export async function POST(request) {
     } catch (error) {
         console.error("POST Point Error:", error);
         return NextResponse.json({ error: 'Failed to award points' }, { status: 500 });
+    }
+}
+
+export async function DELETE(request) {
+    try {
+        const { searchParams } = new URL(request.url);
+        const halaqaId = searchParams.get('halaqaId');
+
+        if (!halaqaId) {
+            return NextResponse.json({ error: 'Missing halaqaId' }, { status: 400 });
+        }
+
+        // Delete all points for all students in this halaqa
+        const result = await prisma.point.deleteMany({
+            where: {
+                student: {
+                    halaqaId: parseInt(halaqaId)
+                }
+            }
+        });
+
+        return NextResponse.json({ 
+            message: `Successfully deleted ${result.count} points`, 
+            count: result.count 
+        });
+    } catch (error) {
+        console.error("DELETE Point Error:", error);
+        return NextResponse.json({ error: 'Failed to reset points' }, { status: 500 });
     }
 }

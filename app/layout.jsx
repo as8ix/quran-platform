@@ -67,8 +67,8 @@ export default function RootLayout({ children }) {
   return (
     <html lang="ar" dir="rtl">
       <body className="antialiased flex flex-col min-h-screen transition-colors duration-300" suppressHydrationWarning>
+        <ToasterProvider />
         <ThemeProvider>
-          <ToasterProvider />
           <main className="flex-grow">
             {children}
           </main>

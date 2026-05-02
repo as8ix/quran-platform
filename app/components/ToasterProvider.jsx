@@ -1,22 +1,33 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { Toaster } from 'react-hot-toast';
 
 export default function ToasterProvider() {
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    if (!mounted) return null;
+
     return (
         <Toaster
             position="top-center"
+            reverseOrder={false}
             containerStyle={{
-                zIndex: 99999,
+                zIndex: 1000000,
+                visibility: 'visible',
             }}
             toastOptions={{
                 duration: 4000,
                 style: {
                     background: '#334155',
                     color: '#fff',
-                    fontFamily: 'inherit',
                     borderRadius: '12px',
-                    padding: '16px',
+                    fontSize: '14px',
+                    fontWeight: '500',
                 },
                 success: {
                     style: {
@@ -24,20 +35,12 @@ export default function ToasterProvider() {
                         color: '#047857',
                         border: '1px solid #a7f3d0'
                     },
-                    iconTheme: {
-                        primary: '#10b981',
-                        secondary: '#ecfdf5',
-                    },
                 },
                 error: {
                     style: {
                         background: '#fff1f2',
                         color: '#be123c',
                         border: '1px solid #fecdd3'
-                    },
-                    iconTheme: {
-                        primary: '#f43f5e',
-                        secondary: '#fff1f2',
                     },
                 },
             }}

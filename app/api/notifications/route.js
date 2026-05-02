@@ -11,15 +11,31 @@ export async function GET(request) {
             return NextResponse.json({ error: 'Missing userId or studentId' }, { status: 400 });
         }
 
-        const whereClause = {};
+        const whereClause = {
+            OR: []
+        };
+        
         if (userId) {
             const parsedId = Number(userId);
-            if (!isNaN(parsedId)) whereClause.userId = parsedId;
+            if (!isNaN(parsedId)) {
+                whereClause.OR.push({ userId: parsedId });
+            }
         }
+        
         if (studentId) {
             const parsedId = Number(studentId);
-            if (!isNaN(parsedId)) whereClause.studentId = parsedId;
+            if (!isNaN(parsedId)) {
+                whereClause.OR.push({ studentId: parsedId });
+            }
         }
+
+        // Always include global notifications (both null)
+        whereClause.OR.push({
+            AND: [
+                { userId: null },
+                { studentId: null }
+            ]
+        });
 
         const notifications = await prisma.notification.findMany({
             where: whereClause,
