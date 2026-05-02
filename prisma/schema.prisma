@@ -36,6 +36,8 @@ model Halaqa {
   assistants User[]  @relation("AssistantTeachers")
   students  Student[]
   pointsEnabled Boolean @default(true)
+  holidays      Holiday[]
+  logo          String?
   createdAt DateTime @default(now())
 }
 
@@ -215,5 +217,7 @@ model Holiday {
   name      String   // Reason/Type (e.g. Eid al-Fitr)
   startDate DateTime
   endDate   DateTime
+  halaqaId  Int?     // Optional: if null, it's global
+  halaqa    Halaqa?  @relation(fields: [halaqaId], references: [id])
   createdAt DateTime @default(now())
 }

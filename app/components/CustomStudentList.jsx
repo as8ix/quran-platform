@@ -13,6 +13,7 @@ export default function CustomStudentList({ userRole, initialTeacherId, initialH
     const [paymentFilterTerm, setPaymentFilterTerm] = useState('feeStatusTerm1');
     const [financeMode, setFinanceMode] = useState(false);
     const [togglingId, setTogglingId] = useState(null);
+    const [halaqaLogo, setHalaqaLogo] = useState(null);
 
     useEffect(() => {
         if (initialHalaqaId) {
@@ -198,6 +199,19 @@ export default function CustomStudentList({ userRole, initialTeacherId, initialH
         return matchesHalaqa && matchesPayment;
     });
 
+    useEffect(() => {
+        if (halaqaFilter !== 'all' && halaqaFilter !== 'none') {
+            const studentWithHalaqa = students.find(s => s.halaqa?.id?.toString() === halaqaFilter.toString());
+            if (studentWithHalaqa && studentWithHalaqa.halaqa.logo) {
+                setHalaqaLogo(studentWithHalaqa.halaqa.logo);
+            } else {
+                setHalaqaLogo(null);
+            }
+        } else {
+            setHalaqaLogo(null);
+        }
+    }, [halaqaFilter, students]);
+
     const handleCopyText = () => {
         const selectedKeys = Object.keys(fields).filter(k => fields[k].selected);
         
@@ -347,9 +361,16 @@ export default function CustomStudentList({ userRole, initialTeacherId, initialH
 
             <div className="bg-slate-50 rounded-[2rem] p-8 mb-8 border border-slate-100 shadow-sm print:shadow-none print:border-none print:bg-transparent print:p-0">
                 <div className="flex justify-between items-start mb-8">
-                    <div>
-                        <h1 className="text-3xl font-black text-slate-900 mb-1">قائمة بيانات الطلاب</h1>
-                        <p className="text-slate-500 font-medium text-lg">تاريخ الإصدار: {new Date().toLocaleDateString('ar-SA')}</p>
+                    <div className="flex items-center gap-6">
+                        <div>
+                            <h1 className="text-3xl font-black text-slate-900 mb-1">قائمة بيانات الطلاب</h1>
+                            <p className="text-slate-500 font-medium text-lg">تاريخ الإصدار: {new Date().toLocaleDateString('ar-SA')}</p>
+                        </div>
+                        {halaqaLogo ? (
+                            <img src={halaqaLogo} alt="شعار الحلقة" className="w-20 h-20 object-contain shadow-sm rounded-xl" />
+                        ) : (
+                            <img src="/mosque-logo.png" alt="شعار المسجد" className="w-16 h-16 object-contain opacity-70" />
+                        )}
                     </div>
                 </div>
                 

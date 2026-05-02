@@ -17,7 +17,7 @@ export async function GET() {
 
 export async function POST(request) {
     try {
-        const { name, startDate, endDate } = await request.json();
+        const { name, startDate, endDate, halaqaId } = await request.json();
         
         if (!name || !startDate || !endDate) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -26,15 +26,19 @@ export async function POST(request) {
         const holiday = await prisma.holiday.create({
             data: {
                 name,
-                startDate: new Date(startDate),
-                endDate: new Date(endDate)
+                startDate: new Date(startDate).toISOString(),
+                endDate: new Date(endDate).toISOString(),
+                halaqaId: halaqaId ? parseInt(halaqaId) : null
             }
         });
 
         return NextResponse.json(holiday);
     } catch (error) {
         console.error('Error creating holiday:', error);
-        return NextResponse.json({ error: 'Failed to create holiday' }, { status: 500 });
+        return NextResponse.json({ 
+            error: 'فشل في إضافة الإجازة في قاعدة البيانات', 
+            details: error.message 
+        }, { status: 500 });
     }
 }
 
@@ -42,8 +46,6 @@ export async function DELETE(request) {
     try {
         const url = new URL(request.url);
         const id = url.searchParams.get('id');
-
-        console.log('API: Attempting to delete holiday with ID:', id);
 
         if (!id) {
             return NextResponse.json({ error: 'المعرف مفقود' }, { status: 400 });
@@ -53,7 +55,6 @@ export async function DELETE(request) {
             where: { id: parseInt(id) }
         });
 
-        console.log('API: Successfully deleted holiday:', deleted);
         return NextResponse.json({ success: true, deleted });
     } catch (error) {
         console.error('API Error deleting holiday:', error);
@@ -66,7 +67,7 @@ export async function DELETE(request) {
 
 export async function PUT(request) {
     try {
-        const { id, name, startDate, endDate } = await request.json();
+        const { id, name, startDate, endDate, halaqaId } = await request.json();
         
         if (!id || !name || !startDate || !endDate) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -76,14 +77,18 @@ export async function PUT(request) {
             where: { id: parseInt(id) },
             data: {
                 name,
-                startDate: new Date(startDate),
-                endDate: new Date(endDate)
+                startDate: new Date(startDate).toISOString(),
+                endDate: new Date(endDate).toISOString(),
+                halaqaId: halaqaId ? parseInt(halaqaId) : null
             }
         });
 
         return NextResponse.json(holiday);
     } catch (error) {
         console.error('Error updating holiday:', error);
-        return NextResponse.json({ error: 'Failed to update holiday' }, { status: 500 });
+        return NextResponse.json({ 
+            error: 'فشل في تحديث الإجازة في قاعدة البيانات', 
+            details: error.message 
+        }, { status: 500 });
     }
 }

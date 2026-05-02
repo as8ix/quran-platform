@@ -13,6 +13,7 @@ import { useTheme } from '../components/ThemeProvider';
 import DevStats from '../components/DevStats';
 import Link from 'next/link';
 import AddStudentModal from '../components/AddStudentModal';
+import ManageHolidaysModal from '../components/ManageHolidaysModal';
 
 
 export default function SupervisorDashboard() {
@@ -78,7 +79,7 @@ export default function SupervisorDashboard() {
 
     const [isEditingHalaqa, setIsEditingHalaqa] = useState(false);
     const [editHalaqaId, setEditHalaqaId] = useState(null);
-    const [newHalaqa, setNewHalaqa] = useState({ name: 'حلقة: ', teacherId: '', assistantTeacherIds: [] });
+    const [newHalaqa, setNewHalaqa] = useState({ name: 'حلقة: ', teacherId: '', assistantTeacherIds: [], logo: null });
 
     const [deletingId, setDeletingId] = useState(null);
     const [students, setStudents] = useState([]);
@@ -93,6 +94,7 @@ export default function SupervisorDashboard() {
     const [showHalaqaSettingsModal, setShowHalaqaSettingsModal] = useState(false);
     const [selectedHalaqaForSettings, setSelectedHalaqaForSettings] = useState(null);
     const [isResetting, setIsResetting] = useState(false);
+    const [showHolidayModal, setShowHolidayModal] = useState(false);
 
     useEffect(() => {
         const storedUser = sessionStorage.getItem('user');
@@ -243,6 +245,17 @@ export default function SupervisorDashboard() {
         setShowTeacherModal(true);
     };
 
+    const handleLogoUpload = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setNewHalaqa({ ...newHalaqa, logo: reader.result });
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
     const handleCreateHalaqa = async (e) => {
         e.preventDefault();
         setSubmitting(true);
@@ -260,7 +273,7 @@ export default function SupervisorDashboard() {
             if (res.ok) {
                 toast.success(isEditingHalaqa ? 'تم تعديل الحلقة بنجاح' : 'تم إنشاء الحلقة بنجاح');
                 setShowHalaqaModal(false);
-                setNewHalaqa({ name: 'حلقة: ', teacherId: '', assistantTeacherIds: [] });
+                setNewHalaqa({ name: 'حلقة: ', teacherId: '', assistantTeacherIds: [], logo: null });
                 setIsEditingHalaqa(false);
                 setEditHalaqaId(null);
                 fetchAllData();
@@ -279,7 +292,8 @@ export default function SupervisorDashboard() {
         setNewHalaqa({
             name: halaqa.name,
             teacherId: halaqa.teacherId ? halaqa.teacherId.toString() : '',
-            assistantTeacherIds: halaqa.assistants ? halaqa.assistants.map(a => a.id.toString()) : []
+            assistantTeacherIds: halaqa.assistants ? halaqa.assistants.map(a => a.id.toString()) : [],
+            logo: halaqa.logo || null
         });
         setIsEditingHalaqa(true);
         setEditHalaqaId(halaqa.id);
@@ -563,6 +577,12 @@ export default function SupervisorDashboard() {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                             </svg>
                             إنشاء حلقة
+                        </button>
+                        <button onClick={() => setShowHolidayModal(true)} className="flex items-center gap-2 px-6 py-3 bg-rose-50 dark:bg-rose-900/30 border-2 border-rose-100 dark:border-rose-800 rounded-2xl font-bold text-rose-600 dark:text-rose-400 hover:border-rose-400 hover:text-rose-700 transition-all shadow-sm active:scale-95">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            إدارة الإجازات
                         </button>
                         {user && <SendNotification senderRole="SUPERVISOR" senderId={user.id} students={students} teachers={teachers} />}
                     </div>
@@ -1009,7 +1029,7 @@ export default function SupervisorDashboard() {
 
             {showHalaqaModal && (
                 <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 backdrop-blur-[12px] md:backdrop-blur-[20px]">
-                    <div className="absolute inset-0 bg-slate-900/40 dark:bg-slate-900/60 animate-fadeIn" onClick={() => { setShowHalaqaModal(false); setIsEditingHalaqa(false); setEditHalaqaId(null); setNewHalaqa({ name: 'حلقة: ', teacherId: '', assistantTeacherIds: [] }); }}></div>
+                    <div className="absolute inset-0 bg-slate-900/40 dark:bg-slate-900/60 animate-fadeIn" onClick={() => { setShowHalaqaModal(false); setIsEditingHalaqa(false); setEditHalaqaId(null); setNewHalaqa({ name: 'حلقة: ', teacherId: '', assistantTeacherIds: [], logo: null }); }}></div>
                     <div className="relative w-full max-w-2xl bg-white/90 dark:bg-slate-900/80 backdrop-blur-xl rounded-[2.5rem] shadow-2xl border border-white/20 dark:border-slate-800 overflow-hidden flex flex-col max-h-[90vh]">
                         {/* Premium Header - Sticky */}
                         <div className="sticky top-0 z-[60] p-6 sm:p-8 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-t-[2.5rem] flex-shrink-0 shadow-md">
@@ -1037,24 +1057,54 @@ export default function SupervisorDashboard() {
                         <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
                             <div className="p-6 sm:p-8 overflow-y-auto custom-scrollbar flex-1 bg-white/50 dark:bg-slate-900/50">
                                 <form id="halaqa-form" onSubmit={handleCreateHalaqa} className="space-y-6 pb-4">
-                                    <div className="space-y-2">
-                                        <label className="block text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] mr-1">اسم الحلقة</label>
-                                        <div className="relative group">
-                                            <div className="absolute inset-y-0 right-0 pr-5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-indigo-500 transition-colors">
-                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                                                </svg>
-                                            </div>
-                                            <input
-                                                type="text"
-                                                placeholder="مثال: حلقة علي بن أبي طالب"
-                                                className="w-full pr-12 pl-6 py-4 bg-slate-50/50 dark:bg-slate-800/30 border-2 border-transparent focus:border-indigo-500/30 focus:bg-white dark:focus:bg-slate-900 rounded-[1.5rem] outline-none transition-all font-bold dark:text-white"
-                                                value={newHalaqa.name}
-                                                onChange={(e) => setNewHalaqa({ ...newHalaqa, name: e.target.value })}
-                                                required
-                                            />
-                                        </div>
-                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                         <div className="space-y-2">
+                                             <label className="block text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] mr-1">اسم الحلقة</label>
+                                             <div className="relative group">
+                                                 <div className="absolute inset-y-0 right-0 pr-5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-indigo-500 transition-colors">
+                                                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                                     </svg>
+                                                 </div>
+                                                 <input
+                                                     type="text"
+                                                     placeholder="مثال: حلقة علي بن أبي طالب"
+                                                     className="w-full pr-12 pl-6 py-4 bg-slate-50/50 dark:bg-slate-800/30 border-2 border-transparent focus:border-indigo-500/30 focus:bg-white dark:focus:bg-slate-900 rounded-[1.5rem] outline-none transition-all font-bold dark:text-white"
+                                                     value={newHalaqa.name}
+                                                     onChange={(e) => setNewHalaqa({ ...newHalaqa, name: e.target.value })}
+                                                     required
+                                                 />
+                                             </div>
+                                         </div>
+
+                                         <div className="space-y-2">
+                                             <label className="block text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] mr-1">شعار الحلقة (اختياري)</label>
+                                             <div className="flex items-center gap-4">
+                                                 <div className="relative w-14 h-14 bg-slate-100 dark:bg-slate-800 rounded-2xl overflow-hidden flex-shrink-0 border-2 border-dashed border-slate-300 dark:border-slate-700">
+                                                     {newHalaqa.logo ? (
+                                                         <img src={newHalaqa.logo} className="w-full h-full object-contain" alt="Logo preview" />
+                                                     ) : (
+                                                         <div className="w-full h-full flex items-center justify-center text-slate-400">🖼️</div>
+                                                     )}
+                                                 </div>
+                                                 <label className="flex-1 cursor-pointer">
+                                                     <div className="py-3 px-4 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-xl text-center text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all">
+                                                         {newHalaqa.logo ? 'تغيير الشعار' : 'اختر شعار'}
+                                                     </div>
+                                                     <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
+                                                 </label>
+                                                 {newHalaqa.logo && (
+                                                     <button 
+                                                         type="button"
+                                                         onClick={() => setNewHalaqa({ ...newHalaqa, logo: null })}
+                                                         className="p-3 bg-rose-50 text-rose-500 rounded-xl hover:bg-rose-100 transition-all"
+                                                     >
+                                                         🗑️
+                                                     </button>
+                                                 )}
+                                             </div>
+                                         </div>
+                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                         <div className="space-y-3">
                                             <div className="flex items-center justify-between mr-1">
@@ -1518,6 +1568,11 @@ export default function SupervisorDashboard() {
                     </div>
                 </div>
             )}
+            <ManageHolidaysModal 
+                isOpen={showHolidayModal} 
+                onClose={() => setShowHolidayModal(false)} 
+                halaqas={halaqas}
+            />
         </div>
     );
 }

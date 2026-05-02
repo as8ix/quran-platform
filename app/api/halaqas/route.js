@@ -26,11 +26,12 @@ export async function GET() {
 export async function POST(request) {
     try {
         const body = await request.json();
-        const { name, teacherId, assistantTeacherIds } = body;
+        const { name, teacherId, assistantTeacherIds, logo } = body;
 
         const data = {
             name,
-            teacherId: teacherId ? parseInt(teacherId) : null
+            teacherId: teacherId ? parseInt(teacherId) : null,
+            logo: logo || null
         };
 
         if (assistantTeacherIds && assistantTeacherIds.length > 0) {
@@ -57,12 +58,13 @@ export async function POST(request) {
 export async function PUT(request) {
     try {
         const body = await request.json();
-        const { id, name, teacherId, assistantTeacherIds, pointsEnabled } = body;
+        const { id, name, teacherId, assistantTeacherIds, pointsEnabled, logo } = body;
 
         const data = {};
         if (name !== undefined) data.name = name;
         if (teacherId !== undefined) data.teacherId = teacherId ? parseInt(teacherId) : null;
         if (pointsEnabled !== undefined) data.pointsEnabled = pointsEnabled;
+        if (logo !== undefined) data.logo = logo;
 
         if (assistantTeacherIds) {
             data.assistants = {

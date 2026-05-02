@@ -56,7 +56,11 @@ export async function GET(request) {
             h.students.forEach(s => {
                 // Avoid duplicates if a student is somehow in multiple halaqas
                 if (!allStudents.some(stu => stu.id === s.id)) {
-                    allStudents.push({ ...s, halaqaName: h.name });
+                    allStudents.push({ 
+                        ...s, 
+                        halaqaName: h.name,
+                        halaqaLogo: h.logo
+                    });
                 }
             });
         });

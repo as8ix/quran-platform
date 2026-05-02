@@ -83,6 +83,7 @@ export default function TeacherDashboard() {
 
     const [user, setUser] = useState(null);
     const [teacherHalaqas, setTeacherHalaqas] = useState([]);
+    const [pointsEnabled, setPointsEnabled] = useState(false);
 
     const getFirstName = (fullName) => {
         if (!fullName) return '';
@@ -112,6 +113,7 @@ export default function TeacherDashboard() {
                         (h.assistants && h.assistants.some(a => a.id === user.id))
                     );
                     setTeacherHalaqas(myHalaqas);
+                    setPointsEnabled(myHalaqas.some(h => h.pointsEnabled));
                 }
             }
 
@@ -206,13 +208,15 @@ export default function TeacherDashboard() {
                             </svg>
                             التقارير
                         </button>
-                        <button
-                            onClick={() => router.push('/teacher/points')}
-                            className="flex items-center gap-2 px-6 py-3 bg-amber-50 dark:bg-amber-900/30 border-2 border-amber-100 dark:border-amber-800 rounded-2xl font-bold text-amber-600 dark:text-amber-500 hover:border-amber-400 hover:text-amber-700 transition-all shadow-sm active:scale-95"
-                        >
-                            <span>🪙</span>
-                            رصد النقاط
-                        </button>
+                        {pointsEnabled && (
+                            <button
+                                onClick={() => router.push('/teacher/points')}
+                                className="flex items-center gap-2 px-6 py-3 bg-amber-50 dark:bg-amber-900/30 border-2 border-amber-100 dark:border-amber-800 rounded-2xl font-bold text-amber-600 dark:text-amber-500 hover:border-amber-400 hover:text-amber-700 transition-all shadow-sm active:scale-95"
+                            >
+                                <span>🪙</span>
+                                رصد النقاط
+                            </button>
+                        )}
                         <button
                             onClick={() => {
                                 if (!teacherHalaqas.length && !user?.halaqaId) {

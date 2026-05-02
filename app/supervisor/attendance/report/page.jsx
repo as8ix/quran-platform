@@ -75,6 +75,7 @@ function SupervisorAttendanceReportContent() {
     const [title, setTitle] = useState('');
     const [holidays, setHolidays] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [halaqaLogo, setHalaqaLogo] = useState(null);
     const [user, setUser] = useState(null);
 
     useEffect(() => {
@@ -158,6 +159,7 @@ function SupervisorAttendanceReportContent() {
                     );
                     if (myHalaqas.length > 0) {
                         currentTeacherHalaqaId = myHalaqas[0].id;
+                        setHalaqaLogo(myHalaqas[0].logo || null);
                     }
                 }
 
@@ -309,7 +311,13 @@ function SupervisorAttendanceReportContent() {
                         <h1 className="text-3xl font-black text-slate-900 mb-2">تقرير الحضور والغياب (إدارة عامة)</h1>
                         <p className="text-slate-500 font-medium text-lg">{title}</p>
                     </div>
-                    <div className="flex gap-4">
+                    <div className="flex items-center gap-6">
+                        {halaqaLogo ? (
+                            <img src={halaqaLogo} alt="شعار الحلقة" className="w-20 h-20 object-contain shadow-sm rounded-xl" />
+                        ) : (
+                            <img src="/mosque-logo.png" alt="شعار المسجد" className="w-16 h-16 object-contain opacity-70" />
+                        )}
+                        <div className="flex gap-4">
                         <div className="bg-white px-5 py-3 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center min-w-[100px] print:border-slate-300 print:bg-white text-emerald-600">
                             <span className="text-slate-400 text-xs font-bold mb-1">حاضر</span>
                             <span className="text-2xl font-black">{stats.present}</span>
@@ -324,6 +332,7 @@ function SupervisorAttendanceReportContent() {
                         </div>
                     </div>
                 </div>
+            </div>
 
                 {(() => {
                     const chunkSize = 8;

@@ -13,6 +13,7 @@ export default function StudentDashboard() {
     const router = useRouter();
     const [student, setStudent] = useState(null);
     const [sessions, setSessions] = useState([]);
+    const [holidays, setHolidays] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showProfileModal, setShowProfileModal] = useState(false);
 
@@ -63,13 +64,18 @@ export default function StudentDashboard() {
 
     const fetchData = async (id) => {
         try {
-            const [studentRes, sessionsRes] = await Promise.all([
+            const [studentRes, sessionsRes, holidaysRes] = await Promise.all([
                 fetch(`/api/students`),
-                fetch(`/api/sessions?studentId=${id}`)
+                fetch(`/api/sessions?studentId=${id}`),
+                fetch(`/api/holidays`)
             ]);
             const allStudents = await studentRes.json();
             const myData = allStudents.find(s => s.id === id);
             if (myData) setStudent(myData);
+            
+            if (holidaysRes.ok) {
+                setHolidays(await holidaysRes.json());
+            }
             
             if (sessionsRes.ok) {
                 const rawSessions = await sessionsRes.json();
@@ -229,7 +235,19 @@ export default function StudentDashboard() {
             let targetEnd = new Date(end); targetEnd.setHours(0,0,0,0);
             cur.setDate(cur.getDate() + 1);
             while (cur <= targetEnd) {
-                const day = cur.getDay(); if (day >= 0 && day <= 3) count++;
+                const day = cur.getDay(); 
+                if (day >= 0 && day <= 3) {
+                    // Check if this date is a holiday (global or for this student's halaqa)
+                    const dateStr = cur.toISOString().split('T')[0];
+                    const isH = holidays.some(h => {
+                        const hStart = new Date(h.startDate).toISOString().split('T')[0];
+                        const hEnd = new Date(h.endDate).toISOString().split('T')[0];
+                        const isInRange = dateStr >= hStart && dateStr <= hEnd;
+                        const isRelevant = !h.halaqaId || h.halaqaId === student.halaqaId;
+                        return isInRange && isRelevant;
+                    });
+                    if (!isH) count++;
+                }
                 cur.setDate(cur.getDate() + 1);
             }
             return count;

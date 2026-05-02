@@ -168,7 +168,11 @@ function TeacherWeeklyReportContent() {
                         <h1 className="text-3xl font-black text-slate-900 mb-1">التقرير المجمع الشامل {reportData.length > 0 ? `(${reportData[0].halaqaName})` : ''}</h1>
                         <p className="text-slate-500 font-medium text-lg">الفترة من: {startHijri} إلى {endHijri}</p>
                     </div>
-                    <img src="/mosque-logo.png" alt="شعار الحلقة" className="w-16 h-16 object-contain opacity-70" />
+                    {reportData.length > 0 && reportData[0].halaqaLogo ? (
+                        <img src={reportData[0].halaqaLogo} alt="شعار الحلقة" className="w-24 h-24 object-contain shadow-sm rounded-xl" />
+                    ) : (
+                        <img src="/mosque-logo.png" alt="شعار المسجد" className="w-16 h-16 object-contain opacity-70" />
+                    )}
                 </div>
 
                 <div className="flex gap-4 mb-8 flex-wrap">

@@ -64,25 +64,38 @@ export default function PrintCardsPage() {
             </div>
 
             <main className="max-w-6xl mx-auto px-4 pb-20">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 print:grid-cols-3 print:gap-2">
+                <div className="grid-container grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 print:gap-0">
                     {students.map(student => (
-                        <div key={student.id} className="card-container relative overflow-hidden bg-white border border-slate-200 rounded-2xl shadow-sm print:shadow-none print:m-1">
+                        <div key={student.id} className="card-container relative overflow-hidden bg-white border border-slate-200 rounded-2xl shadow-sm print:shadow-none">
                             {/* Card Header */}
                             <div className="bg-slate-900 p-2 flex items-center justify-between">
                                 <div className="flex items-center gap-1.5">
-                                    <img src="/mosque-logo-white.png" className="w-5 h-5 object-contain" alt="logo" />
+                                    <div className="w-7 h-7 flex items-center justify-center flex-shrink-0">
+                                        <img src="/mosque-logo-white.png" className="max-w-full max-h-full object-contain" alt="logo" />
+                                    </div>
                                     <div className="text-[7px] text-white font-bold leading-tight">
-                                        جامع الحديقة<br/>حي السلامة
+                                        جامع الحديقة<br/>
+                                        <span className="text-slate-400">حي السلامة</span>
                                     </div>
                                 </div>
-                                <div className="text-emerald-400 font-black text-[7px] uppercase tracking-tighter">
-                                    بطاقة الطالب الصيفية
+                                <div className="text-emerald-400 font-black text-[9px] uppercase tracking-tighter">
+                                    بطاقة الطالب
                                 </div>
                             </div>
 
                             {/* Card Body */}
                             <div className="p-3 flex-1 flex flex-col items-center justify-center text-center">
-                                {/* Logo/Emoji Space Removed as requested */}
+                                {student.halaqa?.logo ? (
+                                    <div className="w-16 h-16 flex items-center justify-center mb-1">
+                                        <img 
+                                            src={student.halaqa.logo} 
+                                            className="max-w-full max-h-full object-contain rounded-xl transform scale-110" 
+                                            alt="halaqa-logo" 
+                                        />
+                                    </div>
+                                ) : (
+                                    <div className="w-16 h-16 mb-1"></div>
+                                )}
                                 <h3 className="text-sm font-black text-slate-800 mb-0.5">{student.name}</h3>
                                 <p className="text-[8px] font-bold text-slate-400 mb-0.5">الحلقة: {student.halaqa?.name}</p>
 
@@ -102,17 +115,37 @@ export default function PrintCardsPage() {
 
             <style jsx>{`
                 @media print {
+                    @page { 
+                        size: A4 portrait;
+                        margin: 1cm;
+                    }
                     .no-print { display: none !important; }
-                    body { background: white !important; margin: 0; padding: 10px; }
+                    body { background: white !important; margin: 0; padding: 0 !important; }
+                    main { 
+                        width: 100% !important; 
+                        margin: 0 !important; 
+                        padding: 0 !important;
+                        display: flex !important;
+                        justify-content: center !important;
+                    }
+                    .grid-container {
+                        width: 19cm !important;
+                        display: grid !important;
+                        grid-template-columns: 6cm 6cm 6cm !important;
+                        gap: 0.5cm !important;
+                        justify-content: center !important;
+                    }
                     .card-container { 
                         break-inside: avoid;
                         page-break-inside: avoid;
-                        width: 100%;
-                        height: 280px;
+                        width: 6cm !important;
+                        height: 300px;
                         display: flex;
                         flex-direction: column;
+                        border: 1px solid #ddd !important;
+                        background: white !important;
+                        margin: 0 !important;
                     }
-                    main { padding: 0 !important; width: 100% !important; }
                 }
             `}</style>
         </div>
