@@ -2,7 +2,7 @@ const CACHE_NAME = 'garden-platform-v1';
 const ASSETS_TO_CACHE = [
   '/',
   '/manifest.json',
-  '/app_icon_garden_1777765995112.png'
+  '/mosque-logo.png'
 ];
 
 self.addEventListener('install', (event) => {

@@ -34,9 +34,9 @@ export const metadata = {
     },
   },
   icons: {
-    icon: "/app_icon_garden_1777765995112.png",
-    apple: "/app_icon_garden_1777765995112.png",
-    shortcut: "/app_icon_garden_1777765995112.png",
+    icon: "/mosque-logo.png",
+    apple: "/mosque-logo.png",
+    shortcut: "/mosque-logo.png",
   },
   openGraph: {
     title: "منصة الحديقة | جامع الحديقة",
@@ -45,9 +45,9 @@ export const metadata = {
     siteName: "منصة الحديقة",
     images: [
       {
-        url: "/app_icon_garden_1777765995112.png",
-        width: 1024,
-        height: 1024,
+        url: "/mosque-logo.png",
+        width: 512,
+        height: 512,
         alt: "شعار منصة الحديقة",
       },
     ],
@@ -58,7 +58,7 @@ export const metadata = {
     card: "summary",
     title: "منصة الحديقة | جامع الحديقة",
     description: "المنصة الرقمية لإدارة حلقات تحفيظ القرآن الكريم في جامع الحديقة بحي السلامة",
-    images: ["/app_icon_garden_1777765995112.png"],
+    images: ["/mosque-logo.png"],
   },
   manifest: "/manifest.json",
   appleWebApp: {

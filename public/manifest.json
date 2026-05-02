@@ -8,8 +8,8 @@
   "theme_color": "#059669",
   "icons": [
     {
-      "src": "/app_icon_garden_1777765995112.png",
-      "sizes": "1024x1024",
+      "src": "/mosque-logo.png",
+      "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
     }
