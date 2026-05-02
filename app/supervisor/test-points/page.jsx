@@ -62,9 +62,19 @@ export default function TestPointsPage() {
         }
     };
 
+    const lastScannedRef = useRef({ id: null, time: 0 });
+
     const onScanSuccess = (decodedText) => {
         const studentId = parseInt(decodedText);
         if (isNaN(studentId)) return;
+
+        const now = Date.now();
+        // Prevent duplicate scans within 3 seconds for the same student
+        if (lastScannedRef.current.id === studentId && (now - lastScannedRef.current.time) < 3000) {
+            return;
+        }
+
+        lastScannedRef.current = { id: studentId, time: now };
         
         const student = students.find(s => s.id === studentId);
         if (!student) {
