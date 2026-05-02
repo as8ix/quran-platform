@@ -1,9 +1,12 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import { useTheme } from './ThemeProvider';
 
 export default function Navbar({ userType, userName, onLogout, displayId }) {
+    const router = useRouter();
+    const pathname = usePathname();
     const { isDarkMode, toggleDarkMode, mounted } = useTheme();
     const titles = {
         student: 'لوحة الطالب',
@@ -204,6 +207,31 @@ export default function Navbar({ userType, userName, onLogout, displayId }) {
                     </div>
                 </div>
             </div>
+
+            {/* Sub-Navbar Back Button as per User Design */}
+            {pathname !== '/' && !['/student', '/teacher', '/supervisor'].includes(pathname) && (
+                <div className="fixed top-[100px] sm:top-[120px] right-4 sm:right-10 z-[70]">
+                    <button 
+                        onClick={() => {
+                            const paths = pathname.split('/').filter(Boolean);
+                            if (paths.length > 1) {
+                                const parentPath = '/' + paths.slice(0, -1).join('/');
+                                router.push(parentPath);
+                            } else {
+                                router.back();
+                            }
+                        }}
+                        className="group flex items-center gap-3 text-slate-500 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all bg-white/80 dark:bg-slate-900/80 backdrop-blur-md px-4 py-2 rounded-2xl shadow-xl border border-white/20 dark:border-slate-800 active:scale-95"
+                    >
+                        <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-white transition-all shadow-lg border border-white/10 dark:border-slate-700">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-5 h-5 sm:w-6 sm:h-6">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                            </svg>
+                        </div>
+                        <span className="text-sm sm:text-base font-black">عودة للقائمة الرئيسية</span>
+                    </button>
+                </div>
+            )}
         </nav>
     );
 }

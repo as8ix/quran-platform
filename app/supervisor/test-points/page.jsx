@@ -17,6 +17,8 @@ export default function TestPointsPage() {
     const html5QrCodeRef = useRef(null);
     const isProcessingRef = useRef(false);
 
+    const [mode, setMode] = useState('add'); // 'add' or 'deduct'
+
     useEffect(() => {
         fetchTestData();
     }, []);
@@ -118,17 +120,30 @@ export default function TestPointsPage() {
 
     const handleAwardPoints = async (studentId, studentName = '') => {
         try {
+            const finalAmount = mode === 'deduct' ? -Math.abs(pointsData.amount) : Math.abs(pointsData.amount);
             const res = await fetch('/api/points', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     studentId,
-                    ...pointsData
+                    ...pointsData,
+                    amount: finalAmount
                 })
             });
 
             if (res.ok) {
-                toast.success(`تم رصد ${pointsData.amount} نقطة لـ ${studentName}`);
+                if (mode === 'deduct') {
+                    toast.error(`تم خصم ${Math.abs(finalAmount)} نقطة من ${studentName}`, {
+                        icon: '📉',
+                        style: {
+                            borderRadius: '10px',
+                            background: '#333',
+                            color: '#fff',
+                        },
+                    });
+                } else {
+                    toast.success(`تم رصد ${pointsData.amount} نقطة لـ ${studentName}`);
+                }
                 fetchTestData();
             }
         } catch (error) {
@@ -144,6 +159,7 @@ export default function TestPointsPage() {
         { id: 'SPORTS', name: 'رياضة', icon: '⚽' },
         { id: 'CULTURAL', name: 'ثقافي', icon: '💡' },
         { id: 'SOCIAL', name: 'اجتماعي', icon: '🤝' },
+        { id: 'BEHAVIOR', name: 'سلوك', icon: '⚖️' },
     ];
 
     return (
@@ -182,14 +198,30 @@ export default function TestPointsPage() {
                 </div>
 
                 {/* Configuration Bar */}
-                <div className="premium-glass p-6 rounded-[2rem] border-2 border-emerald-500/20 mb-8 flex flex-wrap items-center gap-6">
+                <div className={`premium-glass p-6 rounded-[2rem] border-2 mb-8 flex flex-wrap items-center gap-6 transition-all duration-500 ${mode === 'deduct' ? 'border-rose-500/50 bg-rose-50/10' : 'border-emerald-500/20'}`}>
+                    {/* Mode Toggle */}
+                    <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl border border-slate-200 dark:border-slate-700">
+                        <button 
+                            onClick={() => setMode('add')}
+                            className={`px-6 py-2 rounded-xl text-sm font-black transition-all ${mode === 'add' ? 'bg-emerald-600 text-white shadow-lg' : 'text-slate-400'}`}
+                        >
+                            ➕ إضافة
+                        </button>
+                        <button 
+                            onClick={() => setMode('deduct')}
+                            className={`px-6 py-2 rounded-xl text-sm font-black transition-all ${mode === 'deduct' ? 'bg-rose-600 text-white shadow-lg' : 'text-slate-400'}`}
+                        >
+                            ➖ خصم
+                        </button>
+                    </div>
+
                     <div className="flex items-center gap-3">
                         <span className="font-black text-slate-500">النقاط:</span>
                         <input 
                             type="number" 
-                            className="w-20 px-4 py-2 bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-xl font-black text-center text-emerald-600 outline-none focus:border-emerald-500"
+                            className={`w-20 px-4 py-2 bg-white dark:bg-slate-900 border-2 rounded-xl font-black text-center outline-none focus:ring-2 transition-all ${mode === 'deduct' ? 'text-rose-600 border-rose-100 dark:border-rose-900/30 focus:border-rose-500 ring-rose-500/20' : 'text-emerald-600 border-slate-100 dark:border-slate-800 focus:border-emerald-500 ring-emerald-500/20'}`}
                             value={pointsData.amount}
-                            onChange={(e) => setPointsData({...pointsData, amount: parseInt(e.target.value)})}
+                            onChange={(e) => setPointsData({...pointsData, amount: Math.abs(parseInt(e.target.value) || 0)})}
                         />
                     </div>
                     <div className="flex items-center gap-3">
@@ -199,7 +231,7 @@ export default function TestPointsPage() {
                                 <button 
                                     key={c.id}
                                     onClick={() => setPointsData({...pointsData, category: c.id})}
-                                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border-2 ${pointsData.category === c.id ? 'bg-emerald-600 text-white border-emerald-600 shadow-md' : 'bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 text-slate-400 hover:border-emerald-200'}`}
+                                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border-2 ${pointsData.category === c.id ? (mode === 'deduct' ? 'bg-rose-600 text-white border-rose-600' : 'bg-emerald-600 text-white border-emerald-600 shadow-md') : 'bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 text-slate-400 hover:border-emerald-200'}`}
                                 >
                                     {c.icon} {c.name}
                                 </button>

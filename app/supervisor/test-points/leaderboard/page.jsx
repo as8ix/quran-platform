@@ -1,13 +1,17 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Navbar from '../../../components/Navbar';
 import { useTheme } from '../../../components/ThemeProvider';
+import { toPng } from 'html-to-image';
+import { toast } from 'react-hot-toast';
 
 export default function LeaderboardPage() {
     const { isDarkMode, mounted } = useTheme();
     const [leaderboard, setLeaderboard] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [isSharing, setIsSharing] = useState(false);
+    const topThreeRef = useRef(null);
 
     const fetchLeaderboard = useCallback(async (isInitial = false) => {
         if (isInitial) setLoading(true);
@@ -24,7 +28,9 @@ export default function LeaderboardPage() {
                             name: p.student.name,
                             totalPoints: 0,
                             scansCount: 0,
-                            categories: {}
+                            categories: {},
+                            // Mocking trend for now - in real app, compare with previous stats
+                            trend: Math.random() > 0.7 ? 'up' : Math.random() > 0.7 ? 'down' : 'stable'
                         };
                     }
                     studentMap[p.studentId].totalPoints += p.amount;
@@ -48,65 +54,133 @@ export default function LeaderboardPage() {
         return () => clearInterval(interval);
     }, [fetchLeaderboard]);
 
+    const handleShare = async () => {
+        if (!topThreeRef.current) return;
+        
+        setIsSharing(true);
+        toast.loading('جاري تجهيز بطاقة التميز...', { id: 'share' });
+        
+        try {
+            // Increase delay to allow emojis to render completely
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            const dataUrl = await toPng(topThreeRef.current, {
+                cacheBust: true,
+                backgroundColor: '#0f172a',
+                style: {
+                    padding: '60px',
+                    borderRadius: '0px'
+                }
+            });
+            
+            const link = document.createElement('a');
+            link.download = `ابطال-الصيف-${new Date().toLocaleDateString('ar-EG')}.png`;
+            link.href = dataUrl;
+            link.click();
+            
+            toast.success('تم تحميل بطاقة التميز بنجاح! 🎉', { id: 'share' });
+        } catch (err) {
+            console.error('oops, something went wrong!', err);
+            toast.error('حدث خطأ أثناء تحميل الصورة', { id: 'share' });
+        } finally {
+            setIsSharing(false);
+        }
+    };
+
     if (!mounted || loading) return <div className="min-h-screen flex items-center justify-center">جاري التحميل...</div>;
 
     const topThree = leaderboard.slice(0, 3);
     const theRest = leaderboard.slice(3);
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 rtl font-noto pb-20" dir="rtl">
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 rtl font-noto pb-20 relative overflow-hidden" dir="rtl">
             <Navbar userType="supervisor" userName="لوحة الصدارة" />
 
-            <div className="fixed inset-0 pointer-events-none overflow-hidden opacity-20">
-                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-amber-500 rounded-full blur-[120px] animate-pulse"></div>
-                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-emerald-500 rounded-full blur-[120px] animate-pulse"></div>
+            <div className="fixed inset-0 pointer-events-none overflow-hidden opacity-30 dark:opacity-40">
+                <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-amber-500 rounded-full blur-[150px] animate-pulse-slow"></div>
+                <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-emerald-500 rounded-full blur-[150px] animate-pulse-slow"></div>
+                <div className="absolute top-[30%] right-[10%] w-[30%] h-[30%] bg-purple-500 rounded-full blur-[120px] animate-pulse-slow" style={{ animationDelay: '-2s' }}></div>
             </div>
             
             <main className="max-w-4xl mx-auto px-4 pt-28 pb-12 relative z-10">
-                <div className="text-center mb-16 relative">
-                    <div className="absolute top-0 right-0 md:right-10 flex items-center gap-2 bg-emerald-500/10 text-emerald-600 px-3 py-1 rounded-full text-[10px] font-black animate-pulse border border-emerald-500/20">
+                <div className="text-center mb-10 relative">
+                    <div className="inline-block animate-tada mb-6">
+                        <span className="text-6xl sm:text-8xl">🏆</span>
+                    </div>
+                    <div className="absolute top-0 right-0 md:right-5 flex items-center gap-2 bg-emerald-500/10 text-emerald-600 px-3 py-1 rounded-full text-[10px] font-black animate-pulse border border-emerald-500/20">
                         <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
                         بث مباشر للنتائج
                     </div>
-                    <h1 className="text-5xl font-black text-slate-800 dark:text-white mb-4 tracking-tight">🏆 لوحة أبطال الصيف</h1>
-                    <p className="text-slate-500 dark:text-slate-400 font-bold text-lg">ترتيب الطلاب حسب مجموع النقاط المكتسبة</p>
+                    <h1 className="text-5xl md:text-7xl font-black text-slate-800 dark:text-white mb-6 tracking-tight">
+                        لوحة <span className="text-amber-500">أبطال الصيف</span>
+                    </h1>
                 </div>
 
                 {topThree.length > 0 && (
-                    <div className="flex flex-col md:flex-row items-end justify-center gap-4 mb-20 px-4">
-                        {topThree[1] && (
-                            <div className="order-2 md:order-1 flex-1 w-full md:w-auto">
-                                <div className="premium-glass p-6 rounded-[2.5rem] border-t-4 border-slate-300 flex flex-col items-center text-center relative group hover:scale-105 transition-all">
-                                    <div className="absolute -top-6 w-12 h-12 bg-slate-200 text-slate-600 rounded-full flex items-center justify-center text-xl font-black shadow-lg">٢</div>
-                                    <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center text-3xl mb-4">🥈</div>
-                                    <h3 className="text-xl font-black text-slate-800 dark:text-white mb-2">{topThree[1].name}</h3>
-                                    <div className="text-2xl font-black text-slate-400">{topThree[1].totalPoints} <span className="text-xs">نقطة</span></div>
-                                </div>
-                            </div>
-                        )}
+                    <div className="mb-24">
+                        <div className="flex justify-between items-center mb-8 px-4">
+                            <h2 className="text-2xl font-black text-slate-800 dark:text-white">أبطال الصدارة ✨</h2>
+                            {!isSharing && (
+                                <button 
+                                    onClick={handleShare}
+                                    className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 rounded-2xl font-black text-sm shadow-xl hover:scale-105 active:scale-95 transition-all border border-emerald-100 dark:border-emerald-900/50"
+                                >
+                                    <span>📸 مشاركة التميز</span>
+                                </button>
+                            )}
+                        </div>
 
-                        {topThree[0] && (
-                            <div className="order-1 md:order-2 flex-[1.2] w-full md:w-auto mb-6 md:mb-0">
-                                <div className="premium-glass p-8 rounded-[3rem] border-t-8 border-amber-500 bg-gradient-to-b from-amber-50/50 to-white/50 dark:from-amber-900/10 dark:to-slate-900/50 flex flex-col items-center text-center relative group hover:scale-105 transition-all shadow-2xl shadow-amber-200/20">
-                                    <div className="absolute -top-10 w-20 h-20 bg-amber-500 text-white rounded-full flex items-center justify-center text-4xl font-black shadow-xl animate-bounce">👑</div>
-                                    <div className="w-24 h-24 bg-amber-100 dark:bg-amber-900/30 rounded-3xl flex items-center justify-center text-5xl mb-4">🥇</div>
-                                    <h3 className="text-2xl font-black text-slate-800 dark:text-white mb-2">{topThree[0].name}</h3>
-                                    <div className="text-4xl font-black text-amber-600 dark:text-amber-500">{topThree[0].totalPoints} <span className="text-sm">نقطة</span></div>
-                                    <div className="mt-4 px-4 py-1 bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 rounded-full text-xs font-black uppercase tracking-widest">المتصدر الحالي</div>
+                        {/* Capture Area */}
+                        <div ref={topThreeRef} className={`relative flex flex-col items-center ${isSharing ? 'p-16 bg-[#0f172a]' : ''}`}>
+                            {isSharing && (
+                                <div className="text-center mb-16">
+                                    <div className="text-8xl mb-6">🏆</div>
+                                    <h1 className="text-5xl font-black text-white mb-4">لوحة أبطال الصيف</h1>
+                                    <p className="text-amber-500 font-black text-2xl tracking-[0.1em]">حلقة التجربة الصيفية</p>
                                 </div>
-                            </div>
-                        )}
+                            )}
+                            <div className="flex flex-col md:flex-row items-end justify-center gap-8 w-full max-w-5xl px-4">
+                                {topThree[1] && (
+                                    <div className="order-2 md:order-1 flex-1 w-full md:w-auto">
+                                        <div className={`${isSharing ? 'bg-slate-800' : 'bg-slate-900/50 backdrop-blur-2xl'} p-10 rounded-[3rem] border-2 border-slate-700 flex flex-col items-center text-center relative shadow-2xl min-h-[320px] justify-center`}>
+                                            <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-14 h-14 bg-slate-400 text-white rounded-full flex items-center justify-center text-2xl font-black border-4 border-slate-950 shadow-xl">٢</div>
+                                            <div className="text-7xl mb-6" style={{ fontFamily: 'Arial, sans-serif' }}>🥈</div>
+                                            <h3 className="text-2xl font-black text-white mb-2 leading-tight">{topThree[1].name}</h3>
+                                            <div className="text-4xl font-black text-slate-300">
+                                                {topThree[1].totalPoints} <span className="text-lg opacity-60">نقطة</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
 
-                        {topThree[2] && (
-                            <div className="order-3 flex-1 w-full md:w-auto">
-                                <div className="premium-glass p-6 rounded-[2.5rem] border-t-4 border-amber-700 flex flex-col items-center text-center relative group hover:scale-105 transition-all">
-                                    <div className="absolute -top-6 w-12 h-12 bg-amber-800/20 text-amber-800 rounded-full flex items-center justify-center text-xl font-black shadow-lg">٣</div>
-                                    <div className="w-16 h-16 bg-orange-50 dark:bg-orange-900/20 rounded-2xl flex items-center justify-center text-3xl mb-4">🥉</div>
-                                    <h3 className="text-xl font-black text-slate-800 dark:text-white mb-2">{topThree[2].name}</h3>
-                                    <div className="text-2xl font-black text-amber-700">{topThree[2].totalPoints} <span className="text-xs">نقطة</span></div>
-                                </div>
+                                {topThree[0] && (
+                                    <div className="order-1 md:order-2 flex-[1.2] w-full md:w-auto mb-16 md:mb-0">
+                                        <div className={`${isSharing ? 'bg-slate-800' : 'bg-slate-900/80 backdrop-blur-3xl'} p-12 rounded-[3.5rem] border-4 border-amber-500 flex flex-col items-center text-center relative shadow-[0_0_50px_rgba(245,158,11,0.2)] scale-110 min-h-[400px] justify-center`}>
+                                            <div className="absolute -top-16 left-1/2 -translate-x-1/2 text-8xl drop-shadow-2xl" style={{ fontFamily: 'Arial, sans-serif' }}>👑</div>
+                                            <div className="text-9xl mb-8" style={{ fontFamily: 'Arial, sans-serif' }}>🥇</div>
+                                            <h3 className="text-3xl font-black text-white mb-4 leading-tight">{topThree[0].name}</h3>
+                                            <div className="text-6xl font-black text-amber-500 mb-8">
+                                                {topThree[0].totalPoints} <span className="text-xl text-amber-500/60">نقطة</span>
+                                            </div>
+                                            <div className="px-10 py-4 bg-amber-500 text-white rounded-full text-sm font-black uppercase tracking-widest shadow-xl">بطل الأسبوع</div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {topThree[2] && (
+                                    <div className="order-3 flex-1 w-full md:w-auto">
+                                        <div className={`${isSharing ? 'bg-slate-800' : 'bg-slate-900/50 backdrop-blur-2xl'} p-10 rounded-[3rem] border-2 border-slate-700 flex flex-col items-center text-center relative shadow-2xl min-h-[320px] justify-center`}>
+                                            <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-14 h-14 bg-amber-800 text-white rounded-full flex items-center justify-center text-2xl font-black border-4 border-slate-950 shadow-xl">٣</div>
+                                            <div className="text-7xl mb-6" style={{ fontFamily: 'Arial, sans-serif' }}>🥉</div>
+                                            <h3 className="text-2xl font-black text-white mb-2 leading-tight">{topThree[2].name}</h3>
+                                            <div className="text-4xl font-black text-amber-700">
+                                                {topThree[2].totalPoints} <span className="text-lg opacity-60">نقطة</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
-                        )}
+                        </div>
                     </div>
                 )}
 
@@ -114,8 +188,13 @@ export default function LeaderboardPage() {
                     <h2 className="text-2xl font-black text-slate-800 dark:text-white mb-6 px-4">الترتيب العام</h2>
                     {theRest.map((student, index) => (
                         <div key={student.id} className="premium-glass p-5 rounded-3xl border border-slate-100 dark:border-slate-800 flex items-center gap-6 hover:translate-x-[-8px] transition-transform">
-                            <div className="w-12 h-12 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center text-lg font-black text-slate-500">
-                                {index + 4}
+                            <div className="flex flex-col items-center gap-1">
+                                <div className="w-12 h-12 bg-emerald-600 dark:bg-emerald-500 text-white rounded-2xl flex items-center justify-center text-lg font-black shadow-md">
+                                    {index + 4}
+                                </div>
+                                {student.trend === 'up' && <span className="text-[10px] text-emerald-500 font-black">↑</span>}
+                                {student.trend === 'down' && <span className="text-[10px] text-rose-500 font-black">↓</span>}
+                                {student.trend === 'stable' && <span className="text-[10px] text-slate-400 font-black">•</span>}
                             </div>
                             <div className="flex-1">
                                 <h3 className="text-lg font-black text-slate-800 dark:text-white">{student.name}</h3>
