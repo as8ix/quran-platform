@@ -8,7 +8,7 @@ export default function StudentLayout({ children }) {
     const [authorized, setAuthorized] = useState(false);
 
     useEffect(() => {
-        const storedUser = sessionStorage.getItem('user');
+        const storedUser = localStorage.getItem('user');
         if (!storedUser) {
             router.push('/login');
             return;

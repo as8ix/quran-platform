@@ -14,7 +14,7 @@ export default function SupervisorCustomListReport() {
     const halaqaIdParam = searchParams.get('halaqaId');
 
     useEffect(() => {
-        const storedUser = sessionStorage.getItem('user');
+        const storedUser = localStorage.getItem('user');
         if (storedUser) {
             setUser(JSON.parse(storedUser));
         } else {

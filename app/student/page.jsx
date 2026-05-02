@@ -23,7 +23,7 @@ export default function StudentDashboard() {
     };
 
     useEffect(() => {
-        const storedUser = sessionStorage.getItem('user');
+        const storedUser = localStorage.getItem('user');
         if (!storedUser) {
             router.push('/login');
             return;
@@ -286,7 +286,7 @@ export default function StudentDashboard() {
 
     if (!student) {
         const handleLogout = () => {
-            sessionStorage.removeItem('user');
+            localStorage.removeItem('user');
             router.push('/login');
         };
         return (

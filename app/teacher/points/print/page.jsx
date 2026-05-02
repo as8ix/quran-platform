@@ -41,7 +41,7 @@ export default function PrintCardsPage() {
 
     if (!mounted || loading) return <div className="p-10 text-center">جاري تجهيز البطاقات...</div>;
 
-    const user = typeof window !== 'undefined' ? JSON.parse(sessionStorage.getItem('user') || '{}') : {};
+    const user = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || '{}') : {};
 
     return (
         <div className="min-h-screen bg-white dark:bg-slate-900 rtl font-noto" dir="rtl">

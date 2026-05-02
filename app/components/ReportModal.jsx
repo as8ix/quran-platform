@@ -8,7 +8,7 @@ export default function ReportModal({ isOpen, onClose, teacher, teacherNames }) 
     const [role, setRole] = useState(null);
 
     useEffect(() => {
-        const storedUser = sessionStorage.getItem('user');
+        const storedUser = localStorage.getItem('user');
         if (storedUser) {
             setRole(JSON.parse(storedUser).role);
         }

@@ -94,7 +94,7 @@ export default function TeacherDashboard() {
 
     useEffect(() => {
         // Get user from localStorage
-        const storedUser = sessionStorage.getItem('user');
+        const storedUser = localStorage.getItem('user');
         if (storedUser) {
             setUser(JSON.parse(storedUser));
         }

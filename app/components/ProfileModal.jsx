@@ -39,8 +39,8 @@ export default function ProfileModal({ student, onClose, onUpdate }) {
                 onClose();
                 
                 // Also update session storage
-                const storedUser = JSON.parse(sessionStorage.getItem('user'));
-                sessionStorage.setItem('user', JSON.stringify({
+                const storedUser = JSON.parse(localStorage.getItem('user'));
+                localStorage.setItem('user', JSON.stringify({
                     ...storedUser,
                     name: updated.name,
                     username: updated.username

@@ -71,7 +71,7 @@ export default function StudentDetailsPage() {
     const [user, setUser] = useState(null);
 
     useEffect(() => {
-        const storedUser = sessionStorage.getItem('user');
+        const storedUser = localStorage.getItem('user');
         if (storedUser) {
             setUser(JSON.parse(storedUser));
         }
@@ -146,7 +146,7 @@ export default function StudentDetailsPage() {
                     setActiveEvent(event);
 
                     // Check if this student is assigned to this teacher for this event
-                    const storedUser = sessionStorage.getItem('user');
+                    const storedUser = localStorage.getItem('user');
                     if (storedUser) {
                         const currentUser = JSON.parse(storedUser);
                         const assignedRes = await fetch(`/api/quranic-events/assignments?eventId=${event.id}`);

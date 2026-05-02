@@ -14,7 +14,7 @@ export default function LoginPage() {
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
-            const storedUser = sessionStorage.getItem('user');
+            const storedUser = localStorage.getItem('user');
             if (storedUser) {
                 const user = JSON.parse(storedUser);
                 router.push(`/${user.role.toLowerCase()}`);
@@ -80,7 +80,7 @@ export default function LoginPage() {
 
             if (res.ok) {
                 showNotification('✓ تم تسجيل الدخول بنجاح', 'success');
-                sessionStorage.setItem('user', JSON.stringify(data));
+                localStorage.setItem('user', JSON.stringify(data));
 
                 setTimeout(() => {
                     router.push(`/${selectedRole}`);

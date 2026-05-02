@@ -32,7 +32,7 @@ export default function AttendancePage() {
 
     // Get user from localStorage on mount
     useEffect(() => {
-        const storedUser = sessionStorage.getItem('user');
+        const storedUser = localStorage.getItem('user');
         if (storedUser) {
             setUser(JSON.parse(storedUser));
         }

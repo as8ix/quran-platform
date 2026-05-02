@@ -31,7 +31,7 @@ export default function AddStudentModal({ isOpen, onClose, onAdd, student, halaq
     const [userRole, setUserRole] = useState(null);
 
     useEffect(() => {
-        const storedUser = sessionStorage.getItem('user');
+        const storedUser = localStorage.getItem('user');
         if (storedUser) {
             const user = JSON.parse(storedUser);
             setUserRole(user.role);

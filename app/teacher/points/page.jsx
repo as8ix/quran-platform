@@ -23,7 +23,7 @@ export default function TeacherPointsPage() {
     const [isPointsEnabled, setIsPointsEnabled] = useState(true);
 
     useEffect(() => {
-        const storedUser = sessionStorage.getItem('user');
+        const storedUser = localStorage.getItem('user');
         if (storedUser) {
             setUser(JSON.parse(storedUser));
         } else {

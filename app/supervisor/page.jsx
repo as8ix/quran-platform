@@ -97,7 +97,7 @@ export default function SupervisorDashboard() {
     const [showHolidayModal, setShowHolidayModal] = useState(false);
 
     useEffect(() => {
-        const storedUser = sessionStorage.getItem('user');
+        const storedUser = localStorage.getItem('user');
         if (!storedUser) {
             router.push('/login');
             return;

@@ -23,7 +23,7 @@ export default function Navbar({ userType, userName, onLogout, displayId }) {
     const [pointsEnabled, setPointsEnabled] = useState(true);
 
     useEffect(() => {
-        const storedUser = sessionStorage.getItem('user');
+        const storedUser = localStorage.getItem('user');
         if (storedUser) {
             const user = JSON.parse(storedUser);
 
@@ -228,7 +228,7 @@ export default function Navbar({ userType, userName, onLogout, displayId }) {
                             </div>
                             <button
                                 onClick={() => {
-                                    sessionStorage.removeItem('user');
+                                    localStorage.removeItem('user');
                                     if (onLogout) onLogout();
                                 }}
                                 className="px-3 py-2.5 sm:px-4 sm:py-2 bg-gradient-to-br from-rose-500 to-red-600 text-white rounded-xl sm:rounded-2xl hover:shadow-xl hover:shadow-red-500/20 transition-all duration-300 transform active:scale-95 group/logout"

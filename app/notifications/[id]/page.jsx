@@ -13,7 +13,7 @@ export default function NotificationDetails() {
     const [user, setUser] = useState(null);
 
     useEffect(() => {
-        const storedUser = sessionStorage.getItem('user');
+        const storedUser = localStorage.getItem('user');
         if (!storedUser) {
             router.push('/login');
             return;
@@ -24,7 +24,7 @@ export default function NotificationDetails() {
 
     const fetchNotification = async (id) => {
         try {
-            const storedUser = JSON.parse(sessionStorage.getItem('user'));
+            const storedUser = JSON.parse(localStorage.getItem('user'));
             if (!storedUser) return;
 
             const param = (storedUser.role === 'STUDENT')
@@ -88,7 +88,7 @@ export default function NotificationDetails() {
                     <button
                         onClick={() => {
                             try {
-                                const stored = JSON.parse(sessionStorage.getItem('user'));
+                                const stored = JSON.parse(localStorage.getItem('user'));
                                 const path = stored?.role === 'SUPERVISOR' ? '/supervisor' : stored?.role === 'TEACHER' ? '/teacher' : '/student';
                                 window.location.replace(path);
                             } catch (e) {

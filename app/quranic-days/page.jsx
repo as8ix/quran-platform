@@ -17,7 +17,7 @@ export default function QuranicDaysDashboard() {
     const statsContainerRef = useRef(null);
 
     useEffect(() => {
-        const storedUser = sessionStorage.getItem('user');
+        const storedUser = localStorage.getItem('user');
         if (storedUser) setUser(JSON.parse(storedUser));
         fetchStats();
 
