@@ -11,6 +11,11 @@ export default function LeaderboardPage() {
 
     useEffect(() => {
         fetchLeaderboard();
+        
+        // Live Update: Fetch every 5 seconds
+        const interval = setInterval(fetchLeaderboard, 5000);
+        
+        return () => clearInterval(interval);
     }, []);
 
     const fetchLeaderboard = async () => {
@@ -63,7 +68,11 @@ export default function LeaderboardPage() {
             </div>
             
             <main className="max-w-4xl mx-auto px-4 pt-28 pb-12 relative z-10">
-                <div className="text-center mb-16">
+                <div className="text-center mb-16 relative">
+                    <div className="absolute top-0 right-0 md:right-10 flex items-center gap-2 bg-emerald-500/10 text-emerald-600 px-3 py-1 rounded-full text-[10px] font-black animate-pulse border border-emerald-500/20">
+                        <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                        بث مباشر للنتائج
+                    </div>
                     <h1 className="text-5xl font-black text-slate-800 dark:text-white mb-4 tracking-tight">🏆 لوحة أبطال الصيف</h1>
                     <p className="text-slate-500 dark:text-slate-400 font-bold text-lg">ترتيب الطلاب حسب مجموع النقاط المكتسبة</p>
                 </div>
