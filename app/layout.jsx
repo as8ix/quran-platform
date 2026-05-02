@@ -34,21 +34,21 @@ export const metadata = {
     },
   },
   icons: {
-    icon: "/mosque-logo.png",
-    apple: "/mosque-logo.png",
-    shortcut: "/mosque-logo.png",
+    icon: "/app_icon_garden_1777765995112.png",
+    apple: "/app_icon_garden_1777765995112.png",
+    shortcut: "/app_icon_garden_1777765995112.png",
   },
   openGraph: {
-    title: "منصة تحفيظ القرآن الكريم | جامع الحديقة",
+    title: "منصة الحديقة | جامع الحديقة",
     description: "المنصة الرقمية لإدارة حلقات تحفيظ القرآن الكريم في جامع الحديقة بحي السلامة - متابعة حفظ الطلاب ومراجعتهم وتسجيل الحضور",
     url: "https://quran-platform-wheat.vercel.app",
-    siteName: "منصة تحفيظ جامع الحديقة",
+    siteName: "منصة الحديقة",
     images: [
       {
-        url: "/mosque-logo.png",
-        width: 512,
-        height: 512,
-        alt: "شعار جامع الحديقة بحي السلامة",
+        url: "/app_icon_garden_1777765995112.png",
+        width: 1024,
+        height: 1024,
+        alt: "شعار منصة الحديقة",
       },
     ],
     locale: "ar_SA",
@@ -56,11 +56,16 @@ export const metadata = {
   },
   twitter: {
     card: "summary",
-    title: "منصة تحفيظ القرآن الكريم | جامع الحديقة",
+    title: "منصة الحديقة | جامع الحديقة",
     description: "المنصة الرقمية لإدارة حلقات تحفيظ القرآن الكريم في جامع الحديقة بحي السلامة",
-    images: ["/mosque-logo.png"],
+    images: ["/app_icon_garden_1777765995112.png"],
   },
   manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "منصة الحديقة",
+  },
 };
 
 export default function RootLayout({ children }) {
@@ -74,6 +79,17 @@ export default function RootLayout({ children }) {
           </main>
           <Footer />
         </ThemeProvider>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', function() {
+                  navigator.serviceWorker.register('/sw.js');
+                });
+              }
+            `,
+          }}
+        />
       </body>
     </html>
   );
