@@ -20,6 +20,8 @@ export default function Navbar({ userType, userName, onLogout, displayId }) {
 
     const lastNotificationsRef = useRef([]);
 
+    const [pointsEnabled, setPointsEnabled] = useState(true);
+
     useEffect(() => {
         const storedUser = sessionStorage.getItem('user');
         if (storedUser) {
@@ -27,15 +29,38 @@ export default function Navbar({ userType, userName, onLogout, displayId }) {
 
             // Initial fetch
             fetchNotifications(user);
+            if (userType === 'teacher') {
+                checkPointsStatus(user);
+            }
 
             // Set up polling interval (every 15 seconds)
             const interval = setInterval(() => {
                 fetchNotifications(user);
+                if (userType === 'teacher') {
+                    checkPointsStatus(user);
+                }
             }, 15000);
 
             return () => clearInterval(interval);
         }
     }, [userType]);
+
+    const checkPointsStatus = async (user) => {
+        try {
+            const res = await fetch('/api/halaqas');
+            if (res.ok) {
+                const halaqas = await res.json();
+                const myHalaqas = halaqas.filter(h => 
+                    h.teacherId === user.id || 
+                    (h.assistants && h.assistants.some(a => a.id === user.id))
+                );
+                const enabled = myHalaqas.some(h => h.pointsEnabled);
+                setPointsEnabled(enabled);
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    };
 
     const fetchNotifications = async (user) => {
         try {
@@ -89,7 +114,14 @@ export default function Navbar({ userType, userName, onLogout, displayId }) {
         <nav className="fixed top-2 sm:top-4 left-2 sm:left-4 right-2 sm:right-4 z-50 transition-all duration-500">
             <div className="max-w-7xl mx-auto premium-glass rounded-[1.5rem] sm:rounded-[2.5rem] px-4 sm:px-6 py-2.5 sm:py-4 border-white/30 dark:border-slate-800/50 shadow-2xl shadow-slate-200/50 dark:shadow-none">
                 <div className="flex justify-between items-center gap-2">
-                    <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+                    <div 
+                        className="flex items-center gap-2 sm:gap-3 shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+                        onClick={() => {
+                            if (userType === 'teacher') router.push('/teacher');
+                            else if (userType === 'supervisor') router.push('/supervisor');
+                            else router.push('/');
+                        }}
+                    >
                         <div className="relative group">
                             <div className="absolute inset-0 bg-green-500/20 rounded-full blur-lg group-hover:bg-green-500/40 transition-all duration-500 opacity-0 group-hover:opacity-100"></div>
                             <img src="/mosque-logo.png" alt="Logo" className="w-8 h-8 sm:w-10 sm:h-10 object-contain dark:hidden relative z-10" />
@@ -109,12 +141,14 @@ export default function Navbar({ userType, userName, onLogout, displayId }) {
                                 >
                                     📝 التحضير
                                 </button>
-                                <button
-                                    onClick={() => window.location.href = '/teacher/points'}
-                                    className="flex items-center gap-2 px-4 py-2 bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-500 rounded-xl font-black text-xs hover:bg-amber-100 dark:hover:bg-amber-900/50 transition-all border border-amber-100 dark:border-amber-800"
-                                >
-                                    🪙 رصد النقاط
-                                </button>
+                                {pointsEnabled && (
+                                    <button
+                                        onClick={() => window.location.href = '/teacher/points'}
+                                        className="flex items-center gap-2 px-4 py-2 bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-500 rounded-xl font-black text-xs hover:bg-amber-100 dark:hover:bg-amber-900/50 transition-all border border-amber-100 dark:border-amber-800"
+                                    >
+                                        🪙 رصد النقاط
+                                    </button>
+                                )}
                             </div>
                         )}
                         {/* Theme Toggle */}
@@ -221,12 +255,17 @@ export default function Navbar({ userType, userName, onLogout, displayId }) {
                 <div className="fixed top-[100px] sm:top-[120px] right-4 sm:right-10 z-[70]">
                     <button 
                         onClick={() => {
-                            const paths = pathname.split('/').filter(Boolean);
-                            if (paths.length > 1) {
-                                const parentPath = '/' + paths.slice(0, -1).join('/');
-                                router.push(parentPath);
+                            if (pathname.includes('/test-points/leaderboard')) {
+                                if (userType === 'teacher') router.push('/teacher/points');
+                                else router.push('/supervisor');
                             } else {
-                                router.back();
+                                const paths = pathname.split('/').filter(Boolean);
+                                if (paths.length > 1) {
+                                    const parentPath = '/' + paths.slice(0, -1).join('/');
+                                    router.push(parentPath);
+                                } else {
+                                    router.back();
+                                }
                             }
                         }}
                         className="group flex items-center gap-3 text-slate-500 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all bg-white/80 dark:bg-slate-900/80 backdrop-blur-md px-4 py-2 rounded-2xl shadow-xl border border-white/20 dark:border-slate-800 active:scale-95"

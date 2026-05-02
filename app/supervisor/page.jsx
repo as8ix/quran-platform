@@ -90,6 +90,8 @@ export default function SupervisorDashboard() {
     const [currentHalaqaIdForStudent, setCurrentHalaqaIdForStudent] = useState(null);
     const [searchStudentInModal, setSearchStudentInModal] = useState('');
     const [togglingId, setTogglingId] = useState(null);
+    const [showHalaqaSettingsModal, setShowHalaqaSettingsModal] = useState(false);
+    const [selectedHalaqaForSettings, setSelectedHalaqaForSettings] = useState(null);
 
     useEffect(() => {
         const storedUser = sessionStorage.getItem('user');
@@ -449,11 +451,15 @@ export default function SupervisorDashboard() {
                 setHalaqas(prev => prev.map(h => 
                     h.id === halaqaId ? { ...h, pointsEnabled: !currentStatus } : h
                 ));
+                // Update the modal state too
+                setSelectedHalaqaForSettings(prev => prev ? { ...prev, pointsEnabled: !currentStatus } : null);
+                
                 toast.success(!currentStatus ? 'تم تفعيل النشاط للحلقة' : 'تم إيقاف النشاط للحلقة', {
                     icon: !currentStatus ? '✅' : '🛑'
                 });
             } else {
-                toast.error('فشل في تحديث حالة النشاط');
+                const errorData = await res.json();
+                toast.error(errorData.error || 'فشل في تحديث حالة النشاط');
             }
         } catch (error) {
             toast.error('حدث خطأ في الاتصال');
@@ -859,66 +865,72 @@ export default function SupervisorDashboard() {
                                                 </div>
 
                                                 {/* Actions Side */}
-                                                <div className="flex flex-col items-center sm:items-end gap-4 w-full sm:w-auto">
-                                                    <div className="flex items-center gap-2 px-4 py-2 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 rounded-2xl border border-indigo-100 dark:border-indigo-800 transition-all duration-300">
-                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                                                        </svg>
-                                                        <span className="text-[11px] font-black tracking-tight whitespace-nowrap">
-                                                            {getArabicCount(students.filter(s => s.halaqaId === halaqa.id).length, 'طالب واحد', 'طالبان', 'طلاب', 'طالباً')}
-                                                        </span>
+                                                <div className="flex flex-col items-center sm:items-end gap-3 w-full sm:w-auto">
+                                                    <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+                                                        <div className="flex items-center gap-2 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 rounded-xl border border-indigo-100 dark:border-indigo-800">
+                                                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                                                            </svg>
+                                                            <span className="text-[10px] font-black tracking-tight whitespace-nowrap">
+                                                                {getArabicCount(students.filter(s => s.halaqaId === halaqa.id).length, 'طالب واحد', 'طالبان', 'طلاب', 'طالباً')}
+                                                            </span>
+                                                        </div>
+                                                        <button
+                                                            onClick={() => {
+                                                                setSelectedHalaqaForSettings(halaqa);
+                                                                setShowHalaqaSettingsModal(true);
+                                                            }}
+                                                            disabled={togglingId === `points-${halaqa.id}`}
+                                                            className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-black transition-all shadow-sm active:scale-95 ${halaqa.pointsEnabled ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20' : 'bg-slate-100 text-slate-400 border border-slate-200'}`}
+                                                            title="إعدادات الأنشطة"
+                                                        >
+                                                            {togglingId === `points-${halaqa.id}` ? (
+                                                                <div className="w-3 h-3 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
+                                                            ) : (
+                                                                <>
+                                                                    <span className="text-sm">⚙️</span>
+                                                                    <span>الأنشطة</span>
+                                                                </>
+                                                            )}
+                                                        </button>
                                                     </div>
                                                 
-                                                    <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
-                                                        <div className="flex items-center gap-2 bg-slate-100/50 dark:bg-slate-800/50 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-700/50 shadow-inner flex-shrink-0">
-                                                            <button
-                                                                onClick={() => {
-                                                                    setSelectedHalaqaForReport(halaqa);
-                                                                    setShowReportTypeModal(true);
-                                                                }}
-                                                                className="w-10 h-10 flex items-center justify-center bg-amber-500 text-white rounded-xl hover:scale-105 active:scale-95 transition-all shadow-md shadow-amber-500/20"
-                                                                title="التقارير"
-                                                            >
-                                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                                                                </svg>
-                                                            </button>
-                                                            <button
-                                                                onClick={() => openEditHalaqaModal(halaqa)}
-                                                                className="w-10 h-10 flex items-center justify-center bg-indigo-500 text-white rounded-xl hover:scale-105 active:scale-95 transition-all shadow-md shadow-indigo-500/20"
-                                                                title="تعديل"
-                                                            >
-                                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-                                                                </svg>
-                                                            </button>
-                                                            <button
-                                                                onClick={() => handleDeleteHalaqa(halaqa.id, halaqa.name)}
-                                                                disabled={deletingId === `halaqa-${halaqa.id}`}
-                                                                className="w-10 h-10 flex items-center justify-center bg-rose-500 text-white rounded-xl hover:scale-105 active:scale-95 transition-all shadow-md shadow-rose-500/20 disabled:opacity-50"
-                                                                title="حذف"
-                                                            >
-                                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                                                                </svg>
-                                                            </button>
-                                                            <div className="w-[2px] h-8 bg-slate-200 dark:bg-slate-700 mx-1 hidden sm:block"></div>
-                                                            <button
-                                                                onClick={() => handleTogglePoints(halaqa.id, halaqa.pointsEnabled)}
-                                                                disabled={togglingId === `points-${halaqa.id}`}
-                                                                className={`flex items-center gap-2 px-3 py-2 rounded-xl text-[10px] font-black transition-all ${halaqa.pointsEnabled ? 'bg-emerald-500 text-white shadow-emerald-200' : 'bg-slate-200 text-slate-500'} shadow-md active:scale-95`}
-                                                            >
-                                                                {togglingId === `points-${halaqa.id}` ? (
-                                                                    <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                                                ) : (
-                                                                    <span>{halaqa.pointsEnabled ? '✅ نشاط النقاط: مفعل' : '🛑 نشاط النقاط: موقف'}</span>
-                                                                )}
-                                                            </button>
-                                                        </div>
-
+                                                    <div className="flex items-center gap-2 bg-slate-100/50 dark:bg-slate-800/50 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-700/50 w-full sm:w-auto justify-center">
+                                                        <button
+                                                            onClick={() => {
+                                                                setSelectedHalaqaForReport(halaqa);
+                                                                setShowReportTypeModal(true);
+                                                            }}
+                                                            className="w-9 h-9 flex items-center justify-center bg-amber-500 text-white rounded-xl hover:scale-105 transition-all shadow-sm"
+                                                            title="التقارير"
+                                                        >
+                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                                            </svg>
+                                                        </button>
+                                                        <button
+                                                            onClick={() => openEditHalaqaModal(halaqa)}
+                                                            className="w-9 h-9 flex items-center justify-center bg-indigo-500 text-white rounded-xl hover:scale-105 transition-all shadow-sm"
+                                                            title="تعديل"
+                                                        >
+                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                                                            </svg>
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeleteHalaqa(halaqa.id, halaqa.name)}
+                                                            disabled={deletingId === `halaqa-${halaqa.id}`}
+                                                            className="w-9 h-9 flex items-center justify-center bg-rose-500 text-white rounded-xl hover:scale-105 transition-all shadow-sm disabled:opacity-50"
+                                                            title="حذف"
+                                                        >
+                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                                                            </svg>
+                                                        </button>
+                                                        <div className="w-[1px] h-6 bg-slate-200 dark:bg-slate-700 mx-1"></div>
                                                         <button
                                                             onClick={() => handleViewStudents(halaqa)}
-                                                            className="px-5 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl text-[11px] font-black hover:opacity-90 transition-all shadow-lg active:scale-95 whitespace-nowrap w-full sm:w-auto flex items-center justify-center"
+                                                            className="px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-[10px] font-black hover:opacity-90 transition-all shadow-sm active:scale-95 whitespace-nowrap"
                                                         >
                                                             عرض الطلاب
                                                         </button>
@@ -1358,12 +1370,23 @@ export default function SupervisorDashboard() {
 
                             <button 
                                 onClick={() => router.push(`/supervisor/reports/custom-list?teacherId=${selectedHalaqaForReport.teacherId}`)}
-                                className="w-full mt-4 p-5 bg-slate-50 dark:bg-slate-800/50 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-3xl border-2 border-slate-100 dark:border-slate-800 hover:border-blue-500/30 transition-all group flex items-center gap-4 text-right"
+                                className="w-full p-5 bg-slate-50 dark:bg-slate-800/50 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-3xl border-2 border-slate-100 dark:border-slate-800 hover:border-blue-500/30 transition-all group flex items-center gap-4 text-right"
                             >
                                 <div className="w-12 h-12 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center text-2xl shadow-sm group-hover:scale-110 transition-transform">📋</div>
                                 <div>
                                     <div className="font-black text-slate-800 dark:text-white text-lg">قائمة بيانات الطلاب</div>
                                     <div className="text-xs font-bold text-slate-400">اختر الحقول، انسخ كنص، أو اطبعها كجدول رسمي</div>
+                                </div>
+                            </button>
+
+                            <button 
+                                onClick={() => router.push(`/supervisor/test-points/print?halaqaId=${selectedHalaqaForReport.id}`)}
+                                className="w-full mt-4 p-6 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 text-white rounded-3xl shadow-xl shadow-emerald-500/20 transition-all group flex items-center gap-5 text-right border-b-4 border-emerald-800"
+                            >
+                                <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center text-3xl group-hover:scale-110 transition-transform">🖨️</div>
+                                <div>
+                                    <div className="font-black text-xl">طباعة بطاقات النقاط (QR)</div>
+                                    <div className="text-xs font-bold text-emerald-100 opacity-80">بطاقات تعريفية للطلاب مع باركود رصد النقاط</div>
                                 </div>
                             </button>
 
@@ -1386,6 +1409,48 @@ export default function SupervisorDashboard() {
                     student={studentToEdit}
                     halaqaId={currentHalaqaIdForStudent}
                 />
+            )}
+            {showHalaqaSettingsModal && selectedHalaqaForSettings && (
+                <div className="fixed inset-0 z-[1001] flex items-center justify-center p-4 backdrop-blur-xl">
+                    <div className="absolute inset-0 bg-slate-900/60" onClick={() => setShowHalaqaSettingsModal(false)}></div>
+                    <div className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl border border-white/20 dark:border-slate-800 overflow-hidden">
+                        <div className="p-8 bg-gradient-to-r from-slate-800 to-slate-900 text-white">
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <h3 className="text-2xl font-black">إعدادات الأنشطة</h3>
+                                    <p className="text-slate-400 text-sm font-bold mt-1">{selectedHalaqaForSettings.name}</p>
+                                </div>
+                                <button onClick={() => setShowHalaqaSettingsModal(false)} className="w-10 h-10 flex items-center justify-center bg-white/10 rounded-2xl hover:bg-white/20 transition-all">✕</button>
+                            </div>
+                        </div>
+                        <div className="p-8 space-y-6">
+                            <div className="flex items-center justify-between p-6 bg-slate-50 dark:bg-slate-800/50 rounded-3xl border border-slate-100 dark:border-slate-800 transition-all group hover:border-emerald-500/30">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 bg-emerald-500/10 text-emerald-600 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">🪙</div>
+                                    <div>
+                                        <h4 className="font-black text-slate-800 dark:text-white">نشاط رصد النقاط</h4>
+                                        <p className="text-slate-500 dark:text-slate-400 text-xs font-bold mt-0.5">تفعيل رصد النقاط للمعلم والطلاب</p>
+                                    </div>
+                                </div>
+                                <button 
+                                    onClick={() => handleTogglePoints(selectedHalaqaForSettings.id, selectedHalaqaForSettings.pointsEnabled)}
+                                    className={`w-14 h-8 rounded-full transition-all relative ${selectedHalaqaForSettings.pointsEnabled ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`}
+                                >
+                                    <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all ${selectedHalaqaForSettings.pointsEnabled ? 'right-7' : 'right-1 shadow-sm'}`}></div>
+                                </button>
+                            </div>
+
+                            {/* Placeholder for future activities */}
+                            <div className="p-6 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-3xl flex flex-col items-center justify-center text-center opacity-50">
+                                <span className="text-2xl mb-2">➕</span>
+                                <p className="text-slate-400 text-xs font-bold">يمكنك إضافة أنشطة برمجية أخرى مستقبلاً</p>
+                            </div>
+                        </div>
+                        <div className="p-6 border-t dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+                            <button onClick={() => setShowHalaqaSettingsModal(false)} className="w-full py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-black shadow-lg active:scale-95 transition-all">إغلاق</button>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );

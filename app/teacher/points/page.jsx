@@ -155,6 +155,14 @@ export default function TeacherPointsPage() {
     };
 
     const handleAwardPoints = async (studentId, studentName = '') => {
+        // Find the student object to check their specific halaqa status
+        const student = students.find(s => s.id === studentId);
+        if (student && student.halaqa && !student.halaqa.pointsEnabled) {
+            toast.error(`عذراً، نشاط النقاط متوقف حالياً لحلقة ${student.halaqa.name}`);
+            isProcessingRef.current = false;
+            return;
+        }
+
         try {
             const finalAmount = mode === 'deduct' ? -Math.abs(pointsData.amount) : Math.abs(pointsData.amount);
             const res = await fetch('/api/points', {
@@ -177,6 +185,9 @@ export default function TeacherPointsPage() {
                     toast.success(`تم رصد ${pointsData.amount} نقطة لـ ${studentName}`);
                 }
                 fetchTestData();
+            } else {
+                const errorData = await res.json();
+                toast.error(errorData.error || 'فشل في رصد النقاط');
             }
             isProcessingRef.current = false;
         } catch (error) {

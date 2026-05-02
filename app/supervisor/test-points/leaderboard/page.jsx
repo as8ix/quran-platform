@@ -17,7 +17,11 @@ export default function LeaderboardPage() {
 
     useEffect(() => {
         const storedUser = sessionStorage.getItem('user');
-        if (storedUser) setUser(JSON.parse(storedUser));
+        if (storedUser) {
+            setUser(JSON.parse(storedUser));
+        } else {
+            router.push('/login');
+        }
     }, []);
 
     const fetchLeaderboard = useCallback(async (isInitial = false) => {
@@ -93,7 +97,7 @@ export default function LeaderboardPage() {
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-950 rtl font-noto pb-20 relative overflow-hidden" dir="rtl">
-            <Navbar userType={user?.role?.toLowerCase() === 'supervisor' ? 'supervisor' : 'teacher'} userName="لوحة الصدارة" />
+            <Navbar userType={user?.role === 'SUPERVISOR' ? 'supervisor' : 'teacher'} userName="لوحة الصدارة" />
 
             <div className="fixed inset-0 pointer-events-none overflow-hidden opacity-30 dark:opacity-40">
                 <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-amber-500 rounded-full blur-[150px] animate-pulse-slow"></div>

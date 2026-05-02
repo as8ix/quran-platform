@@ -61,11 +61,10 @@ export async function PUT(request) {
         const body = await request.json();
         const { id, name, teacherId, assistantTeacherIds, pointsEnabled } = body;
 
-        const data = {
-            name,
-            teacherId: teacherId ? parseInt(teacherId) : null,
-            pointsEnabled: pointsEnabled !== undefined ? pointsEnabled : undefined
-        };
+        const data = {};
+        if (name !== undefined) data.name = name;
+        if (teacherId !== undefined) data.teacherId = teacherId ? parseInt(teacherId) : null;
+        if (pointsEnabled !== undefined) data.pointsEnabled = pointsEnabled;
 
         if (assistantTeacherIds) {
             data.assistants = {
@@ -85,7 +84,7 @@ export async function PUT(request) {
         return NextResponse.json(halaqa);
     } catch (error) {
         console.error("Update Halaqa Error:", error);
-        return NextResponse.json({ error: 'Failed to update halaqa' }, { status: 500 });
+        return NextResponse.json({ error: error.message || 'Failed to update halaqa' }, { status: 500 });
     }
 }
 

@@ -38,6 +38,16 @@ export async function POST(request) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
         }
 
+        // Security check: Verify if points activity is enabled for the student's halaqa
+        const student = await prisma.student.findUnique({
+            where: { id: parseInt(studentId) },
+            include: { halaqa: true }
+        });
+
+        if (student?.halaqa && !student.halaqa.pointsEnabled) {
+            return NextResponse.json({ error: `نشاط النقاط متوقف حالياً لحلقة ${student.halaqa.name}` }, { status: 403 });
+        }
+
         const point = await prisma.point.create({
             data: {
                 studentId: parseInt(studentId),
