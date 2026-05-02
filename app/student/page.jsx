@@ -278,9 +278,23 @@ export default function StudentDashboard() {
     const { isDarkMode, mounted } = useTheme();
 
     if (!mounted || loading) return (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950">
-            <div className="w-12 h-12 border-4 border-emerald-100 dark:border-emerald-900 border-t-emerald-600 rounded-full animate-spin"></div>
-            <p className="mt-4 text-slate-500 dark:text-slate-400 font-bold animate-pulse">جاري تحميل بياناتك...</p>
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 rtl p-4 pt-32" dir="rtl">
+            <div className="max-w-2xl mx-auto space-y-8 animate-pulse">
+                {/* Hero Skeleton */}
+                <div className="h-48 md:h-64 bg-slate-200 dark:bg-slate-800 rounded-[2.5rem] w-full"></div>
+                
+                {/* Assignment Skeleton */}
+                <div className="h-80 bg-slate-200 dark:bg-slate-800 rounded-[3rem] w-full"></div>
+
+                {/* Progress Grid Skeleton */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="h-40 bg-slate-100 dark:bg-slate-800/50 rounded-[2.5rem]"></div>
+                    <div className="h-40 bg-slate-100 dark:bg-slate-800/50 rounded-[2.5rem]"></div>
+                </div>
+
+                {/* Log Skeleton */}
+                <div className="h-96 bg-slate-100 dark:bg-slate-900/30 rounded-[3rem] border border-slate-100 dark:border-slate-800"></div>
+            </div>
         </div>
     );
 

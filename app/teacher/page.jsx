@@ -292,9 +292,24 @@ export default function TeacherDashboard() {
 
                 {/* Students List */}
                 {(!mounted || loading) ? (
-                    <div className="flex flex-col items-center justify-center py-24 bg-white dark:bg-slate-800 rounded-[3rem] border border-slate-100 dark:border-slate-700 shadow-sm">
-                        <div className="w-14 h-14 border-4 border-emerald-100 dark:border-emerald-900 border-t-emerald-600 rounded-full animate-spin"></div>
-                        <p className="mt-5 text-slate-500 dark:text-slate-400 font-black animate-pulse">جاري تحميل قائمة الطلاب المتميزين...</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                        {[1, 2, 3, 4, 5, 6].map((i) => (
+                            <div key={i} className="premium-glass rounded-[2rem] sm:rounded-[2.5rem] p-7 animate-pulse border border-white/20 dark:border-slate-800/50">
+                                <div className="flex justify-between mb-6">
+                                    <div className="w-16 h-16 bg-slate-200 dark:bg-slate-800 rounded-3xl"></div>
+                                    <div className="w-20 h-6 bg-slate-100 dark:bg-slate-800/50 rounded-xl"></div>
+                                </div>
+                                <div className="h-8 bg-slate-200 dark:bg-slate-800 rounded-xl w-3/4 mb-4"></div>
+                                <div className="h-4 bg-slate-100 dark:bg-slate-800/50 rounded-lg w-1/2 mb-8"></div>
+                                <div className="space-y-3 p-5 bg-slate-50/50 dark:bg-slate-900/30 rounded-3xl border border-white/20 dark:border-slate-800">
+                                    <div className="flex justify-between">
+                                        <div className="w-12 h-3 bg-slate-200 dark:bg-slate-800 rounded"></div>
+                                        <div className="w-16 h-3 bg-slate-200 dark:bg-slate-800 rounded"></div>
+                                    </div>
+                                    <div className="w-full h-2.5 bg-slate-200 dark:bg-slate-800 rounded-full"></div>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 ) : filteredStudents.length > 0 ? (
                     <div className="space-y-6 sm:space-y-12">
