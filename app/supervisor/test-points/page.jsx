@@ -158,6 +158,13 @@ export default function TestPointsPage() {
                     </div>
                     <div className="flex flex-wrap gap-3">
                         <button 
+                            onClick={() => window.open('/supervisor/test-points/leaderboard', '_blank')}
+                            className="flex items-center gap-3 px-6 py-4 bg-amber-500 text-white rounded-2xl font-black shadow-lg shadow-amber-200 transition-all active:scale-95"
+                        >
+                            <span>🏆</span>
+                            لوحة الصدارة
+                        </button>
+                        <button 
                             onClick={() => window.open('/supervisor/test-points/print', '_blank')}
                             className="flex items-center gap-3 px-6 py-4 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl font-black text-slate-600 dark:text-slate-300 hover:border-emerald-500 transition-all shadow-sm active:scale-95"
                         >
