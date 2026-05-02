@@ -102,12 +102,20 @@ export default function Navbar({ userType, userName, onLogout, displayId }) {
 
                     <div className="flex items-center gap-2 sm:gap-6">
                         {userType === 'teacher' && (
-                            <button
-                                onClick={() => window.location.href = '/teacher/attendance'}
-                                className="hidden md:flex items-center gap-2 px-4 py-2 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-xl font-black text-xs hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-all border border-emerald-100 dark:border-emerald-800"
-                            >
-                                📝 التحضير
-                            </button>
+                            <div className="hidden md:flex items-center gap-2">
+                                <button
+                                    onClick={() => window.location.href = '/teacher/attendance'}
+                                    className="flex items-center gap-2 px-4 py-2 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-xl font-black text-xs hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-all border border-emerald-100 dark:border-emerald-800"
+                                >
+                                    📝 التحضير
+                                </button>
+                                <button
+                                    onClick={() => window.location.href = '/teacher/points'}
+                                    className="flex items-center gap-2 px-4 py-2 bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-500 rounded-xl font-black text-xs hover:bg-amber-100 dark:hover:bg-amber-900/50 transition-all border border-amber-100 dark:border-amber-800"
+                                >
+                                    🪙 رصد النقاط
+                                </button>
+                            </div>
                         )}
                         {/* Theme Toggle */}
                         <button

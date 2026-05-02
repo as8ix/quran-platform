@@ -59,11 +59,12 @@ export async function POST(request) {
 export async function PUT(request) {
     try {
         const body = await request.json();
-        const { id, name, teacherId, assistantTeacherIds } = body;
+        const { id, name, teacherId, assistantTeacherIds, pointsEnabled } = body;
 
         const data = {
             name,
-            teacherId: teacherId ? parseInt(teacherId) : null
+            teacherId: teacherId ? parseInt(teacherId) : null,
+            pointsEnabled: pointsEnabled !== undefined ? pointsEnabled : undefined
         };
 
         if (assistantTeacherIds) {

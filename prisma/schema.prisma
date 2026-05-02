@@ -35,6 +35,7 @@ model Halaqa {
   teacher   User?    @relation("TeacherHalaqas", fields: [teacherId], references: [id])
   assistants User[]  @relation("AssistantTeachers")
   students  Student[]
+  pointsEnabled Boolean @default(true)
   createdAt DateTime @default(now())
 }
 

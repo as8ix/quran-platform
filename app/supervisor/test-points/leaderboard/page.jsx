@@ -13,6 +13,13 @@ export default function LeaderboardPage() {
     const [isSharing, setIsSharing] = useState(false);
     const topThreeRef = useRef(null);
 
+    const [user, setUser] = useState(null);
+
+    useEffect(() => {
+        const storedUser = sessionStorage.getItem('user');
+        if (storedUser) setUser(JSON.parse(storedUser));
+    }, []);
+
     const fetchLeaderboard = useCallback(async (isInitial = false) => {
         if (isInitial) setLoading(true);
         try {
@@ -29,7 +36,7 @@ export default function LeaderboardPage() {
                             totalPoints: 0,
                             scansCount: 0,
                             categories: {},
-                            // Mocking trend for now - in real app, compare with previous stats
+                            // Mocking trend for now
                             trend: Math.random() > 0.7 ? 'up' : Math.random() > 0.7 ? 'down' : 'stable'
                         };
                     }
@@ -61,26 +68,18 @@ export default function LeaderboardPage() {
         toast.loading('جاري تجهيز بطاقة التميز...', { id: 'share' });
         
         try {
-            // Increase delay to allow emojis to render completely
             await new Promise(resolve => setTimeout(resolve, 1000));
-            
             const dataUrl = await toPng(topThreeRef.current, {
                 cacheBust: true,
                 backgroundColor: '#0f172a',
-                style: {
-                    padding: '60px',
-                    borderRadius: '0px'
-                }
+                style: { padding: '60px', borderRadius: '0px' }
             });
-            
             const link = document.createElement('a');
             link.download = `ابطال-الصيف-${new Date().toLocaleDateString('ar-EG')}.png`;
             link.href = dataUrl;
             link.click();
-            
             toast.success('تم تحميل بطاقة التميز بنجاح! 🎉', { id: 'share' });
         } catch (err) {
-            console.error('oops, something went wrong!', err);
             toast.error('حدث خطأ أثناء تحميل الصورة', { id: 'share' });
         } finally {
             setIsSharing(false);
@@ -94,7 +93,7 @@ export default function LeaderboardPage() {
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-950 rtl font-noto pb-20 relative overflow-hidden" dir="rtl">
-            <Navbar userType="supervisor" userName="لوحة الصدارة" />
+            <Navbar userType={user?.role?.toLowerCase() === 'supervisor' ? 'supervisor' : 'teacher'} userName="لوحة الصدارة" />
 
             <div className="fixed inset-0 pointer-events-none overflow-hidden opacity-30 dark:opacity-40">
                 <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-amber-500 rounded-full blur-[150px] animate-pulse-slow"></div>
