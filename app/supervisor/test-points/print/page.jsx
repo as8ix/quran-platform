@@ -70,7 +70,7 @@ export default function PrintCardsPage() {
                             <div className="bg-slate-900 p-2 flex items-center justify-between">
                                 <div className="flex items-center gap-1.5">
                                     <div className="w-7 h-7 flex items-center justify-center flex-shrink-0">
-                                        <img src="/mosque-logo-white.png" className="max-w-full max-h-full object-contain" alt="logo" />
+                                        <img src="/mosque-logo-white.png" decoding="async" className="max-w-full max-h-full object-contain" alt="logo" />
                                     </div>
                                     <div className="text-[7px] text-white font-bold leading-tight">
                                         جامع الحديقة<br/>
@@ -88,6 +88,7 @@ export default function PrintCardsPage() {
                                     <div className="w-16 h-16 flex items-center justify-center mb-1">
                                         <img 
                                             src={student.halaqa.logo} 
+                                            decoding="async"
                                             className="max-w-full max-h-full object-contain rounded-xl transform scale-110" 
                                             alt="halaqa-logo" 
                                         />

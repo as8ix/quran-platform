@@ -89,6 +89,7 @@ export default function PrintCardsPage() {
                                     <div className="w-16 h-16 flex items-center justify-center mb-1">
                                         <img 
                                             src={student.halaqa.logo} 
+                                            decoding="async"
                                             className="max-w-full max-h-full object-contain rounded-xl transform scale-110" 
                                             alt="halaqa-logo" 
                                         />

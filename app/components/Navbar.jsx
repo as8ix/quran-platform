@@ -124,8 +124,8 @@ export default function Navbar({ userType, userName, onLogout, displayId }) {
                     >
                         <div className="relative group">
                             <div className="absolute inset-0 bg-green-500/20 rounded-full blur-lg group-hover:bg-green-500/40 transition-all duration-500 opacity-0 group-hover:opacity-100"></div>
-                            <img src="/mosque-logo.png" alt="Logo" className="w-8 h-8 sm:w-10 sm:h-10 object-contain dark:hidden relative z-10" />
-                            <img src="/mosque-logo-white.png" alt="Logo" className="w-8 h-8 sm:w-10 sm:h-10 object-contain hidden dark:block relative z-10" />
+                            <img src="/mosque-logo.png" alt="Logo" decoding="async" className="w-8 h-8 sm:w-10 sm:h-10 object-contain dark:hidden relative z-10" />
+                            <img src="/mosque-logo-white.png" alt="Logo" decoding="async" className="w-8 h-8 sm:w-10 sm:h-10 object-contain hidden dark:block relative z-10" />
                         </div>
                         <span className="font-amiri text-lg sm:text-2xl font-bold text-green-600 dark:text-green-500 whitespace-nowrap leading-tight">
                             {titles[userType] || 'المنصة'}

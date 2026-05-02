@@ -65,7 +65,7 @@ export default function StudentDashboard() {
     const fetchData = async (id) => {
         try {
             const [studentRes, sessionsRes, holidaysRes] = await Promise.all([
-                fetch(`/api/students`),
+                fetch(`/api/students?full=true`),
                 fetch(`/api/sessions?studentId=${id}`),
                 fetch(`/api/holidays`)
             ]);

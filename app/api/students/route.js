@@ -7,10 +7,13 @@ export async function GET(request) {
         const juzFilter = searchParams.get('juzFilter');
         const halaqaId = searchParams.get('halaqaId');
         const teacherId = searchParams.get('teacherId');
+        const id = searchParams.get('id');
 
         let where = {};
 
-        if (teacherId) {
+        if (id) {
+            where.id = parseInt(id);
+        } else if (teacherId) {
             // Find halaqas for this teacher
             const myHalaqas = await prisma.halaqa.findMany({
                 where: {
@@ -81,11 +84,28 @@ export async function GET(request) {
             }
         }
 
+        const isFull = searchParams.get('full') === 'true';
+        const selectFields = isFull ? undefined : {
+            id: true,
+            displayId: true,
+            name: true,
+            username: true,
+            hifzProgress: true,
+            juzCount: true,
+            halaqaId: true,
+            halaqa: {
+                select: {
+                    id: true,
+                    name: true,
+                    logo: true
+                }
+            }
+        };
+
         let students = await prisma.student.findMany({
             where,
-            include: {
-                halaqa: true
-            },
+            select: selectFields,
+            include: isFull ? { halaqa: true } : undefined,
             orderBy: {
                 name: 'asc'
             }

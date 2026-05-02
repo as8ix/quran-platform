@@ -100,11 +100,10 @@ export default function TeacherDashboard() {
         }
     }, []);
 
-    const fetchStudents = async () => {
-        setLoading(true);
-        try {
-            if (user) {
-                // Fetch teacher's halaqas for the "Add Student" modal dropdown
+    useEffect(() => {
+        const fetchTeacherData = async () => {
+            if (!user) return;
+            try {
                 const halaqasRes = await fetch('/api/halaqas');
                 if (halaqasRes.ok) {
                     const allHalaqas = await halaqasRes.json();
@@ -115,8 +114,16 @@ export default function TeacherDashboard() {
                     setTeacherHalaqas(myHalaqas);
                     setPointsEnabled(myHalaqas.some(h => h.pointsEnabled));
                 }
+            } catch (error) {
+                console.error("Error fetching teacher data:", error);
             }
+        };
+        fetchTeacherData();
+    }, [user]);
 
+    const fetchStudents = async () => {
+        setLoading(true);
+        try {
             let url = '/api/students';
             const params = new URLSearchParams();
 
@@ -124,7 +131,6 @@ export default function TeacherDashboard() {
                 params.append('juzFilter', juzFilter);
             }
 
-            // Using the new teacherId filter which includes both Halaqa students and Quranic Day assignments
             if (user) {
                 params.append('teacherId', user.id);
             }

@@ -262,9 +262,10 @@ export default function StudentDetailsPage() {
 
     const fetchStudent = async () => {
         try {
-            const response = await fetch(`/api/students`);
-            const students = await response.json();
-            const found = students.find(s => s.id === parseInt(studentId));
+            const response = await fetch(`/api/students?id=${studentId}&full=true`);
+            const data = await response.json();
+            // Since we use ?id=, the API returns the object or an array with one element
+            const found = Array.isArray(data) ? data.find(s => s.id === parseInt(studentId)) : data;
             setStudent(found);
 
             // Set default pages based on current surah
