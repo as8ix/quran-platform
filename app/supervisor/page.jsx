@@ -143,7 +143,7 @@ export default function SupervisorDashboard() {
             observer.disconnect();
             clearTimeout(timeoutId);
         };
-    }, [loading]);
+    }, [loading, activeView]);
 
     const fetchAllData = async () => {
         setLoading(true);
