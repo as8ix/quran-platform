@@ -43,6 +43,46 @@ export async function GET(request) {
             };
         }
 
+        const isAggregate = searchParams.get('aggregate') === 'true';
+
+        if (isAggregate) {
+            // Server-side aggregation for leaderboard
+            const summary = await prisma.point.groupBy({
+                by: ['studentId', 'category'],
+                where,
+                _sum: { amount: true },
+                _count: { id: true }
+            });
+
+            // Get student names for the summary
+            const students = await prisma.student.findMany({
+                where: where.student || {},
+                select: { id: true, name: true }
+            });
+
+            const studentMap = {};
+            students.forEach(s => {
+                studentMap[s.id] = { 
+                    id: s.id, 
+                    name: s.name, 
+                    totalPoints: 0, 
+                    scansCount: 0, 
+                    categories: {} 
+                };
+            });
+
+            summary.forEach(item => {
+                if (studentMap[item.studentId]) {
+                    studentMap[item.studentId].totalPoints += item._sum.amount;
+                    studentMap[item.studentId].scansCount += item._count.id;
+                    studentMap[item.studentId].categories[item.category] = item._sum.amount;
+                }
+            });
+
+            const result = Object.values(studentMap).sort((a, b) => b.totalPoints - a.totalPoints);
+            return NextResponse.json(result);
+        }
+
         const points = await prisma.point.findMany({
             where,
             include: {
@@ -60,7 +100,7 @@ export async function GET(request) {
                 }
             },
             orderBy: { createdAt: 'desc' },
-            take: 100 // Limit to last 100 for better performance
+            take: 100 // Keep the limit for regular history feed
         });
 
         return NextResponse.json(points);

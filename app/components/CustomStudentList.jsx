@@ -22,7 +22,7 @@ export default function CustomStudentList({ userRole, initialTeacherId, initialH
     }, [initialHalaqaId]);
     
     // Available fields to select
-    const [fields, setFields] = useState({
+    const initialFields = {
         displayId: { label: 'رقم التسلسل', selected: false },
         name: { label: 'اسم الطالب', selected: true },
         nationalId: { label: 'رقم الهوية', selected: true },
@@ -32,9 +32,20 @@ export default function CustomStudentList({ userRole, initialTeacherId, initialH
         parentPhone2: { label: 'جوال ولي الأمر (2)', selected: false },
         halaqa: { label: 'الحلقة', selected: false },
         joinDate: { label: 'تاريخ الالتحاق', selected: false },
-        feeStatusTerm1: { label: 'رسوم الترم 1', selected: false },
-        feeStatusTerm2: { label: 'رسوم الترم 2', selected: false },
-        feeStatusSummer: { label: 'رسوم الصيف', selected: false }
+        feeStatusTerm1: { label: 'رسوم الترم 1', selected: false, isFinance: true },
+        feeStatusTerm2: { label: 'رسوم الترم 2', selected: false, isFinance: true },
+        feeStatusSummer: { label: 'رسوم الصيف', selected: false, isFinance: true }
+    };
+
+    const [fields, setFields] = useState(() => {
+        if (userRole !== 'SUPERVISOR') {
+            const filtered = { ...initialFields };
+            delete filtered.feeStatusTerm1;
+            delete filtered.feeStatusTerm2;
+            delete filtered.feeStatusSummer;
+            return filtered;
+        }
+        return initialFields;
     });
 
     useEffect(() => {
@@ -251,13 +262,15 @@ export default function CustomStudentList({ userRole, initialTeacherId, initialH
                         <p className="text-slate-500 text-sm mt-1 font-medium">حدد المعلومات التي ترغب في عرضها وطباعتها أو نسخها.</p>
                     </div>
                     <div className="flex gap-3">
-                        <button 
-                            onClick={toggleFinanceMode}
-                            className={`px-6 py-2.5 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2 ${financeMode ? 'bg-emerald-600 text-white' : 'bg-emerald-50 text-emerald-600 border border-emerald-100 hover:bg-emerald-100'}`}
-                        >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            {financeMode ? 'إيقاف وضع المالية' : 'وضع المالية السريع'}
-                        </button>
+                        {userRole === 'SUPERVISOR' && (
+                            <button 
+                                onClick={toggleFinanceMode}
+                                className={`px-6 py-2.5 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2 ${financeMode ? 'bg-emerald-600 text-white' : 'bg-emerald-50 text-emerald-600 border border-emerald-100 hover:bg-emerald-100'}`}
+                            >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                {financeMode ? 'إيقاف وضع المالية' : 'وضع المالية السريع'}
+                            </button>
+                        )}
                         <button 
                             onClick={() => router.push(userRole === 'SUPERVISOR' ? '/supervisor' : '/teacher')} 
                             className="px-6 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold hover:bg-slate-50 transition-colors shadow-sm"
@@ -303,60 +316,64 @@ export default function CustomStudentList({ userRole, initialTeacherId, initialH
             </div>
 
             <div className="no-print mb-8 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-6 bg-white rounded-3xl border border-slate-100 shadow-sm flex flex-col gap-3">
-                    <label className="text-xs font-black text-slate-500 flex items-center gap-2">
-                        <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
-                        تصفية حسب الحلقة:
-                    </label>
-                    <select
-                        value={halaqaFilter}
-                        onChange={(e) => setHalaqaFilter(e.target.value)}
-                        className="w-full p-4 bg-slate-50 border-2 border-transparent focus:border-emerald-500 rounded-2xl outline-none font-bold text-slate-700 transition-all appearance-none cursor-pointer"
-                        style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2.5' d='M19.5 8.25l-7.5 7.5-7.5-7.5' /%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'left 1.5rem center', backgroundSize: '1rem' }}
-                    >
-                        <option value="all">كل الحلقات</option>
-                        <option value="none">طلاب بدون حلقة</option>
-                        {uniqueHalaqas.map(h => (
-                            <option key={h.id} value={h.id}>{h.name}</option>
-                        ))}
-                    </select>
-                </div>
-                <div className="p-6 bg-white rounded-3xl border border-slate-100 shadow-sm flex flex-col gap-3">
-                    <label className="text-xs font-black text-slate-500 flex items-center gap-2">
-                        <span className="w-2 h-2 bg-indigo-500 rounded-full"></span>
-                        تصفية حسب حالة الرسوم:
-                    </label>
-                    <div className="grid grid-cols-3 gap-2 mb-2">
-                        {[
-                            { id: 'feeStatusTerm1', label: 'الترم 1' },
-                            { id: 'feeStatusTerm2', label: 'الترم 2' },
-                            { id: 'feeStatusSummer', label: 'الصيف' }
-                        ].map(t => (
-                            <button
-                                key={t.id}
-                                onClick={() => setPaymentFilterTerm(t.id)}
-                                className={`py-2 rounded-xl text-[10px] font-black transition-all border ${paymentFilterTerm === t.id ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-slate-500 border-slate-200'}`}
-                            >
-                                {t.label}
-                            </button>
-                        ))}
+                {userRole === 'SUPERVISOR' && (
+                    <div className="p-6 bg-white rounded-3xl border border-slate-100 shadow-sm flex flex-col gap-3">
+                        <label className="text-xs font-black text-slate-500 flex items-center gap-2">
+                            <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
+                            تصفية حسب الحلقة:
+                        </label>
+                        <select
+                            value={halaqaFilter}
+                            onChange={(e) => setHalaqaFilter(e.target.value)}
+                            className="w-full p-4 bg-slate-50 border-2 border-transparent focus:border-emerald-500 rounded-2xl outline-none font-bold text-slate-700 transition-all appearance-none cursor-pointer"
+                            style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2.5' d='M19.5 8.25l-7.5 7.5-7.5-7.5' /%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'left 1.5rem center', backgroundSize: '1rem' }}
+                        >
+                            <option value="all">كل الحلقات</option>
+                            <option value="none">طلاب بدون حلقة</option>
+                            {uniqueHalaqas.map(h => (
+                                <option key={h.id} value={h.id}>{h.name}</option>
+                            ))}
+                        </select>
                     </div>
-                    <div className="flex gap-2">
-                        {[
-                            { id: 'all', label: 'الكل' },
-                            { id: 'PAID', label: 'المسددين ✅' },
-                            { id: 'PENDING', label: 'المتأخرين ❌' }
-                        ].map(opt => (
-                            <button
-                                key={opt.id}
-                                onClick={() => setPaymentFilter(opt.id)}
-                                className={`flex-1 py-3 rounded-2xl font-black text-xs transition-all border-2 ${paymentFilter === opt.id ? 'bg-slate-900 text-white border-slate-900 shadow-lg' : 'bg-slate-50 text-slate-500 border-transparent hover:border-slate-200'}`}
-                            >
-                                {opt.label}
-                            </button>
-                        ))}
+                )}
+                {userRole === 'SUPERVISOR' && (
+                    <div className="p-6 bg-white rounded-3xl border border-slate-100 shadow-sm flex flex-col gap-3">
+                        <label className="text-xs font-black text-slate-500 flex items-center gap-2">
+                            <span className="w-2 h-2 bg-indigo-500 rounded-full"></span>
+                            تصفية حسب حالة الرسوم:
+                        </label>
+                        <div className="grid grid-cols-3 gap-2 mb-2">
+                            {[
+                                { id: 'feeStatusTerm1', label: 'الترم 1' },
+                                { id: 'feeStatusTerm2', label: 'الترم 2' },
+                                { id: 'feeStatusSummer', label: 'الصيف' }
+                            ].map(t => (
+                                <button
+                                    key={t.id}
+                                    onClick={() => setPaymentFilterTerm(t.id)}
+                                    className={`py-2 rounded-xl text-[10px] font-black transition-all border ${paymentFilterTerm === t.id ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-slate-500 border-slate-200'}`}
+                                >
+                                    {t.label}
+                                </button>
+                            ))}
+                        </div>
+                        <div className="flex gap-2">
+                            {[
+                                { id: 'all', label: 'الكل' },
+                                { id: 'PAID', label: 'المسددين ✅' },
+                                { id: 'PENDING', label: 'المتأخرين ❌' }
+                            ].map(opt => (
+                                <button
+                                    key={opt.id}
+                                    onClick={() => setPaymentFilter(opt.id)}
+                                    className={`flex-1 py-3 rounded-2xl font-black text-xs transition-all border-2 ${paymentFilter === opt.id ? 'bg-slate-900 text-white border-slate-900 shadow-lg' : 'bg-slate-50 text-slate-500 border-transparent hover:border-slate-200'}`}
+                                >
+                                    {opt.label}
+                                </button>
+                            ))}
+                        </div>
                     </div>
-                </div>
+                )}
             </div>
 
             <div className="bg-slate-50 rounded-[2rem] p-8 mb-8 border border-slate-100 shadow-sm print:shadow-none print:border-none print:bg-transparent print:p-0">

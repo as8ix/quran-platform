@@ -67,13 +67,17 @@ export default function StudentDashboard() {
     const fetchData = async (id) => {
         try {
             const [studentRes, sessionsRes, holidaysRes] = await Promise.all([
-                fetch(`/api/students?full=true`),
+                fetch(`/api/students?id=${id}&full=true`),
                 fetch(`/api/sessions?studentId=${id}`),
                 fetch(`/api/holidays`)
             ]);
-            const allStudents = await studentRes.json();
-            const myData = allStudents.find(s => s.id === id);
-            if (myData) setStudent(myData);
+            
+            if (studentRes.ok) {
+                const studentData = await studentRes.json();
+                // API returns array with one student or the student object directly
+                const myData = Array.isArray(studentData) ? studentData.find(s => s.id === id) : studentData;
+                if (myData && !myData.error) setStudent(myData);
+            }
             
             if (holidaysRes.ok) {
                 setHolidays(await holidaysRes.json());
@@ -138,10 +142,13 @@ export default function StudentDashboard() {
 
         // Filter sessions for this specific surah to detect direction
         const hifzHistory = sessions.filter(s => s.hifzSurah === surah.name && s.hifzToPage);
-        let hifzDirection = 'DESC';
+        let hifzDirection = 'ASC'; // Default: 1 -> 604
         if (hifzHistory.length >= 2) {
-            if (hifzHistory[0].hifzToPage < hifzHistory[1].hifzToPage) {
+            // If latest page is GREATER than previous, we are moving ASCENDING (Forward)
+            if (hifzHistory[0].hifzToPage > hifzHistory[1].hifzToPage) {
                 hifzDirection = 'ASC';
+            } else if (hifzHistory[0].hifzToPage < hifzHistory[1].hifzToPage) {
+                hifzDirection = 'DESC';
             }
         }
 
@@ -154,7 +161,7 @@ export default function StudentDashboard() {
 
         if (lastSessionForSurah && lastSessionForSurah.hifzToPage) {
             const lastPage = lastSessionForSurah.hifzToPage;
-            const nextPage = (hifzDirection === 'DESC') ? lastPage + 1 : lastPage - 1;
+            const nextPage = (hifzDirection === 'ASC') ? lastPage + 1 : lastPage - 1;
 
             if (allowedPages.includes(nextPage)) {
                 hifzFromPage = nextPage;
@@ -162,24 +169,24 @@ export default function StudentDashboard() {
                 // Get Start Ayah for nextPage
                 if (pageAyahMap && pageAyahMap[nextPage] && pageAyahMap[nextPage][currentSurahId]) {
                     const pageData = pageAyahMap[nextPage][currentSurahId];
-                    hifzFromAyah = (typeof pageData === 'object') ? (hifzDirection === 'DESC' ? pageData.start : pageData.end) : 1;
+                    hifzFromAyah = (typeof pageData === 'object') ? (hifzDirection === 'ASC' ? pageData.start : pageData.end) : 1;
                 }
 
                 // Calculate ToPage based on target
                 const target = student.dailyTargetPages || 1;
-                let potentialToPage = (hifzDirection === 'DESC') ? hifzFromPage + (Math.ceil(target) - 1) : hifzFromPage - (Math.ceil(target) - 1);
+                let potentialToPage = (hifzDirection === 'ASC') ? hifzFromPage + (Math.ceil(target) - 1) : hifzFromPage - (Math.ceil(target) - 1);
                 
                 const lastAllowed = allowedPages[allowedPages.length - 1];
                 const firstAllowed = allowedPages[0];
-                if (hifzDirection === 'DESC' && potentialToPage > lastAllowed) potentialToPage = lastAllowed;
-                if (hifzDirection === 'ASC' && potentialToPage < firstAllowed) potentialToPage = firstAllowed;
+                if (hifzDirection === 'ASC' && potentialToPage > lastAllowed) potentialToPage = lastAllowed;
+                if (hifzDirection === 'DESC' && potentialToPage < firstAllowed) potentialToPage = firstAllowed;
                 
                 hifzToPage = potentialToPage;
 
                 // Get End Ayah for hifzToPage
                 if (pageAyahMap && pageAyahMap[hifzToPage] && pageAyahMap[hifzToPage][currentSurahId]) {
                     const pageData = pageAyahMap[hifzToPage][currentSurahId];
-                    hifzToAyah = (typeof pageData === 'object') ? (hifzDirection === 'DESC' ? pageData.end : pageData.start) : pageData;
+                    hifzToAyah = (typeof pageData === 'object') ? (hifzDirection === 'ASC' ? pageData.end : pageData.start) : pageData;
                 }
             } else {
                 // Finished Surah or edge case
@@ -214,11 +221,14 @@ export default function StudentDashboard() {
 
         // --- Review Logic with Direction Detection ---
         const murajaahHistory = sessions.filter(s => s.murajaahToSurah);
-        let mDirection = 'DESC';
+        let mDirection = 'ASC'; // Default: Fatiha -> Nas
         if (murajaahHistory.length >= 2) {
             const s0Id = quranData.find(s => s.name === murajaahHistory[0].murajaahToSurah)?.id || 0;
             const s1Id = quranData.find(s => s.name === murajaahHistory[1].murajaahToSurah)?.id || 0;
+            // If latest ID is smaller than previous, we are going DESCENDING (Nas -> Fatiha)
             if (s0Id < s1Id && s0Id !== 0 && s1Id !== 0) {
+                mDirection = 'DESC';
+            } else if (s0Id > s1Id && s0Id !== 0 && s1Id !== 0) {
                 mDirection = 'ASC';
             }
         }
@@ -240,7 +250,9 @@ export default function StudentDashboard() {
             else if (student.reviewPlan.includes('ثلاث')) targetIncrement = 3;
 
             const lastPagesCount = latestSessionOverall?.pagesCount || 0;
-            let moveNextBlock = lastPagesCount >= (targetIncrement * 20) - 2;
+            // More flexible threshold: 60% of the target is enough to move to next block
+            const threshold = (targetIncrement * 20) * 0.6;
+            let moveNextBlock = lastPagesCount >= threshold;
 
             let targetJuzIdx = currentJuzIdx;
             // Determine if we finished the first or second half
@@ -251,15 +263,18 @@ export default function StudentDashboard() {
             if (moveNextBlock) {
                 if (targetIncrement === 0.5) {
                     if (mDirection === 'DESC') {
-                        if (isSecondHalf) { targetJuzIdx = currentJuzIdx + 1; isSecondHalf = false; }
-                        else { isSecondHalf = true; }
-                    } else {
-                        // If we are moving ASC and we just finished the first half (FromSurah is near start)
+                        // Descending: Finished Low Half (551-542) -> Prev Juz High Half (541-532)
                         if (!isSecondHalf) { targetJuzIdx = currentJuzIdx - 1; isSecondHalf = true; }
+                        // Descending: Finished High Half (561-552) -> Low Half (551-542)
                         else { isSecondHalf = false; }
+                    } else {
+                        // Ascending: Finished High Half (552-561) -> Next Juz Low Half (562-571)
+                        if (isSecondHalf) { targetJuzIdx = currentJuzIdx + 1; isSecondHalf = false; }
+                        // Ascending: Finished Low Half (542-551) -> High Half (552-561)
+                        else { isSecondHalf = true; }
                     }
                 } else {
-                    targetJuzIdx = mDirection === 'DESC' ? currentJuzIdx + 1 : currentJuzIdx - 1;
+                    targetJuzIdx = mDirection === 'DESC' ? currentJuzIdx - 1 : currentJuzIdx + 1;
                 }
             }
             

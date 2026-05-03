@@ -14,12 +14,14 @@ import DevStats from '../components/DevStats';
 import Link from 'next/link';
 import AddStudentModal from '../components/AddStudentModal';
 import ManageHolidaysModal from '../components/ManageHolidaysModal';
+import SupervisorStats from '../components/SupervisorStats';
 
 
 export default function SupervisorDashboard() {
     const router = useRouter();
     const { isDarkMode, mounted } = useTheme();
     const [user, setUser] = useState(null);
+    const [activeView, setActiveView] = useState('overview');
 
     const getFirstName = (fullName) => {
         if (!fullName) return '';
@@ -615,12 +617,34 @@ export default function SupervisorDashboard() {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10 reveal reveal-delay-1">
-                    <StatsCard label="فئة المستخدم" value={user?.role === 'SUPERVISOR' ? 'مشرف عام' : 'معلم'} icon="🛡️" color="from-slate-700 to-slate-900" trend="صلاحيات كاملة" />
-                    <StatsCard label="إجمالي الطلاب" value={totalStudentsCount} icon="👥" color="from-orange-400 to-amber-600" trend={getArabicCount(students.length, 'طالب واحد مسجل', 'طالبان مسجلان', 'طلاب مسجلين', 'طالباً مسجلاً')} />
-                    <StatsCard label="عدد المعلمين" value={teachers.length} icon="👨‍🏫" color="from-emerald-400 to-teal-600" trend={getArabicCount(teachers.filter(t => (t._count?.teacherHalaqas || 0) > 0).length, 'معلم واحد لديه حلقة', 'معلمان لديهما حلقات', 'معلمين لديهم حلقات', 'معلماً لديهم حلقات')} />
-                    <StatsCard label="إجمالي الحلقات" value={halaqas.length} icon="🕌" color="from-blue-500 to-indigo-600" trend="نشطة" />
+                {/* Tab Switcher - Moved to Top */}
+                <div className="flex bg-slate-100/50 dark:bg-slate-900/50 p-2 rounded-[2.5rem] mb-10 max-w-2xl mx-auto border border-white/20 dark:border-slate-800 backdrop-blur-md relative z-20">
+                    <button
+                        onClick={() => setActiveView('overview')}
+                        className={`flex-1 py-4 px-6 rounded-[2rem] font-black text-sm transition-all flex items-center justify-center gap-3 ${activeView === 'overview' ? 'bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 shadow-xl scale-[1.02] z-10' : 'text-slate-500 hover:bg-white/50 dark:hover:bg-slate-800/50'}`}
+                    >
+                        <span>🏠</span>
+                        الإدارة العامة
+                    </button>
+                    <button
+                        onClick={() => setActiveView('stats')}
+                        className={`flex-1 py-4 px-6 rounded-[2rem] font-black text-sm transition-all flex items-center justify-center gap-3 ${activeView === 'stats' ? 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-xl scale-[1.02] z-10' : 'text-slate-500 hover:bg-white/50 dark:hover:bg-slate-800/50'}`}
+                    >
+                        <span>📊</span>
+                        إحصائيات شاملة
+                    </button>
                 </div>
+
+                {activeView === 'stats' ? (
+                    <SupervisorStats />
+                ) : (
+                    <>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10 reveal reveal-delay-1">
+                            <StatsCard label="فئة المستخدم" value={user?.role === 'SUPERVISOR' ? 'مشرف عام' : 'معلم'} icon="🛡️" color="from-slate-700 to-slate-900" trend="صلاحيات كاملة" />
+                            <StatsCard label="إجمالي الطلاب" value={totalStudentsCount} icon="👥" color="from-orange-400 to-amber-600" trend={getArabicCount(students.length, 'طالب واحد مسجل', 'طالبان مسجلان', 'طلاب مسجلين', 'طالباً مسجلاً')} />
+                            <StatsCard label="عدد المعلمين" value={teachers.length} icon="👨‍🏫" color="from-emerald-400 to-teal-600" trend={getArabicCount(teachers.filter(t => (t._count?.teacherHalaqas || 0) > 0).length, 'معلم واحد لديه حلقة', 'معلمان لديهما حلقات', 'معلمين لديهم حلقات', 'معلماً لديهم حلقات')} />
+                            <StatsCard label="إجمالي الحلقات" value={halaqas.length} icon="🕌" color="from-blue-500 to-indigo-600" trend="نشطة" />
+                        </div>
 
                 <div className="premium-glass rounded-[3rem] p-10 shadow-2xl shadow-slate-200/50 dark:shadow-none border border-white/20 dark:border-slate-800/50 mb-12 reveal reveal-delay-2 relative group">
                     <div className="premium-glow-emerald opacity-40 group-hover:opacity-60 transition-opacity duration-700"></div>
@@ -1035,6 +1059,8 @@ export default function SupervisorDashboard() {
                 </div>
 
                 <ManageEvents teachers={teachers} students={students} />
+                    </>
+                )}
             </main>
 
             {showTeacherModal && (

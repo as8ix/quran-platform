@@ -200,19 +200,19 @@ export default function StudentDetailsPage() {
         if (currentSurahName) {
             // Filter history for THIS surah to detect direction
             const hifzHistory = sortedHistory.filter(s => s.hifzSurah === currentSurahName && s.hifzToPage);
-            let hifzDirection = 'DESC'; // Default
-            
             if (hifzHistory.length >= 2) {
-                // If the latest record is at an EARLIER page than the one before it, it's ASCENDING
-                if (hifzHistory[0].hifzToPage < hifzHistory[1].hifzToPage) {
+                // If latest page is GREATER than previous, we are moving ASCENDING (Normal: 1 -> 604)
+                if (hifzHistory[0].hifzToPage > hifzHistory[1].hifzToPage) {
                     hifzDirection = 'ASC';
+                } else if (hifzHistory[0].hifzToPage < hifzHistory[1].hifzToPage) {
+                    hifzDirection = 'DESC';
                 }
             }
 
             const lastHifzSession = hifzHistory[0];
             if (lastHifzSession && lastHifzSession.hifzToPage) {
                 const lastPage = lastHifzSession.hifzToPage;
-                const nextPage = (hifzDirection === 'DESC') ? lastPage + 1 : lastPage - 1;
+                const nextPage = (hifzDirection === 'ASC') ? lastPage + 1 : lastPage - 1;
 
                 const allowedPages = getSurahPages(currentSurahId);
                 if (allowedPages.includes(nextPage)) {
@@ -269,11 +269,14 @@ export default function StudentDetailsPage() {
         // 2. MURAJAAH SMART DEFAULTS & DIRECTION DETECTION
         const murajaahHistory = sortedHistory.filter(s => s.murajaahToSurah);
         if (murajaahHistory.length > 0) {
-            let mDirection = 'DESC';
+            let mDirection = 'ASC'; // Default: Fatiha -> Nas
             if (murajaahHistory.length >= 2) {
                 const s0Id = quranData.find(s => s.name === murajaahHistory[0].murajaahToSurah)?.id || 0;
                 const s1Id = quranData.find(s => s.name === murajaahHistory[1].murajaahToSurah)?.id || 0;
+                // If latest ID is smaller than previous, we are going DESCENDING (Nas -> Fatiha)
                 if (s0Id < s1Id && s0Id !== 0 && s1Id !== 0) {
+                    mDirection = 'DESC';
+                } else if (s0Id > s1Id && s0Id !== 0 && s1Id !== 0) {
                     mDirection = 'ASC';
                 }
             }
@@ -281,7 +284,8 @@ export default function StudentDetailsPage() {
             const lastM = murajaahHistory[0];
             const lastSurah = quranData.find(s => s.name === lastM.murajaahToSurah);
             if (lastSurah) {
-                let nextSurahId = (mDirection === 'DESC') ? lastSurah.id + 1 : lastSurah.id - 1;
+                // If DESC: next ID is smaller. If ASC: next ID is larger.
+                let nextSurahId = (mDirection === 'DESC') ? lastSurah.id - 1 : lastSurah.id + 1;
                 if (nextSurahId < 1) nextSurahId = 1;
                 if (nextSurahId > 114) nextSurahId = 114;
 
@@ -1700,7 +1704,7 @@ export default function StudentDetailsPage() {
                                                         </button>
                                                         <button 
                                                             type="button"
-                                                            onClick={() => handleDeleteSession(session.id)}
+                                                            onClick={() => promptDeleteSession(session.id)}
                                                             className="text-slate-300 hover:text-red-500 hover:bg-red-50 p-1.5 rounded-lg transition-colors"
                                                             title="حذف الجلسة"
                                                         >

@@ -529,57 +529,55 @@ export default function AddStudentModal({ isOpen, onClose, onAdd, student, halaq
                                         )}
                                     </div>
                                 </div>
-                                <div>
-                                    <label className="block text-[10px] font-black text-slate-500 dark:text-slate-400 mb-2 mr-1">
-                                        رسوم الترم الأول
-                                        {userRole !== 'SUPERVISOR' && <span className="text-rose-500 mr-1">(للمشرف فقط)</span>}
-                                    </label>
-                                    <div className="relative">
-                                        <select
-                                            className={`w-full px-5 py-4 bg-slate-50 dark:bg-slate-900 border-2 border-transparent focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800 rounded-2xl transition-all outline-none appearance-none dark:text-white font-bold text-xs ${userRole !== 'SUPERVISOR' ? 'cursor-not-allowed opacity-70' : ''}`}
-                                            value={feeStatusTerm1}
-                                            onChange={(e) => setFeeStatusTerm1(e.target.value)}
-                                            disabled={userRole !== 'SUPERVISOR'}
-                                        >
-                                            <option value="PENDING">❌ لم يتم الدفع</option>
-                                            <option value="PAID">✅ تم الدفع</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="block text-[10px] font-black text-slate-500 dark:text-slate-400 mb-2 mr-1">
-                                        رسوم الترم الثاني
-                                        {userRole !== 'SUPERVISOR' && <span className="text-rose-500 mr-1">(للمشرف فقط)</span>}
-                                    </label>
-                                    <div className="relative">
-                                        <select
-                                            className={`w-full px-5 py-4 bg-slate-50 dark:bg-slate-900 border-2 border-transparent focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800 rounded-2xl transition-all outline-none appearance-none dark:text-white font-bold text-xs ${userRole !== 'SUPERVISOR' ? 'cursor-not-allowed opacity-70' : ''}`}
-                                            value={feeStatusTerm2}
-                                            onChange={(e) => setFeeStatusTerm2(e.target.value)}
-                                            disabled={userRole !== 'SUPERVISOR'}
-                                        >
-                                            <option value="PENDING">❌ لم يتم الدفع</option>
-                                            <option value="PAID">✅ تم الدفع</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="block text-[10px] font-black text-slate-500 dark:text-slate-400 mb-2 mr-1">
-                                        رسوم الدورة الصيفية
-                                        {userRole !== 'SUPERVISOR' && <span className="text-rose-500 mr-1">(للمشرف فقط)</span>}
-                                    </label>
-                                    <div className="relative">
-                                        <select
-                                            className={`w-full px-5 py-4 bg-slate-50 dark:bg-slate-900 border-2 border-transparent focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800 rounded-2xl transition-all outline-none appearance-none dark:text-white font-bold text-xs ${userRole !== 'SUPERVISOR' ? 'cursor-not-allowed opacity-70' : ''}`}
-                                            value={feeStatusSummer}
-                                            onChange={(e) => setFeeStatusSummer(e.target.value)}
-                                            disabled={userRole !== 'SUPERVISOR'}
-                                        >
-                                            <option value="PENDING">❌ لم يتم الدفع</option>
-                                            <option value="PAID">✅ تم الدفع</option>
-                                        </select>
-                                    </div>
-                                </div>
+                                {userRole === 'SUPERVISOR' && (
+                                    <>
+                                        <div>
+                                            <label className="block text-[10px] font-black text-slate-500 dark:text-slate-400 mb-2 mr-1">
+                                                رسوم الترم الأول
+                                            </label>
+                                            <div className="relative">
+                                                <select
+                                                    className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-900 border-2 border-transparent focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800 rounded-2xl transition-all outline-none appearance-none dark:text-white font-bold text-xs"
+                                                    value={feeStatusTerm1}
+                                                    onChange={(e) => setFeeStatusTerm1(e.target.value)}
+                                                >
+                                                    <option value="PENDING">❌ لم يتم الدفع</option>
+                                                    <option value="PAID">✅ تم الدفع</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label className="block text-[10px] font-black text-slate-500 dark:text-slate-400 mb-2 mr-1">
+                                                رسوم الترم الثاني
+                                            </label>
+                                            <div className="relative">
+                                                <select
+                                                    className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-900 border-2 border-transparent focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800 rounded-2xl transition-all outline-none appearance-none dark:text-white font-bold text-xs"
+                                                    value={feeStatusTerm2}
+                                                    onChange={(e) => setFeeStatusTerm2(e.target.value)}
+                                                >
+                                                    <option value="PENDING">❌ لم يتم الدفع</option>
+                                                    <option value="PAID">✅ تم الدفع</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label className="block text-[10px] font-black text-slate-500 dark:text-slate-400 mb-2 mr-1">
+                                                رسوم الدورة الصيفية
+                                            </label>
+                                            <div className="relative">
+                                                <select
+                                                    className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-900 border-2 border-transparent focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800 rounded-2xl transition-all outline-none appearance-none dark:text-white font-bold text-xs"
+                                                    value={feeStatusSummer}
+                                                    onChange={(e) => setFeeStatusSummer(e.target.value)}
+                                                >
+                                                    <option value="PENDING">❌ لم يتم الدفع</option>
+                                                    <option value="PAID">✅ تم الدفع</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
                             </div>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

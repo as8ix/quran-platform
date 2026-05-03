@@ -48,16 +48,9 @@ export default function AttendancePage() {
                 // First fetch teacher's halaqas to know what to filter by
                 let currentTeacherHalaqaId = null;
 
-                const halaqasRes = await fetch('/api/halaqas');
+                const halaqasRes = await fetch(`/api/halaqas?teacherId=${user.id}`);
                 if (halaqasRes.ok) {
-                    const allHalaqas = await halaqasRes.json();
-
-                    // Find halaqas where teacher is lead or assistant
-                    const myHalaqas = allHalaqas.filter(h =>
-                        h.teacherId === user.id ||
-                        (h.assistants && h.assistants.some(a => a.id === user.id))
-                    );
-
+                    const myHalaqas = await halaqasRes.json();
                     if (myHalaqas.length > 0) {
                         currentTeacherHalaqaId = myHalaqas[0].id;
                     }

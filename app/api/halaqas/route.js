@@ -1,9 +1,23 @@
 import { prisma } from '@/app/lib/prisma';
 import { NextResponse } from 'next/server';
 
-export async function GET() {
+export async function GET(request) {
     try {
+        const { searchParams } = new URL(request.url);
+        const id = searchParams.get('id');
+        const teacherId = searchParams.get('teacherId');
+
+        let where = {};
+        if (id) where.id = parseInt(id);
+        if (teacherId) {
+            where.OR = [
+                { teacherId: parseInt(teacherId) },
+                { assistants: { some: { id: parseInt(teacherId) } } }
+            ];
+        }
+
         const halaqas = await prisma.halaqa.findMany({
+            where,
             include: {
                 teacher: {
                     select: { id: true, name: true }

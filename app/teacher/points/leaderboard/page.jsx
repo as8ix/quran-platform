@@ -37,11 +37,10 @@ export default function LeaderboardPage() {
 
     const fetchHalaqaName = async (id) => {
         try {
-            const res = await fetch('/api/halaqas');
+            const res = await fetch(`/api/halaqas?id=${id}`);
             if (res.ok) {
                 const halaqas = await res.json();
-                const h = halaqas.find(x => x.id === parseInt(id));
-                if (h) setHalaqaName(h.name);
+                if (halaqas.length > 0) setHalaqaName(halaqas[0].name);
             }
         } catch (e) { console.error(e); }
     };
@@ -51,30 +50,12 @@ export default function LeaderboardPage() {
         try {
             const params = new URLSearchParams();
             if (hId) params.append('halaqaId', hId);
+            params.append('aggregate', 'true');
             
             const res = await fetch(`/api/points?${params.toString()}`);
             if (res.ok) {
-                const points = await res.json();
-                
-                const studentMap = {};
-                points.forEach(p => {
-                    if (!studentMap[p.studentId]) {
-                        studentMap[p.studentId] = {
-                            id: p.studentId,
-                            name: p.student.name,
-                            totalPoints: 0,
-                            scansCount: 0,
-                            categories: {},
-                            trend: 'stable'
-                        };
-                    }
-                    studentMap[p.studentId].totalPoints += p.amount;
-                    studentMap[p.studentId].scansCount += 1;
-                    studentMap[p.studentId].categories[p.category] = (studentMap[p.studentId].categories[p.category] || 0) + p.amount;
-                });
-
-                const sortedData = Object.values(studentMap).sort((a, b) => b.totalPoints - a.totalPoints);
-                setLeaderboard(sortedData);
+                const data = await res.json();
+                setLeaderboard(data);
             }
         } catch (error) {
             console.error(error);
@@ -87,7 +68,8 @@ export default function LeaderboardPage() {
         const params = new URLSearchParams(window.location.search);
         const hId = params.get('halaqaId');
         
-        const interval = setInterval(() => fetchLeaderboard(false, hId), 5000);
+        // Refresh every 30 seconds instead of 5
+        const interval = setInterval(() => fetchLeaderboard(false, hId), 30000);
         return () => clearInterval(interval);
     }, [fetchLeaderboard]);
 

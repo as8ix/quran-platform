@@ -231,7 +231,7 @@ export async function PUT(request) {
                 juzCount: parseInt(juzCount) || 0,
                 reviewPlan,
                 dailyTargetPages: parseFloat(body.dailyTargetPages) || 1.0,
-                halaqa: halaqaId ? { connect: { id: parseInt(halaqaId) } } : { disconnect: true },
+                halaqa: body.hasOwnProperty('halaqaId') ? (halaqaId ? { connect: { id: parseInt(halaqaId) } } : { disconnect: true }) : undefined,
                 phone: body.phone,
                 parentPhone: body.parentPhone,
                 parentPhone2: body.parentPhone2,

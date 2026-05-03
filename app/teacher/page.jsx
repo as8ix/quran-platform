@@ -104,13 +104,9 @@ export default function TeacherDashboard() {
         const fetchTeacherData = async () => {
             if (!user) return;
             try {
-                const halaqasRes = await fetch('/api/halaqas');
+                const halaqasRes = await fetch(`/api/halaqas?teacherId=${user.id}`);
                 if (halaqasRes.ok) {
-                    const allHalaqas = await halaqasRes.json();
-                    const myHalaqas = allHalaqas.filter(h =>
-                        h.teacherId === user.id ||
-                        (h.assistants && h.assistants.some(a => a.id === user.id))
-                    );
+                    const myHalaqas = await halaqasRes.json();
                     setTeacherHalaqas(myHalaqas);
                     setPointsEnabled(myHalaqas.some(h => h.pointsEnabled));
                 }
