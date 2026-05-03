@@ -41,7 +41,7 @@ export async function POST(request) {
     });
 
     if (existingUser) {
-      return NextResponse.json({ error: 'Username already exists' }, { status: 400 });
+      return NextResponse.json({ error: 'اسم المستخدم محجوز مسبقاً' }, { status: 400 });
     }
 
     // Get next displayId
@@ -63,7 +63,7 @@ export async function POST(request) {
 
     return NextResponse.json(teacher);
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to create teacher' }, { status: 500 });
+    return NextResponse.json({ error: 'فشل في إضافة المعلم' }, { status: 500 });
   }
 }
 
@@ -72,17 +72,17 @@ export async function DELETE(request) {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 
-    if (!id) return NextResponse.json({ error: 'ID required' }, { status: 400 });
+    if (!id) return NextResponse.json({ error: 'المعرف مطلوب' }, { status: 400 });
 
     // Simple approach: Delete.
     await prisma.user.delete({
       where: { id: parseInt(id) }
     });
 
-    return NextResponse.json({ message: 'Teacher deleted' });
+    return NextResponse.json({ message: 'تم حذف المعلم بنجاح' });
   } catch (error) {
     console.error("Delete Teacher Error:", error);
-    return NextResponse.json({ error: 'Failed to delete teacher (might be assigned to a Halaqa)' }, { status: 500 });
+    return NextResponse.json({ error: 'فشل حذف المعلم (قد يكون مرتبطاً بحلقة حالياً)' }, { status: 500 });
   }
 }
 
@@ -102,7 +102,7 @@ export async function PUT(request) {
         }
       });
       if (existingUser) {
-        return NextResponse.json({ error: 'Username already exists' }, { status: 400 });
+        return NextResponse.json({ error: 'اسم المستخدم محجوز مسبقاً' }, { status: 400 });
       }
     }
 
@@ -119,6 +119,6 @@ export async function PUT(request) {
     return NextResponse.json(teacher);
   } catch (error) {
     console.error("Update Teacher Error:", error);
-    return NextResponse.json({ error: 'Failed to update teacher' }, { status: 500 });
+    return NextResponse.json({ error: 'فشل في تحديث بيانات المعلم' }, { status: 500 });
   }
 }
