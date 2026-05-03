@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.0] - 2026-05-03
+### Added
+- **Teacher Guidance (توجيه المعلمين):**
+    - Added an interactive information icon (i) in the revision recording section.
+    - Added detailed tooltips explaining recording directions (Descending vs. Ascending) and their impact on page calculation.
+    - Enhanced icon visibility with dynamic contrast (Dark/Light mode support).
+- **Gamification & Rewards (نظام النقاط والمكافآت):**
+    - Integrated real-time points tracking for students.
+    - QR Code Scanner: Mobile-friendly scanner for teachers/supervisors to award points instantly.
+    - Live Leaderboard: Dynamic ranking system to boost student engagement.
+    - Printable ID Cards: Automated generation of student cards with personal data.
+- **Account Management (إدارة الحسابات):**
+    - Comprehensive Profile System for teachers and supervisors.
+    - Secure password update functionality with UI visibility toggles.
+- **PWA & Performance:**
+    - Transformation into a Progressive Web App (PWA) for native mobile installation.
+    - High-fidelity Skeleton Screens for smoother data loading experience.
+    - API payload optimization for faster dashboard rendering.
+- **Reporting & UI:**
+    - Professional student reporting tool with landscape printing support.
+    - Improved navigation reliability and fixed Navbar overlaps on mobile devices.
+
+### Fixed
+- Teacher navigation paths and unauthorized supervisor redirections.
+- Fee management permissions (restricted to supervisor role).
+- Precision in page-count logic for complex revision scenarios.
+
 ## [1.2.0] - 2026-01-13
 ### Added
 - **Quranic Days (الأيام القرآنية):**

@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider   = "prisma-client-js"
   engineType = "library"
@@ -12,225 +9,182 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  displayId Int?     // Category-specific ID (e.g., Teacher #1, Supervisor #1)
-  username  String   @unique
-  password  String
-  name      String
-  role      String   // SUPERVISOR, TEACHER, STUDENT
-  createdAt DateTime @default(now())
-  
-  // Relations
-  teacherHalaqas Halaqa[] @relation("TeacherHalaqas")
-  assistantHalaqas Halaqa[] @relation("AssistantTeachers")
-  notifications Notification[]
-  participatingEvents QuranicEvent[] @relation("EventTeachers")
+  id                  Int               @id @default(autoincrement())
+  username            String            @unique
+  password            String
+  name                String
+  role                String
+  createdAt           DateTime          @default(now())
+  displayId           Int?
   eventAssignments    EventAssignment[]
+  teacherHalaqas      Halaqa[]          @relation("TeacherHalaqas")
+  notifications       Notification[]
+  assistantHalaqas    Halaqa[]          @relation("AssistantTeachers")
+  participatingEvents QuranicEvent[]    @relation("EventTeachers")
 }
 
 model Halaqa {
-  id        Int      @id @default(autoincrement())
-  name      String
-  teacherId Int?
-  teacher   User?    @relation("TeacherHalaqas", fields: [teacherId], references: [id])
-  assistants User[]  @relation("AssistantTeachers")
-  students  Student[]
-  pointsEnabled Boolean @default(true)
-  holidays      Holiday[]
+  id            Int       @id @default(autoincrement())
+  name          String
+  teacherId     Int?
+  createdAt     DateTime  @default(now())
+  pointsEnabled Boolean   @default(true)
   logo          String?
-  createdAt DateTime @default(now())
+  teacher       User?     @relation("TeacherHalaqas", fields: [teacherId], references: [id])
+  holidays      Holiday[]
+  students      Student[]
+  assistants    User[]    @relation("AssistantTeachers")
 }
 
 model Student {
-  id           Int      @id @default(autoincrement())
-  displayId    Int?     // Student-specific ID (e.g., Student #1)
-  name         String
-  username     String   @unique
-  password     String
-  hifzProgress String?   // Current surah name
-  currentHifzSurahId Int? @default(114) // 1-114
-  juzCount     Float    @default(0)
-  reviewPlan   String?
-  dailyTargetPages Float? @default(1.0) // Goal in pages (can be 0.5)
-  createdAt    DateTime @default(now())
-  
-  halaqaId     Int?
-  halaqa       Halaqa?  @relation(fields: [halaqaId], references: [id])
-  
-  // Secondary/Optional Data
-  phone        String?
-  parentPhone  String?
-  parentPhone2 String?
-  nationalId   String?  // National ID or Passport
-  nationality  String?  // Student nationality
-  joinDate     DateTime? @default(now())
-  studentNotes     String?   // General notes about the student
-  feeStatusTerm1   String?   @default("PENDING") // PENDING, PAID
-  feeStatusTerm2   String?   @default("PENDING") // PENDING, PAID
-  feeStatusSummer  String?   @default("PENDING") // PENDING, PAID
-  
-  attendance   Attendance[]
-  sessions     Session[]
-  notifications Notification[]
-  eventAssignments EventAssignment[]
-  exams        Exam[]
-  points       Point[]
-  updatedAt    DateTime @updatedAt @default(now())
-
-  @@index([halaqaId])
-  @@index([username])
+  id                 Int               @id @default(autoincrement())
+  name               String
+  username           String            @unique
+  password           String
+  hifzProgress       String?
+  currentHifzSurahId Int?              @default(114)
+  juzCount           Float             @default(0)
+  reviewPlan         String?
+  dailyTargetPages   Float?            @default(1.0)
+  createdAt          DateTime          @default(now())
+  halaqaId           Int?
+  displayId          Int?
+  joinDate           DateTime?         @default(now())
+  nationalId         String?
+  parentPhone        String?
+  phone              String?
+  studentNotes       String?
+  updatedAt          DateTime          @default(now()) @updatedAt
+  parentPhone2       String?
+  nationality        String?
+  feeStatusSummer    String?           @default("PENDING")
+  feeStatusTerm1     String?           @default("PENDING")
+  feeStatusTerm2     String?           @default("PENDING")
+  attendance         Attendance[]
+  eventAssignments   EventAssignment[]
+  exams              Exam[]
+  notifications      Notification[]
+  points             Point[]
+  sessions           Session[]
+  halaqa             Halaqa?           @relation(fields: [halaqaId], references: [id])
 }
 
 model Point {
   id        Int      @id @default(autoincrement())
   studentId Int
-  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
   amount    Int
   reason    String
-  category  String   // QURAN, SPORTS, CULTURAL, SOCIAL, ATTENDANCE
+  category  String
   createdAt DateTime @default(now())
-
-  @@index([studentId])
-  @@index([createdAt])
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
 }
 
 model Attendance {
   id        Int      @id @default(autoincrement())
   studentId Int
-  student   Student  @relation(fields: [studentId], references: [id])
   date      DateTime @default(now())
-  status    String   // PRESENT, ABSENT_EXCUSED, ABSENT_UNEXCUSED
-
-  @@index([studentId])
-  @@index([date])
+  status    String
+  student   Student  @relation(fields: [studentId], references: [id])
 }
 
 model Session {
-  id           Int      @id @default(autoincrement())
-  studentId    Int
-  student      Student  @relation(fields: [studentId], references: [id])
-  date         DateTime @default(now())
-  
-  // Hifz
-  hifzSurah    String?
-  hifzFromPage Int?
-  hifzToPage   Int?
-  hifzFromAyah Int?
-  hifzToAyah   Int?
-  
-  // Major Murajaah (المراجعة الكبرى)
-  murajaahFromSurah String?
-  murajaahFromAyah  Int?
-  murajaahToSurah   String?
-  murajaahToAyah    Int?
-  
-  // Minor Murajaah (المراجعة الصغرى)
-  minorMurajaahFromSurah String?
+  id                     Int           @id @default(autoincrement())
+  studentId              Int
+  date                   DateTime      @default(now())
+  hifzSurah              String?
+  hifzFromPage           Int?
+  hifzToPage             Int?
+  hifzFromAyah           Int?
+  hifzToAyah             Int?
+  murajaahFromSurah      String?
+  murajaahFromAyah       Int?
+  murajaahToSurah        String?
+  murajaahToAyah         Int?
+  pagesCount             Float?
+  resultString           String?
+  notes                  String?
+  errorsCount            Int           @default(0)
+  alertsCount            Int           @default(0)
+  cleanPagesCount        Float         @default(0)
+  isGoalAchieved         Boolean       @default(false)
+  quranicEventId         Int?
+  hifzAlerts             Int           @default(0)
+  hifzErrors             Int           @default(0)
+  hifzCleanPages         Float         @default(0)
   minorMurajaahFromAyah  Int?
-  minorMurajaahToSurah   String?
+  minorMurajaahFromSurah String?
   minorMurajaahToAyah    Int?
-  
-  pagesCount   Float?   // Total pages calculated
-  resultString String?  // e.g. "جزء و 5 صفحات و 10 آيات"
-  notes        String?
-  
-  // Quality Metrics - General or Murajaah (backward compatible)
-  errorsCount      Int @default(0)  // أخطاء المراجعة الكبرى
-  alertsCount      Int @default(0)  // تنبيهات المراجعة الكبرى
-  cleanPagesCount  Float @default(0)  // الصفحات النقية في الكبرى
-
-  // Quality Metrics - Minor Murajaah
-  minorErrorsCount     Int @default(0)  // أخطاء المراجعة الصغرى
-  minorAlertsCount     Int @default(0)  // تنبيهات المراجعة الصغرى
-  minorCleanPagesCount Float @default(0)  // الصفحات النقية في الصغرى
-  
-  // Quality Metrics - Hifz Specific
-  hifzErrors       Int @default(0)  // أخطاء الحفظ
-  hifzAlerts       Int @default(0)  // تنبيهات الحفظ
-  hifzCleanPages   Float @default(0)  // الصفحات النقية في الحفظ
-  
-  isGoalAchieved   Boolean @default(false) // هل حقق الهدف اليومي؟
-
-  // Quranic Days Relation
-  quranicEventId Int?
-  quranicEvent   QuranicEvent? @relation(fields: [quranicEventId], references: [id])
-
-  @@index([studentId])
-  @@index([date])
-  @@index([hifzSurah])
+  minorMurajaahToSurah   String?
+  minorAlertsCount       Int           @default(0)
+  minorCleanPagesCount   Float         @default(0)
+  minorErrorsCount       Int           @default(0)
+  quranicEvent           QuranicEvent? @relation(fields: [quranicEventId], references: [id])
+  student                Student       @relation(fields: [studentId], references: [id])
 }
 
 model QuranicEvent {
-  id               Int       @id @default(autoincrement())
+  id               Int               @id @default(autoincrement())
   name             String
   startDate        DateTime
   endDate          DateTime
-  isActive         Boolean   @default(false)
-  allowOpenTesting Boolean   @default(false)
-  sessions         Session[]
-  teachers         User[]    @relation("EventTeachers")
+  isActive         Boolean           @default(false)
+  createdAt        DateTime          @default(now())
+  allowOpenTesting Boolean           @default(false)
   assignments      EventAssignment[]
-  createdAt        DateTime  @default(now())
+  sessions         Session[]
+  teachers         User[]            @relation("EventTeachers")
 }
 
 model EventAssignment {
-  id        Int      @id @default(autoincrement())
+  id        Int          @id @default(autoincrement())
   eventId   Int
   teacherId Int
   studentId Int
-  
   event     QuranicEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  teacher   User         @relation(fields: [teacherId], references: [id], onDelete: Cascade)
   student   Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  teacher   User         @relation(fields: [teacherId], references: [id], onDelete: Cascade)
 
   @@unique([eventId, teacherId, studentId])
 }
 
-// Notification types: WARNING (Red), INFO (Blue), PROPOSAL (Green)
 model Notification {
   id             Int      @id @default(autoincrement())
   title          String   @default("إشعار جديد")
-  message        String   // Content
-  type           String   @default("INFO") // WARNING, INFO, PROPOSAL
+  message        String
+  type           String   @default("INFO")
   isRead         Boolean  @default(false)
   createdAt      DateTime @default(now())
-  
   attachmentUrl  String?
-  attachmentType String?  // IMAGE, VIDEO, LINK
-  
-  // Recipient (Can be User or Student)
+  attachmentType String?
   userId         Int?
-  user           User?    @relation(fields: [userId], references: [id])
-  
   studentId      Int?
-  student        Student? @relation(fields: [studentId], references: [id])
-  
-  // Sender info (Optional)
   senderId       Int?
-  senderRole     String?  // SUPERVISOR, TEACHER
+  senderRole     String?
+  student        Student? @relation(fields: [studentId], references: [id])
+  user           User?    @relation(fields: [userId], references: [id])
 }
 
 model Exam {
-  id          Int      @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   studentId   Int
-  student     Student  @relation(fields: [studentId], references: [id])
-  stationId   Int?     // 1 to 11
-  stationName String   // "الفرع الأول: جزء واحد"
-  status      String   // PENDING, SCHEDULED, COMPLETED, CANCELLED
+  stationId   Int?
+  stationName String
+  status      String
   examDate    DateTime?
-  examTime    String?  // "بعد صلاة المغرب", etc.
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  grade       Float?   // Optional: result
+  examTime    String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  grade       Float?
   notes       String?
+  student     Student   @relation(fields: [studentId], references: [id])
 }
 
 model Holiday {
   id        Int      @id @default(autoincrement())
-  name      String   // Reason/Type (e.g. Eid al-Fitr)
+  name      String
   startDate DateTime
   endDate   DateTime
-  halaqaId  Int?     // Optional: if null, it's global
-  halaqa    Halaqa?  @relation(fields: [halaqaId], references: [id])
   createdAt DateTime @default(now())
+  halaqaId  Int?
+  halaqa    Halaqa?  @relation(fields: [halaqaId], references: [id])
 }

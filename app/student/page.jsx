@@ -62,6 +62,8 @@ export default function StudentDashboard() {
         }
     }, [loading, student, sessions]);
 
+    const [displaySessions, setDisplaySessions] = useState([]);
+
     const fetchData = async (id) => {
         try {
             const [studentRes, sessionsRes, holidaysRes] = await Promise.all([
@@ -80,23 +82,14 @@ export default function StudentDashboard() {
             if (sessionsRes.ok) {
                 const rawSessions = await sessionsRes.json();
                 
-                // Calculate the most recent Sunday (Start of Study Week)
-                const today = new Date();
-                const dayOfWeek = today.getDay(); // 0 is Sunday, 6 is Saturday
-                const lastSunday = new Date(today);
-                lastSunday.setDate(today.getDate() - dayOfWeek);
-                lastSunday.setHours(0, 0, 0, 0);
+                // Sort all sessions by date desc for logic
+                const sortedAll = [...rawSessions].sort((a, b) => new Date(b.date) - new Date(a.date));
+                setSessions(sortedAll); // Used for intelligence
+                
+                // Filter sessions for DISPLAY LOG: show last 20 sessions instead of just this week
+                const filtered = sortedAll.slice(0, 20);
 
-                // Filter sessions: only if date is >= lastSunday AND day is Sun, Mon, Tue, Wed
-                const filteredSessions = rawSessions.filter(session => {
-                    const sessionDate = new Date(session.date);
-                    const day = sessionDate.getDay();
-                    const isStudyDay = day >= 0 && day <= 3; // 0=Sun, 1=Mon, 2=Tue, 3=Wed
-                    return sessionDate >= lastSunday && isStudyDay;
-                });
-
-                const sortedSessions = filteredSessions.sort((a, b) => new Date(b.date) - new Date(a.date));
-                setSessions(sortedSessions);
+                setDisplaySessions(filtered);
             }
         } catch (error) {
             console.error("Error fetching data", error);
@@ -138,14 +131,21 @@ export default function StudentDashboard() {
     const calculateIntelligence = () => {
         if (!student) return null;
 
-        // --- Logic synced with Teacher Dashboard ---
+        // --- Hifz Logic with Direction Detection ---
         const currentSurahId = student.currentHifzSurahId || 114;
         const surah = quranData.find(s => s.id === currentSurahId) || quranData[113];
         const allowedPages = getSurahPages(currentSurahId);
 
-        // Find last session for THIS SPECIFIC SURAH in history
-        // Note: 'sessions' are already sorted by date desc
-        const lastSessionForSurah = sessions.find(s => s.hifzSurah === surah.name);
+        // Filter sessions for this specific surah to detect direction
+        const hifzHistory = sessions.filter(s => s.hifzSurah === surah.name && s.hifzToPage);
+        let hifzDirection = 'DESC';
+        if (hifzHistory.length >= 2) {
+            if (hifzHistory[0].hifzToPage < hifzHistory[1].hifzToPage) {
+                hifzDirection = 'ASC';
+            }
+        }
+
+        const lastSessionForSurah = hifzHistory[0];
 
         let hifzFromPage = surah.startPage;
         let hifzToPage = surah.startPage;
@@ -154,7 +154,7 @@ export default function StudentDashboard() {
 
         if (lastSessionForSurah && lastSessionForSurah.hifzToPage) {
             const lastPage = lastSessionForSurah.hifzToPage;
-            const nextPage = lastPage + 1;
+            const nextPage = (hifzDirection === 'DESC') ? lastPage + 1 : lastPage - 1;
 
             if (allowedPages.includes(nextPage)) {
                 hifzFromPage = nextPage;
@@ -162,25 +162,28 @@ export default function StudentDashboard() {
                 // Get Start Ayah for nextPage
                 if (pageAyahMap && pageAyahMap[nextPage] && pageAyahMap[nextPage][currentSurahId]) {
                     const pageData = pageAyahMap[nextPage][currentSurahId];
-                    hifzFromAyah = (typeof pageData === 'object') ? pageData.start : 1;
+                    hifzFromAyah = (typeof pageData === 'object') ? (hifzDirection === 'DESC' ? pageData.start : pageData.end) : 1;
                 }
 
                 // Calculate ToPage based on target
                 const target = student.dailyTargetPages || 1;
-                let potentialToPage = hifzFromPage + (Math.ceil(target) - 1);
+                let potentialToPage = (hifzDirection === 'DESC') ? hifzFromPage + (Math.ceil(target) - 1) : hifzFromPage - (Math.ceil(target) - 1);
+                
                 const lastAllowed = allowedPages[allowedPages.length - 1];
-                if (potentialToPage > lastAllowed) potentialToPage = lastAllowed;
+                const firstAllowed = allowedPages[0];
+                if (hifzDirection === 'DESC' && potentialToPage > lastAllowed) potentialToPage = lastAllowed;
+                if (hifzDirection === 'ASC' && potentialToPage < firstAllowed) potentialToPage = firstAllowed;
                 
                 hifzToPage = potentialToPage;
 
                 // Get End Ayah for hifzToPage
                 if (pageAyahMap && pageAyahMap[hifzToPage] && pageAyahMap[hifzToPage][currentSurahId]) {
                     const pageData = pageAyahMap[hifzToPage][currentSurahId];
-                    hifzToAyah = (typeof pageData === 'object') ? pageData.end : pageData;
+                    hifzToAyah = (typeof pageData === 'object') ? (hifzDirection === 'DESC' ? pageData.end : pageData.start) : pageData;
                 }
             } else {
-                // Finished Surah or edge case, stay at last
-                hifzFromPage = allowedPages[allowedPages.length - 1];
+                // Finished Surah or edge case
+                hifzFromPage = hifzDirection === 'DESC' ? allowedPages[allowedPages.length - 1] : allowedPages[0];
                 hifzToPage = hifzFromPage;
                 if (pageAyahMap && pageAyahMap[hifzFromPage] && pageAyahMap[hifzFromPage][currentSurahId]) {
                     const pageData = pageAyahMap[hifzFromPage][currentSurahId];
@@ -209,21 +212,83 @@ export default function StudentDashboard() {
             }
         }
 
-        // --- Review Logic ---
-        const latestSessionOverall = sessions[0];
+        // --- Review Logic with Direction Detection ---
+        const murajaahHistory = sessions.filter(s => s.murajaahToSurah);
+        let mDirection = 'DESC';
+        if (murajaahHistory.length >= 2) {
+            const s0Id = quranData.find(s => s.name === murajaahHistory[0].murajaahToSurah)?.id || 0;
+            const s1Id = quranData.find(s => s.name === murajaahHistory[1].murajaahToSurah)?.id || 0;
+            if (s0Id < s1Id && s0Id !== 0 && s1Id !== 0) {
+                mDirection = 'ASC';
+            }
+        }
+
+        const latestSessionOverall = murajaahHistory[0];
         const lastReviewSurahName = latestSessionOverall?.murajaahToSurah || student.hifzProgress || 'الفاتحة';
         const lastReviewSurah = quranData.find(s => s.name === lastReviewSurahName) || quranData[0];
-        const nextReviewStartSurah = quranData.find(s => s.id === lastReviewSurah.id + 1) || lastReviewSurah;
+        const lastReviewFromSurahName = latestSessionOverall?.murajaahFromSurah || lastReviewSurahName;
+        const lastReviewFromSurah = quranData.find(s => s.name === lastReviewFromSurahName) || lastReviewSurah;
         
-        let reviewGoal = `من سورة ${nextReviewStartSurah.name}`;
+        let reviewGoal = '';
         if (student.reviewPlan?.includes('جزء')) {
-            const currentJuzIdx = juzData.findIndex(j => j.startPage > (lastReviewSurah.startPage || 1));
-            const targetJuzIncrement = student.reviewPlan.includes('جزئين') ? 2 : (student.reviewPlan.includes('ثلاث') ? 3 : 1);
-            const targetJuzIdx = Math.min(currentJuzIdx + targetJuzIncrement - 1, 30);
-            const targetSurah = quranData.find(s => s.startPage >= juzData[targetJuzIdx].startPage) || quranData[113];
-            reviewGoal = `من ${nextReviewStartSurah.name} إلى ${targetSurah.name}`;
+            const currentJuzIdx = juzData.findIndex(j => j.startPage > (lastReviewSurah.startPage || 1)) - 1;
+            
+            let targetIncrement = 1;
+            if (student.reviewPlan.includes('نصف')) targetIncrement = 0.5;
+            else if (student.reviewPlan.includes('ربع')) targetIncrement = 0.25;
+            else if (student.reviewPlan.includes('جزئين')) targetIncrement = 2;
+            else if (student.reviewPlan.includes('ثلاث')) targetIncrement = 3;
+
+            const lastPagesCount = latestSessionOverall?.pagesCount || 0;
+            let moveNextBlock = lastPagesCount >= (targetIncrement * 20) - 2;
+
+            let targetJuzIdx = currentJuzIdx;
+            // Determine if we finished the first or second half
+            // For DESC: 'ToSurah' tells us the end. For ASC: 'FromSurah' might tell us we reached the beginning.
+            const relevantSurah = mDirection === 'DESC' ? lastReviewSurah : lastReviewFromSurah;
+            let isSecondHalf = relevantSurah.startPage >= (juzData[currentJuzIdx].startPage + 10);
+
+            if (moveNextBlock) {
+                if (targetIncrement === 0.5) {
+                    if (mDirection === 'DESC') {
+                        if (isSecondHalf) { targetJuzIdx = currentJuzIdx + 1; isSecondHalf = false; }
+                        else { isSecondHalf = true; }
+                    } else {
+                        // If we are moving ASC and we just finished the first half (FromSurah is near start)
+                        if (!isSecondHalf) { targetJuzIdx = currentJuzIdx - 1; isSecondHalf = true; }
+                        else { isSecondHalf = false; }
+                    }
+                } else {
+                    targetJuzIdx = mDirection === 'DESC' ? currentJuzIdx + 1 : currentJuzIdx - 1;
+                }
+            }
+            
+            if (targetJuzIdx < 0) targetJuzIdx = 0;
+            if (targetJuzIdx > 29) targetJuzIdx = 29;
+
+            const targetJuz = juzData[targetJuzIdx];
+            const nextJuzStartPage = juzData[targetJuzIdx + 1]?.startPage || 605;
+
+            if (targetIncrement === 0.5) {
+                const midPage = targetJuz.startPage + 10;
+                let startP, endP;
+                if (isSecondHalf) { startP = midPage; endP = nextJuzStartPage - 1; }
+                else { startP = targetJuz.startPage; endP = midPage - 1; }
+
+                const startSurah = quranData.find(s => s.startPage >= startP) || quranData[0];
+                const endSurah = quranData.slice().reverse().find(s => s.startPage <= endP) || quranData[113];
+                reviewGoal = `من ${startSurah.name} إلى ${endSurah.name}`;
+            } else {
+                const endJuzIdx = Math.max(0, Math.min(29, mDirection === 'DESC' ? targetJuzIdx + Math.floor(targetIncrement) - 1 : targetJuzIdx - Math.floor(targetIncrement) + 1));
+                const endJuzEndPage = (juzData[endJuzIdx + 1]?.startPage || 605) - 1;
+                
+                const startSurah = quranData.find(s => s.startPage >= targetJuz.startPage) || quranData[0];
+                const endSurah = quranData.slice().reverse().find(s => s.startPage <= endJuzEndPage) || quranData[113];
+                reviewGoal = `من ${startSurah.name} إلى ${endSurah.name}`;
+            }
         } else {
-            reviewGoal = student.reviewPlan || 'مراجعة عامة';
+            const nextReviewStartSurah = quranData.find(s => s.id === (mDirection === 'DESC' ? lastReviewSurah.id + 1 : lastReviewSurah.id - 1)) || lastReviewSurah;
+            reviewGoal = `من سورة ${nextReviewStartSurah.name}`;
         }
 
         // --- Lag Status Logic ---
@@ -544,14 +609,14 @@ export default function StudentDashboard() {
                                 سجل الإنجاز
                             </span>
                             <span className="text-xs font-bold text-slate-500 bg-slate-800/50 px-4 py-2 rounded-xl border border-slate-700/50">
-                                {sessions.length} جلسة مؤخراً
+                                {displaySessions.length} جلسة مؤخراً
                             </span>
                         </h3>
 
                         <div className="space-y-12 max-h-[1000px] overflow-y-auto pl-2 custom-scrollbar rtl-scroll relative z-10">
-                            {sessions.length > 0 ? sessions.map((session, idx) => {
+                            {displaySessions.length > 0 ? displaySessions.map((session, idx) => {
                                 const currentDateFormatted = formatHijri(new Date(session.date), 'long');
-                                const prevDateFormatted = idx > 0 ? formatHijri(new Date(sessions[idx - 1].date), 'long') : null;
+                                const prevDateFormatted = idx > 0 ? formatHijri(new Date(displaySessions[idx - 1].date), 'long') : null;
                                 const showDateSeparator = currentDateFormatted !== prevDateFormatted;
 
                                 return (

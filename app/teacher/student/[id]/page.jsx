@@ -190,72 +190,108 @@ export default function StudentDetailsPage() {
     const applySmartDefaults = () => {
         if (!student || !history || history.length === 0) return;
 
-        // 1. Find the latest session for the CURRENT Surah
-        const currentSurahName = quranData.find(s => s.id === student.currentHifzSurahId)?.name;
-        if (!currentSurahName) return;
-
         // Sort history by date desc
         const sortedHistory = [...history].sort((a, b) => new Date(b.date) - new Date(a.date));
 
-        // Find last session that engaged with this surah
-        const lastSession = sortedHistory.find(s => s.hifzSurah === currentSurahName);
-
-        if (lastSession && lastSession.hifzToPage) {
-            const lastPage = lastSession.hifzToPage;
-            const nextPage = lastPage + 1;
-
-            // Check if nextPage is within Surah boundaries
-            const allowedPages = getSurahPages(student.currentHifzSurahId);
-            if (allowedPages.includes(nextPage)) {
-                setHifzFromPage(nextPage);
-
-                // Set default From Ayah logic (first ayah of that page)
-                let startAyah = 1;
-                if (pageAyahMap && pageAyahMap[nextPage] && pageAyahMap[nextPage][student.currentHifzSurahId]) {
-                    const pageData = pageAyahMap[nextPage][student.currentHifzSurahId];
-                    startAyah = (typeof pageData === 'object') ? pageData.start : pageData;
-                }
-                setHifzFromAyah(startAyah);
-
-                // Calculate To Page based on target
-                const target = student.dailyTargetPages || 1;
-                let potentialToPage = nextPage + (Math.ceil(target) - 1);
-
-                // Cap at Surah end
-                const lastAllowed = allowedPages[allowedPages.length - 1];
-                if (potentialToPage > lastAllowed) potentialToPage = lastAllowed;
-
-                setHifzToPage(potentialToPage);
-
-                // Set default To Ayah logic (last ayah of that page)
-                if (pageAyahMap && pageAyahMap[potentialToPage] && pageAyahMap[potentialToPage][student.currentHifzSurahId]) {
-                    const pageData = pageAyahMap[potentialToPage][student.currentHifzSurahId];
-                    const endAyah = (typeof pageData === 'object') ? pageData.end : pageData;
-                    setHifzToAyah(endAyah);
+        // 1. HIFZ SMART DEFAULTS & DIRECTION DETECTION
+        const currentSurahId = student.currentHifzSurahId || 1;
+        const currentSurahName = quranData.find(s => s.id === currentSurahId)?.name;
+        
+        if (currentSurahName) {
+            // Filter history for THIS surah to detect direction
+            const hifzHistory = sortedHistory.filter(s => s.hifzSurah === currentSurahName && s.hifzToPage);
+            let hifzDirection = 'DESC'; // Default
+            
+            if (hifzHistory.length >= 2) {
+                // If the latest record is at an EARLIER page than the one before it, it's ASCENDING
+                if (hifzHistory[0].hifzToPage < hifzHistory[1].hifzToPage) {
+                    hifzDirection = 'ASC';
                 }
             }
-        } else {
-            // No history for this Surah (Fresh start)
-            // Apply daily target to the start page
-            const surah = quranData.find(s => s.id === student.currentHifzSurahId);
-            if (surah) {
-                const startPage = surah.startPage;
-                const allowedPages = getSurahPages(student.currentHifzSurahId);
 
-                const target = student.dailyTargetPages || 1;
-                let potentialToPage = startPage + (Math.ceil(target) - 1);
+            const lastHifzSession = hifzHistory[0];
+            if (lastHifzSession && lastHifzSession.hifzToPage) {
+                const lastPage = lastHifzSession.hifzToPage;
+                const nextPage = (hifzDirection === 'DESC') ? lastPage + 1 : lastPage - 1;
 
-                const lastAllowed = allowedPages[allowedPages.length - 1];
-                if (potentialToPage > lastAllowed) potentialToPage = lastAllowed;
+                const allowedPages = getSurahPages(currentSurahId);
+                if (allowedPages.includes(nextPage)) {
+                    setHifzFromPage(nextPage);
 
-                setHifzToPage(potentialToPage);
+                    let startAyah = 1;
+                    if (pageAyahMap && pageAyahMap[nextPage] && pageAyahMap[nextPage][currentSurahId]) {
+                        const pageData = pageAyahMap[nextPage][currentSurahId];
+                        startAyah = (typeof pageData === 'object') ? (hifzDirection === 'DESC' ? pageData.start : pageData.end) : pageData;
+                    }
+                    setHifzFromAyah(startAyah);
 
-                // Set ToAyah for the calculated ToPage
-                if (pageAyahMap && pageAyahMap[potentialToPage] && pageAyahMap[potentialToPage][student.currentHifzSurahId]) {
-                    const pageData = pageAyahMap[potentialToPage][student.currentHifzSurahId];
-                    const endAyah = (typeof pageData === 'object') ? pageData.end : pageData;
-                    setHifzToAyah(endAyah);
+                    const target = student.dailyTargetPages || 1;
+                    let potentialToPage = (hifzDirection === 'DESC') ? nextPage + (Math.ceil(target) - 1) : nextPage - (Math.ceil(target) - 1);
+
+                    const lastAllowed = allowedPages[allowedPages.length - 1];
+                    const firstAllowed = allowedPages[0];
+                    
+                    if (hifzDirection === 'DESC' && potentialToPage > lastAllowed) potentialToPage = lastAllowed;
+                    if (hifzDirection === 'ASC' && potentialToPage < firstAllowed) potentialToPage = firstAllowed;
+
+                    setHifzToPage(potentialToPage);
+
+                    if (pageAyahMap && pageAyahMap[potentialToPage] && pageAyahMap[potentialToPage][currentSurahId]) {
+                        const pageData = pageAyahMap[potentialToPage][currentSurahId];
+                        const endAyah = (typeof pageData === 'object') ? (hifzDirection === 'DESC' ? pageData.end : pageData.start) : pageData;
+                        setHifzToAyah(endAyah);
+                    }
                 }
+            } else {
+                // Fresh start logic for Hifz (Same as before)
+                const surah = quranData.find(s => s.id === currentSurahId);
+                if (surah) {
+                    const startPage = surah.startPage;
+                    const allowedPages = getSurahPages(currentSurahId);
+                    const target = student.dailyTargetPages || 1;
+                    let potentialToPage = startPage + (Math.ceil(target) - 1);
+                    const lastAllowed = allowedPages[allowedPages.length - 1];
+                    if (potentialToPage > lastAllowed) potentialToPage = lastAllowed;
+                    setHifzFromPage(startPage);
+                    setHifzToPage(potentialToPage);
+                    // ... set ayahs ...
+                    if (pageAyahMap && pageAyahMap[startPage] && pageAyahMap[startPage][currentSurahId]) {
+                        setHifzFromAyah(pageAyahMap[startPage][currentSurahId].start || 1);
+                    }
+                    if (pageAyahMap && pageAyahMap[potentialToPage] && pageAyahMap[potentialToPage][currentSurahId]) {
+                        const pData = pageAyahMap[potentialToPage][currentSurahId];
+                        setHifzToAyah(typeof pData === 'object' ? pData.end : pData);
+                    }
+                }
+            }
+        }
+
+        // 2. MURAJAAH SMART DEFAULTS & DIRECTION DETECTION
+        const murajaahHistory = sortedHistory.filter(s => s.murajaahToSurah);
+        if (murajaahHistory.length > 0) {
+            let mDirection = 'DESC';
+            if (murajaahHistory.length >= 2) {
+                const s0Id = quranData.find(s => s.name === murajaahHistory[0].murajaahToSurah)?.id || 0;
+                const s1Id = quranData.find(s => s.name === murajaahHistory[1].murajaahToSurah)?.id || 0;
+                if (s0Id < s1Id && s0Id !== 0 && s1Id !== 0) {
+                    mDirection = 'ASC';
+                }
+            }
+
+            const lastM = murajaahHistory[0];
+            const lastSurah = quranData.find(s => s.name === lastM.murajaahToSurah);
+            if (lastSurah) {
+                let nextSurahId = (mDirection === 'DESC') ? lastSurah.id + 1 : lastSurah.id - 1;
+                if (nextSurahId < 1) nextSurahId = 1;
+                if (nextSurahId > 114) nextSurahId = 114;
+
+                setMFromSurah(nextSurahId);
+                setMFromAyah(1);
+
+                // Default "To" surah (next in sequence)
+                setMToSurah(nextSurahId);
+                const nextSurahData = quranData.find(s => s.id === nextSurahId);
+                if (nextSurahData) setMToAyah(nextSurahData.ayahs);
             }
         }
     };
@@ -1268,10 +1304,30 @@ export default function StudentDetailsPage() {
                                     {(sessionType === 'MURAJAAH' || sessionType === 'BOTH' || isKhatim || isQuranicDaySession) && (
                                         <div className="p-8 bg-indigo-50/50 dark:bg-indigo-900/20 rounded-[2.5rem] border border-indigo-100 dark:border-indigo-800 shadow-inner">
                                             <div className="flex justify-between items-center mb-6">
-                                                <h3 className="text-indigo-800 dark:text-indigo-400 font-black text-xl flex items-center gap-3">
-                                                    <span className="w-3 h-3 bg-indigo-500 rounded-full shadow-lg shadow-indigo-200 dark:shadow-none"></span>
-                                                    المراجعة
-                                                </h3>
+                                                <div className="flex items-center gap-4">
+                                                    <h3 className="text-indigo-800 dark:text-indigo-400 font-black text-xl flex items-center gap-3">
+                                                        <span className="w-3 h-3 bg-indigo-500 rounded-full shadow-lg shadow-indigo-200 dark:shadow-none"></span>
+                                                        المراجعة
+                                                    </h3>
+                                                    <div className="group relative">
+                                                        <div className="w-6 h-6 flex items-center justify-center rounded-full bg-slate-800 dark:bg-white text-white dark:text-slate-900 cursor-help text-[10px] font-black transition-all hover:scale-110 shadow-lg border border-white/20 dark:border-slate-200">
+                                                            i
+                                                        </div>
+                                                        {/* Tooltip */}
+                                                        <div className="absolute bottom-full right-0 mb-3 w-80 p-5 bg-white dark:bg-slate-800 rounded-3xl shadow-2xl border border-indigo-100 dark:border-indigo-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 transform translate-y-2 group-hover:translate-y-0">
+                                                            <div className="text-indigo-600 dark:text-indigo-400 font-black text-sm mb-2 flex items-center gap-2">
+                                                                <span>ℹ️</span> تنبيه هام للمُعلم
+                                                            </div>
+                                                            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-bold">
+                                                                يتم تسجيل المراجعة عادةً <span className="text-indigo-600 dark:text-indigo-400 underline underline-offset-4 decoration-2">نزولاً</span> (من أول آية إلى آخر آية في المصحف).
+                                                                <br/><br/>
+                                                                أما إذا كانت مراجعة الطالب <span className="text-indigo-600 dark:text-indigo-400 underline underline-offset-4 decoration-2">تصاعدية</span>، فيجب تسجيلها من (آخر آية) إلى (أول آية).
+                                                                <br/><br/>
+                                                            <span className="text-amber-500 bg-amber-50 dark:bg-amber-900/20 px-2 py-1 rounded-lg">⚠️ ملاحظة:</span> مراعاة الاتجاه ضروري جداً لضمان دقة حساب عدد الصفحات في التقرير.
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                                 {!isQuranicDaySession && (
                                                     <div className="flex bg-indigo-100/50 dark:bg-indigo-900/40 rounded-xl p-1">
                                                         <button
