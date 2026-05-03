@@ -92,6 +92,8 @@ export async function GET(request) {
             username: true,
             hifzProgress: true,
             juzCount: true,
+            dailyTargetPages: true,
+            reviewPlan: true,
             halaqaId: true,
             halaqa: {
                 select: {

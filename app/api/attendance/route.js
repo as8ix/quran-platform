@@ -9,7 +9,13 @@ export async function GET(request) {
         const startDate = searchParams.get('startDate');
         const endDate = searchParams.get('endDate');
 
+        const studentId = searchParams.get('studentId');
+        
         let whereClause = {};
+
+        if (studentId) {
+            whereClause.studentId = parseInt(studentId);
+        }
 
         if (date) {
             whereClause.date = new Date(date);
@@ -18,8 +24,8 @@ export async function GET(request) {
                 gte: new Date(startDate),
                 lte: new Date(endDate)
             };
-        } else {
-            return NextResponse.json({ error: 'Date or Range (startDate, endDate) is required' }, { status: 400 });
+        } else if (!studentId) {
+            return NextResponse.json({ error: 'Date, Range, or StudentId is required' }, { status: 400 });
         }
 
         const attendance = await prisma.attendance.findMany({
