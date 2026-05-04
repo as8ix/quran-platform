@@ -160,6 +160,30 @@ export default function ReportModal({ isOpen, onClose, teacher, teacherNames }) 
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
                                     </svg>
                                 </button>
+
+                                <button
+                                    onClick={() => {
+                                        const url = teacherId ? `${basePath}/reports/custom?teacherId=${teacherId}` : `${basePath}/reports/custom`;
+                                        window.open(url, '_blank');
+                                        onClose();
+                                    }}
+                                    className="w-full p-5 mt-4 bg-white dark:bg-slate-900/40 border-2 border-slate-100 dark:border-slate-800 rounded-2xl flex items-center justify-between hover:border-amber-500 dark:hover:border-amber-500 hover:shadow-lg transition-all duration-300 group"
+                                >
+                                    <div className="flex items-center gap-5 text-right">
+                                        <div className="w-14 h-14 bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-500 rounded-xl flex items-center justify-center group-hover:bg-amber-100 dark:group-hover:bg-amber-900/30 transition-colors">
+                                            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <div className="font-black text-lg text-slate-800 dark:text-white">كشف متابعة مخصص</div>
+                                            <div className="text-xs text-slate-400 dark:text-slate-500 font-bold mt-0.5">اصنع كشفاً سريعاً لأي غرض (استلام، مشاركة، إلخ)</div>
+                                        </div>
+                                    </div>
+                                    <svg className="w-5 h-5 text-slate-300 dark:text-slate-700 group-hover:text-amber-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+                                    </svg>
+                                </button>
                             </div>
                         </div>
 
