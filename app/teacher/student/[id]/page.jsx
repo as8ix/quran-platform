@@ -196,6 +196,7 @@ export default function StudentDetailsPage() {
         // 1. HIFZ SMART DEFAULTS & DIRECTION DETECTION
         const currentSurahId = student.currentHifzSurahId || 1;
         const currentSurahName = quranData.find(s => s.id === currentSurahId)?.name;
+        let hifzDirection = 'ASC'; // Default direction
         
         if (currentSurahName) {
             // Filter history for THIS surah to detect direction
@@ -473,7 +474,10 @@ export default function StudentDetailsPage() {
 
         // Fallback: If ID is missing or 114 (default) using trusted Name logic
         if (student.hifzProgress) {
-            let surahByName = quranData.find(s => s.name === student.hifzProgress || s.name === student.hifzProgress.replace('سورة ', ''));
+            let surahByName = null;
+            if (student.hifzProgress) {
+                surahByName = quranData.find(s => s.name === student.hifzProgress || s.name === student.hifzProgress.replace('سورة ', ''));
+            }
 
             // Handle common Juz names
             if (!surahByName) {

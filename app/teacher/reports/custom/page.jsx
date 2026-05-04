@@ -97,7 +97,7 @@ function CustomDynamicReportContent() {
 
     const uniqueHalaqas = Array.from(new Set(students.map(s => s.halaqa?.id).filter(id => id))).map(id => {
         const student = students.find(s => s.halaqa?.id === id);
-        return { id, name: student.halaqa.name };
+        return { id, name: student?.halaqa?.name || 'حلقة غير معروفة' };
     });
 
     const filteredStudents = students.filter(student => {
@@ -141,7 +141,7 @@ function CustomDynamicReportContent() {
     }
 
     const halaqaLogo = filteredStudents.length > 0 && halaqaFilter !== 'all' 
-        ? filteredStudents[0].halaqa?.logo 
+        ? filteredStudents.find(s => s.halaqa?.id?.toString() === halaqaFilter.toString())?.halaqa?.logo 
         : null;
 
     return (

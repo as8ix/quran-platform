@@ -199,7 +199,7 @@ export default function CustomStudentList({ userRole, initialTeacherId, initialH
 
     const uniqueHalaqas = Array.from(new Set(students.map(s => s.halaqa?.id).filter(id => id))).map(id => {
         const student = students.find(s => s.halaqa?.id === id);
-        return { id, name: student.halaqa.name };
+        return { id, name: student?.halaqa?.name || 'حلقة غير معروفة' };
     });
 
     const filteredStudents = students.filter(student => {
