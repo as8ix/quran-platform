@@ -12,6 +12,20 @@ export default function NotificationDetails() {
     const [loading, setLoading] = useState(true);
     const [user, setUser] = useState(null);
 
+    const getYouTubeId = (url) => {
+        if (!url) return null;
+        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+        const match = url.match(regExp);
+        return (match && match[2].length === 11) ? match[2] : null;
+    };
+
+    const extractYouTubeIds = (text) => {
+        if (!text) return [];
+        const regExp = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/g;
+        const matches = [...text.matchAll(regExp)];
+        return matches.map(m => m[1]);
+    };
+
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
         if (!storedUser) {
@@ -134,6 +148,21 @@ export default function NotificationDetails() {
                                             onError={(e) => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/800x400?text=Error+Loading+Image'; }}
                                         />
                                     </div>
+                                ) : getYouTubeId(notification.attachmentUrl) ? (
+                                    <div className="px-6 md:px-0">
+                                        <div className="aspect-video w-full overflow-hidden rounded-[2.5rem] shadow-2xl border-4 border-white dark:border-slate-800">
+                                            <iframe
+                                                width="100%"
+                                                height="100%"
+                                                src={`https://www.youtube.com/embed/${getYouTubeId(notification.attachmentUrl)}`}
+                                                title="YouTube video player"
+                                                frameBorder="0"
+                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                allowFullScreen
+                                                className="w-full h-full"
+                                            ></iframe>
+                                        </div>
+                                    </div>
                                 ) : (
                                     <div className="px-6 md:px-0">
                                         <a
@@ -157,6 +186,43 @@ export default function NotificationDetails() {
                         <div className="prose prose-sm md:prose-xl max-w-none text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-line mb-8 md:mb-10 px-1 font-medium">
                             {notification.message}
                         </div>
+
+                        {/* Additional Video Previews from Message Links */}
+                        {(() => {
+                            const messageYoutubeIds = extractYouTubeIds(notification.message);
+                            const attachmentYoutubeId = getYouTubeId(notification.attachmentUrl);
+                            
+                            // Filter out the ID if it's already shown as an attachment
+                            const uniqueIds = messageYoutubeIds.filter(id => id !== attachmentYoutubeId);
+                            
+                            if (uniqueIds.length > 0) {
+                                return (
+                                    <div className="space-y-6 mb-8 md:mb-10">
+                                        <h4 className="text-sm font-black text-slate-400 dark:text-slate-500 flex items-center gap-2">
+                                            <span className="w-8 h-[2px] bg-slate-200 dark:bg-slate-800"></span>
+                                            مقاطع فيديو مرتبطة
+                                        </h4>
+                                        <div className="grid gap-6">
+                                            {uniqueIds.map((id, index) => (
+                                                <div key={index} className="aspect-video w-full overflow-hidden rounded-[2.5rem] shadow-xl border-4 border-white dark:border-slate-800">
+                                                    <iframe
+                                                        width="100%"
+                                                        height="100%"
+                                                        src={`https://www.youtube.com/embed/${id}`}
+                                                        title={`YouTube video player ${index}`}
+                                                        frameBorder="0"
+                                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                        allowFullScreen
+                                                        className="w-full h-full"
+                                                    ></iframe>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                );
+                            }
+                            return null;
+                        })()}
                     </div>
 
                     <div className="bg-slate-50 dark:bg-slate-900/50 p-5 border-t border-slate-100 dark:border-slate-800 text-center text-xs md:text-sm text-slate-400 dark:text-slate-500 font-bold">

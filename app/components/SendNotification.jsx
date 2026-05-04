@@ -22,8 +22,15 @@ export default function SendNotification({ senderRole, senderId, students = [], 
     const [message, setMessage] = useState('');
     const [type, setType] = useState('INFO');
     const [attachmentUrl, setAttachmentUrl] = useState('');
-    const [attachmentType, setAttachmentType] = useState('IMAGE'); // IMAGE, LINK
+    const [attachmentType, setAttachmentType] = useState('IMAGE'); // IMAGE, LINK, VIDEO
     const [attachmentMode, setAttachmentMode] = useState('URL'); // URL, FILE
+
+    const getYouTubeId = (url) => {
+        if (!url) return null;
+        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+        const match = url.match(regExp);
+        return (match && match[2].length === 11) ? match[2] : null;
+    };
 
     // Target Selection
     const [targetType, setTargetType] = useState('STUDENT'); // STUDENT, TEACHER
@@ -263,15 +270,33 @@ export default function SendNotification({ senderRole, senderId, students = [], 
                                                     <div className="flex gap-1.5">
                                                         <button type="button" onClick={() => setAttachmentType('IMAGE')} className={`flex-1 py-2 rounded-lg text-[10px] font-black transition-all ${attachmentType === 'IMAGE' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>صورة</button>
                                                         <button type="button" onClick={() => setAttachmentType('LINK')} className={`flex-1 py-2 rounded-lg text-[10px] font-black transition-all ${attachmentType === 'LINK' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>رابط</button>
+                                                        <button type="button" onClick={() => setAttachmentType('VIDEO')} className={`flex-1 py-2 rounded-lg text-[10px] font-black transition-all ${attachmentType === 'VIDEO' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>فيديو</button>
                                                     </div>
                                                     <input
                                                         type="url"
                                                         value={attachmentUrl}
-                                                        onChange={(e) => setAttachmentUrl(e.target.value)}
+                                                        onChange={(e) => {
+                                                            const val = e.target.value;
+                                                            setAttachmentUrl(val);
+                                                            if (getYouTubeId(val)) setAttachmentType('VIDEO');
+                                                        }}
                                                         className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50 text-slate-800 dark:text-white text-xs ltr outline-none focus:border-indigo-500 font-bold"
-                                                        placeholder={attachmentType === 'IMAGE' ? 'https://...' : 'رابط...'}
+                                                        placeholder={attachmentType === 'IMAGE' ? 'https://...' : attachmentType === 'VIDEO' ? 'رابط يوتيوب...' : 'رابط...'}
                                                         dir="ltr"
                                                     />
+                                                    {attachmentType === 'VIDEO' && getYouTubeId(attachmentUrl) && (
+                                                        <div className="aspect-video w-full rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 shadow-sm mt-2">
+                                                            <iframe
+                                                                width="100%"
+                                                                height="100%"
+                                                                src={`https://www.youtube.com/embed/${getYouTubeId(attachmentUrl)}`}
+                                                                title="Preview"
+                                                                frameBorder="0"
+                                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                                allowFullScreen
+                                                            ></iframe>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             ) : (
                                                 <div className="relative border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl p-6 transition-all hover:border-indigo-400 group cursor-pointer text-center">
