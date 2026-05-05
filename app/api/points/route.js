@@ -125,7 +125,7 @@ export async function POST(request) {
             include: { halaqa: true }
         });
 
-        if (student?.halaqa && !student.halaqa.pointsEnabled) {
+        if (student?.halaqa && student.halaqa.pointsEnabled === false) {
             return NextResponse.json({ error: `نشاط النقاط متوقف حالياً لحلقة ${student.halaqa.name}` }, { status: 403 });
         }
 

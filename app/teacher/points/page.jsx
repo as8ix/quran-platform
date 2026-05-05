@@ -156,8 +156,12 @@ export default function TeacherPointsPage() {
     const handleAwardPoints = async (studentId, studentName = '') => {
         // Find the student object to check their specific halaqa status
         const student = students.find(s => s.id === studentId);
-        if (student && student.halaqa && !student.halaqa.pointsEnabled) {
-            toast.error(`عذراً، نشاط النقاط متوقف حالياً لحلقة ${student.halaqa.name}`);
+        // Explicitly check for false, so undefined/null doesn't block the scan incorrectly
+        if (student && student.halaqa && student.halaqa.pointsEnabled === false) {
+            toast.error(`عذراً، نشاط النقاط متوقف حالياً لحلقة ${student.halaqa.name}`, {
+                duration: 4000,
+                icon: '🔒'
+            });
             isProcessingRef.current = false;
             return;
         }
