@@ -1,11 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { QRCodeSVG } from 'qrcode.react';
 import Navbar from '../../../components/Navbar';
 import { useTheme } from '../../../components/ThemeProvider';
 
 export default function PrintCardsPage() {
+    const router = useRouter();
     const { mounted } = useTheme();
     const [students, setStudents] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -53,12 +55,20 @@ export default function PrintCardsPage() {
                             <h1 className="text-3xl font-black mb-2">بطاقات الطلاب الذكية 💳</h1>
                             <p className="font-bold opacity-90">جاهزة للطباعة والقص واستخدامها في نظام النقاط</p>
                         </div>
-                        <button 
-                            onClick={() => window.print()}
-                            className="bg-white text-emerald-600 px-6 py-3 rounded-xl font-black shadow-lg hover:scale-105 transition-all"
-                        >
-                            🖨️ ابدأ الطباعة الآن
-                        </button>
+                        <div className="flex gap-4">
+                            <button 
+                                onClick={() => router.back()}
+                                className="bg-emerald-700/50 text-white px-6 py-3 rounded-xl font-black hover:bg-emerald-800 transition-all border border-emerald-500/30"
+                            >
+                                رجوع
+                            </button>
+                            <button 
+                                onClick={() => window.print()}
+                                className="bg-white text-emerald-600 px-6 py-3 rounded-xl font-black shadow-lg hover:scale-105 transition-all flex items-center gap-2"
+                            >
+                                <span>🖨️</span> ابدأ الطباعة
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
