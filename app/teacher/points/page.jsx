@@ -41,7 +41,7 @@ export default function TeacherPointsPage() {
     const checkPointsStatus = async () => {
         if (!user) return;
         try {
-            const res = await fetch('/api/halaqas');
+            const res = await fetch(`/api/halaqas?t=${Date.now()}`);
             if (res.ok) {
                 const allHalaqas = await res.json();
                 const myHalaqas = allHalaqas.filter(h => 
@@ -136,7 +136,7 @@ export default function TeacherPointsPage() {
         if (!user) return;
         setLoading(true);
         try {
-            const res = await fetch(`/api/students?teacherId=${user.id}`);
+            const res = await fetch(`/api/students?teacherId=${user.id}&t=${Date.now()}`);
             if (res.ok) {
                 setStudents(await res.json());
             }
@@ -155,8 +155,25 @@ export default function TeacherPointsPage() {
 
     const handleAwardPoints = async (studentId, studentName = '') => {
         // Find the student object to check their specific halaqa status
-        const student = students.find(s => s.id === studentId);
-        // Explicitly check for false, so undefined/null doesn't block the scan incorrectly
+        let student = students.find(s => s.id === studentId);
+        
+        // If local check says disabled, do a quick "Live Check" from the server just in case
+        if (student && student.halaqa && student.halaqa.pointsEnabled === false) {
+            try {
+                const liveRes = await fetch(`/api/students?id=${studentId}&t=${Date.now()}`);
+                if (liveRes.ok) {
+                    const liveData = await liveRes.json();
+                    if (liveData && liveData.halaqa) {
+                        // Update local student data
+                        setStudents(prev => prev.map(s => s.id === studentId ? { ...s, halaqa: liveData.halaqa } : s));
+                        student = { ...student, halaqa: liveData.halaqa };
+                    }
+                }
+            } catch (e) {
+                console.error("Live check failed", e);
+            }
+        }
+
         if (student && student.halaqa && student.halaqa.pointsEnabled === false) {
             toast.error(`عذراً، نشاط النقاط متوقف حالياً لحلقة ${student.halaqa.name}`, {
                 duration: 4000,
