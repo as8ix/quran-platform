@@ -99,7 +99,8 @@ export async function GET(request) {
                 select: {
                     id: true,
                     name: true,
-                    logo: true
+                    logo: true,
+                    pointsEnabled: true
                 }
             }
         };
