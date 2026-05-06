@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import { useTheme } from './ThemeProvider';
@@ -11,16 +11,19 @@ export default function Navbar({ userType, userName, onLogout, displayId }) {
     const titles = {
         student: 'لوحة الطالب',
         teacher: 'لوحة المعلم',
-        supervisor: 'لوحة المشرف العام'
+        supervisor: 'لوحة المشرف'
     };
 
     const [notifications, setNotifications] = useState([]);
     const [showNotifications, setShowNotifications] = useState(false);
+    const [isClosing, setIsClosing] = useState(false);
     const [unreadCount, setUnreadCount] = useState(0);
 
     const lastNotificationsRef = useRef([]);
+    const notificationRef = useRef(null);
 
     const [pointsEnabled, setPointsEnabled] = useState(true);
+
 
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
@@ -50,8 +53,8 @@ export default function Navbar({ userType, userName, onLogout, displayId }) {
             const res = await fetch('/api/halaqas');
             if (res.ok) {
                 const halaqas = await res.json();
-                const myHalaqas = halaqas.filter(h => 
-                    h.teacherId === user.id || 
+                const myHalaqas = halaqas.filter(h =>
+                    h.teacherId === user.id ||
                     (h.assistants && h.assistants.some(a => a.id === user.id))
                 );
                 const enabled = myHalaqas.some(h => h.pointsEnabled);
@@ -110,11 +113,42 @@ export default function Navbar({ userType, userName, onLogout, displayId }) {
         }
     };
 
+    const handleClose = useCallback(() => {
+        setIsClosing(true);
+        setTimeout(() => {
+            setShowNotifications(false);
+            setIsClosing(false);
+        }, 250); 
+    }, []);
+
+    const toggleNotifications = useCallback(() => {
+        if (showNotifications) {
+            handleClose();
+        } else {
+            setShowNotifications(true);
+        }
+    }, [showNotifications, handleClose]);
+
+    useEffect(() => {
+        function handleClickOutside(event) {
+            if (notificationRef.current && !notificationRef.current.contains(event.target)) {
+                if (showNotifications) handleClose();
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        document.addEventListener("touchstart", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+            document.removeEventListener("touchstart", handleClickOutside);
+        };
+    }, [showNotifications, handleClose]);
+
+
     return (
         <nav className="fixed top-2 sm:top-4 left-2 sm:left-4 right-2 sm:right-4 z-50 transition-all duration-500">
             <div className="max-w-7xl mx-auto premium-glass !overflow-visible rounded-[1.5rem] sm:rounded-[2.5rem] px-4 sm:px-6 py-2.5 sm:py-4 border-white/30 dark:border-slate-800/50 shadow-2xl shadow-slate-200/50 dark:shadow-none">
                 <div className="flex justify-between items-center gap-2">
-                    <div 
+                    <div
                         className="flex items-center gap-2 sm:gap-3 shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
                         onClick={() => {
                             if (userType === 'teacher') router.push('/teacher');
@@ -154,9 +188,9 @@ export default function Navbar({ userType, userName, onLogout, displayId }) {
                         </button>
 
                         {/* Notifications Bell */}
-                        <div className="relative">
+                        <div className="relative" ref={notificationRef}>
                             <button
-                                onClick={() => setShowNotifications(!showNotifications)}
+                                onClick={toggleNotifications}
                                 className={`relative p-2 text-xl sm:text-2xl hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl sm:rounded-full transition-all duration-300 ${unreadCount > 0 ? 'animate-pulse' : ''}`}
                             >
                                 <span className="relative z-10">🔔</span>
@@ -168,8 +202,8 @@ export default function Navbar({ userType, userName, onLogout, displayId }) {
                             </button>
 
                             {/* Dropdown */}
-                            {showNotifications && (
-                                <div className="fixed md:absolute inset-x-4 md:inset-x-auto md:left-0 top-[75px] md:top-full mt-2 md:mt-4 md:w-80 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.2)] dark:shadow-none border border-slate-100 dark:border-slate-800 overflow-hidden z-[100] animate-slideUp">
+                            {(showNotifications || isClosing) && (
+                                <div className={`fixed md:absolute inset-x-4 md:inset-x-auto md:left-0 top-[75px] md:top-full mt-2 md:mt-4 md:w-80 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.2)] dark:shadow-none border border-slate-100 dark:border-slate-800 overflow-hidden z-[100] ${isClosing ? 'animate-slideDown' : 'animate-slideUp'}`}>
                                     <div className="p-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 flex justify-between items-center">
                                         <h3 className="font-black text-slate-800 dark:text-white uppercase tracking-tight">الإشعارات</h3>
                                         <span className="text-[10px] font-black bg-emerald-500 text-white px-2 py-0.5 rounded-full">{unreadCount} غير مقروء</span>
@@ -205,7 +239,7 @@ export default function Navbar({ userType, userName, onLogout, displayId }) {
                                         )}
                                     </div>
                                     {notifications.length > 0 && (
-                                        <div 
+                                        <div
                                             onClick={() => {
                                                 setShowNotifications(false);
                                                 window.location.href = '/notifications';
@@ -226,7 +260,7 @@ export default function Navbar({ userType, userName, onLogout, displayId }) {
                                     <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 hidden md:block">#{displayId}</span>
                                 )}
                             </div>
-                            
+
                             {(userType === 'teacher' || userType === 'supervisor') && (
                                 <button
                                     onClick={() => router.push(`/${userType}/profile`)}
