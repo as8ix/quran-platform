@@ -34,6 +34,7 @@ RUN apt-get update -y && apt-get install -y curl wget && rm -rf /var/lib/apt/lis
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV HOSTNAME="0.0.0.0"
 
 RUN groupadd --system --gid 1001 nodejs
 RUN useradd --system --uid 1001 nextjs
