@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Navbar from '../../../components/Navbar';
 import { useTheme } from '../../../components/ThemeProvider';
+import LoadingScreen from '../../../components/LoadingScreen';
 import { toPng } from 'html-to-image';
 import { toast } from 'react-hot-toast';
 
@@ -118,7 +119,7 @@ export default function LeaderboardPage() {
         }
     };
 
-    if (!mounted || loading) return <div className="min-h-screen flex items-center justify-center">جاري التحميل...</div>;
+    if (!mounted || loading) return <LoadingScreen />;
 
     const topThree = leaderboard.slice(0, 3);
     const theRest = leaderboard.slice(3);

@@ -2,6 +2,8 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import LoadingScreen from '../../../components/LoadingScreen';
+import BackButton from '../../../components/BackButton';
 
 const getHParts = (d) => {
     const parts = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', { month: 'numeric', year: 'numeric' }).formatToParts(d);
@@ -243,7 +245,7 @@ function SupervisorAttendanceReportContent() {
         }
     };
 
-    if (loading) return <div className="p-10 text-center font-bold text-slate-500">جاري إعداد تقرير المشرف...</div>;
+    if (loading) return <LoadingScreen message="جاري إعداد تقرير المشرف..." />;
 
     return (
         <div className="min-h-screen bg-white font-noto p-8 text-right" dir="rtl">
@@ -294,7 +296,11 @@ function SupervisorAttendanceReportContent() {
                             />
                         </div>
                     )}
-                    <button onClick={() => router.push('/supervisor')} className="mr-4 px-6 py-2 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition-all">← عودة للوحة المشرف</button>
+                    <BackButton 
+                        href="/supervisor" 
+                        text="عودة للوحة المشرف" 
+                        className="mr-4 print:hidden" 
+                    />
                 </div>
                 <button
                     onClick={() => window.print()}
@@ -404,7 +410,7 @@ function SupervisorAttendanceReportContent() {
 
 export default function SupervisorAttendanceReport() {
     return (
-        <Suspense fallback={<div className="p-10 text-center">جاري التحميل...</div>}>
+        <Suspense fallback={<LoadingScreen message="جاري التحميل..." />}>
             <SupervisorAttendanceReportContent />
         </Suspense>
     );

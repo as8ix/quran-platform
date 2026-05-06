@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import Navbar from '../../components/Navbar';
 import { formatHijri } from '../../utils/dateUtils';
+import LoadingScreen from '../../components/LoadingScreen';
+import BackButton from '../../components/BackButton';
 
 export default function AttendancePage() {
     const router = useRouter();
@@ -179,7 +181,7 @@ export default function AttendancePage() {
         }
     };
 
-    if (loading) return <div className="p-10 text-center">جاري التحميل...</div>;
+    if (loading) return <LoadingScreen message="جاري تحميل كشف الحضور..." />;
 
     return (
         <div className="min-h-screen bg-[#f8fafc] dark:bg-slate-950 font-noto transition-colors duration-300">
@@ -187,17 +189,11 @@ export default function AttendancePage() {
 
             <main className="max-w-4xl mx-auto px-4 pt-28 pb-12">
                 {/* Back Button */}
-                <button
-                    onClick={() => router.push('/teacher')}
-                    className="mb-6 flex items-center gap-2 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-bold transition-colors group"
-                >
-                    <span className="p-2 bg-white dark:bg-slate-800 rounded-full shadow-sm group-hover:shadow-md transition-all border border-slate-100 dark:border-slate-700">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-                        </svg>
-                    </span>
-                    عودة للقائمة الرئيسية
-                </button>
+                <BackButton 
+                    href="/teacher" 
+                    text="عودة للقائمة الرئيسية" 
+                    className="mb-6" 
+                />
 
                 <div className="mb-10 space-y-6">
                     <div>

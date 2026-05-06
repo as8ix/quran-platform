@@ -4,11 +4,13 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import Navbar from '../../../components/Navbar';
+import LoadingScreen from '../../../components/LoadingScreen';
 import { quranData } from '../../../data/quranData';
 import { pageAyahMap } from '../../../data/pageAyahMap';
 import { formatHijri } from '../../../utils/dateUtils';
 
 import AddStudentModal from '../../../components/AddStudentModal';
+import BackButton from '../../../components/BackButton';
 
 export default function StudentDetailsPage() {
     const params = useParams();
@@ -981,7 +983,7 @@ export default function StudentDetailsPage() {
         }
     };
 
-    if (loading && !student) return <div className="p-20 text-center font-bold text-emerald-600 animate-pulse">جاري التحميل...</div>;
+    if (loading && !student) return <LoadingScreen />;
 
     return (
         <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-main)] font-noto rtl transition-colors duration-300" dir="rtl">
@@ -995,17 +997,11 @@ export default function StudentDetailsPage() {
 
             <main className="max-w-6xl mx-auto px-4 pt-28 pb-12">
                 {/* Back Button */}
-                <button
-                    onClick={() => router.push('/teacher')}
-                    className="mb-6 flex items-center gap-2 text-slate-500 hover:text-slate-800 font-bold transition-colors group"
-                >
-                    <span className="p-2 bg-white dark:bg-slate-800 rounded-full shadow-sm group-hover:shadow-md transition-all">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-                        </svg>
-                    </span>
-                    عودة للقائمة الرئيسية
-                </button>
+                <BackButton 
+                    href="/teacher" 
+                    text="عودة للقائمة الرئيسية" 
+                    className="mb-6" 
+                />
 
                 {/* Actions */}
                 <div className="flex justify-end gap-3 mb-4">

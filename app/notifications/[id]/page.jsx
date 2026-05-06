@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Navbar from '../../components/Navbar';
+import LoadingScreen from '../../components/LoadingScreen';
 import { useParams } from 'next/navigation';
 
 export default function NotificationDetails() {
@@ -63,7 +64,7 @@ export default function NotificationDetails() {
         }
     };
 
-    if (loading) return <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center text-slate-500">جاري التحميل...</div>;
+    if (loading) return <LoadingScreen />;
     if (!notification) return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-10">
             <h1 className="text-2xl font-bold text-red-500 mb-4">لم يتم العثور على الإشعار</h1>

@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { toast } from 'react-hot-toast';
 import Navbar from '../../components/Navbar';
 import { useTheme } from '../../components/ThemeProvider';
+import LoadingScreen from '../../components/LoadingScreen';
 import { Html5Qrcode } from 'html5-qrcode';
 import { QRCodeSVG } from 'qrcode.react';
 
@@ -20,7 +21,7 @@ export default function TestPointsPage() {
     const [mode, setMode] = useState('add'); // 'add' or 'deduct'
 
     useEffect(() => {
-        fetchTestData();
+        fetchTestData(true);
     }, []);
 
     useEffect(() => {
@@ -100,8 +101,8 @@ export default function TestPointsPage() {
         handleAwardPoints(studentId, student.name);
     };
 
-    const fetchTestData = async () => {
-        setLoading(true);
+    const fetchTestData = async (isInitial = false) => {
+        if (isInitial) setLoading(true);
         try {
             const res = await fetch('/api/students');
             if (res.ok) {
@@ -114,7 +115,7 @@ export default function TestPointsPage() {
         } catch (error) {
             toast.error('خطأ في جلب البيانات');
         } finally {
-            setLoading(false);
+            if (isInitial) setLoading(false);
         }
     };
 
@@ -144,14 +145,14 @@ export default function TestPointsPage() {
                 } else {
                     toast.success(`تم رصد ${pointsData.amount} نقطة لـ ${studentName}`);
                 }
-                fetchTestData();
+                fetchTestData(false);
             }
         } catch (error) {
             console.error(error);
         }
     };
 
-    if (!mounted || loading) return <div className="min-h-screen flex items-center justify-center">جاري التحميل...</div>;
+    if (!mounted || loading) return <LoadingScreen />;
 
     const categories = [
         { id: 'ATTENDANCE', name: 'حضور', icon: '⏰' },

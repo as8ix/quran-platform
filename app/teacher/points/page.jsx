@@ -3,7 +3,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { toast } from 'react-hot-toast';
 import Navbar from '../../components/Navbar';
+import BackButton from '../../components/BackButton';
 import { useTheme } from '../../components/ThemeProvider';
+import LoadingScreen from '../../components/LoadingScreen';
 import { Html5Qrcode } from 'html5-qrcode';
 import { useRouter } from 'next/navigation';
 
@@ -19,6 +21,13 @@ export default function TeacherPointsPage() {
     const [user, setUser] = useState(null);
     const html5QrCodeRef = useRef(null);
     const isProcessingRef = useRef(false);
+    const successAudioRef = useRef(null);
+
+    // Preload audio for faster feedback
+    useEffect(() => {
+        successAudioRef.current = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
+        successAudioRef.current.load();
+    }, []);
 
     const [isPointsEnabled, setIsPointsEnabled] = useState(true);
 
@@ -33,7 +42,7 @@ export default function TeacherPointsPage() {
 
     useEffect(() => {
         if (user) {
-            fetchTestData();
+            fetchTestData(true);
             checkPointsStatus();
         }
     }, [user]);
@@ -73,8 +82,9 @@ export default function TeacherPointsPage() {
             html5QrCodeRef.current = html5QrCode;
             
             const config = { 
-                fps: 20, 
-                qrbox: { width: 300, height: 300 }
+                fps: 10, 
+                qrbox: { width: 280, height: 280 },
+                aspectRatio: 1.0
             };
 
             await html5QrCode.start(
@@ -126,15 +136,19 @@ export default function TeacherPointsPage() {
         }
 
         setIsScanning(false);
-        const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
-        audio.play().catch(e => {});
+        
+        // Play sound immediately from preloaded ref
+        if (successAudioRef.current) {
+            successAudioRef.current.currentTime = 0;
+            successAudioRef.current.play().catch(e => {});
+        }
 
         handleAwardPoints(studentId, student.name);
     };
 
-    const fetchTestData = async () => {
+    const fetchTestData = async (isInitial = false) => {
         if (!user) return;
-        setLoading(true);
+        if (isInitial) setLoading(true);
         try {
             const res = await fetch(`/api/students?teacherId=${user.id}&t=${Date.now()}`);
             if (res.ok) {
@@ -149,42 +163,26 @@ export default function TeacherPointsPage() {
         } catch (error) {
             toast.error('خطأ في جلب البيانات');
         } finally {
-            setLoading(false);
+            if (isInitial) setLoading(false);
         }
     };
 
     const handleAwardPoints = async (studentId, studentName = '') => {
-        // Find the student object to check their specific halaqa status
-        let student = students.find(s => s.id === studentId);
+        const finalAmount = mode === 'deduct' ? -Math.abs(pointsData.amount) : Math.abs(pointsData.amount);
         
-        // If local check says disabled, do a quick "Live Check" from the server just in case
-        if (student && student.halaqa && student.halaqa.pointsEnabled === false) {
-            try {
-                const liveRes = await fetch(`/api/students?id=${studentId}&t=${Date.now()}`);
-                if (liveRes.ok) {
-                    const liveData = await liveRes.json();
-                    if (liveData && liveData.halaqa) {
-                        // Update local student data
-                        setStudents(prev => prev.map(s => s.id === studentId ? { ...s, halaqa: liveData.halaqa } : s));
-                        student = { ...student, halaqa: liveData.halaqa };
-                    }
-                }
-            } catch (e) {
-                console.error("Live check failed", e);
-            }
-        }
-
-        if (student && student.halaqa && student.halaqa.pointsEnabled === false) {
-            toast.error(`عذراً، نشاط النقاط متوقف حالياً لحلقة ${student.halaqa.name}`, {
-                duration: 4000,
-                icon: '🔒'
-            });
-            isProcessingRef.current = false;
-            return;
-        }
+        // --- Optimistic UI Update ---
+        // Add to log immediately so user sees it fast
+        const tempLogEntry = {
+            student: { name: studentName },
+            amount: finalAmount,
+            category: pointsData.category,
+            reason: pointsData.reason,
+            createdAt: new Date().toISOString(),
+            isOptimistic: true // marker to know it's not confirmed yet
+        };
+        setPointsLog(prev => [tempLogEntry, ...prev]);
 
         try {
-            const finalAmount = mode === 'deduct' ? -Math.abs(pointsData.amount) : Math.abs(pointsData.amount);
             const res = await fetch('/api/points', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -197,26 +195,27 @@ export default function TeacherPointsPage() {
 
             if (res.ok) {
                 if (mode === 'deduct') {
-                    toast.error(`تم خصم ${Math.abs(finalAmount)} نقطة من ${studentName}`, {
-                        icon: '📉',
-                        style: { borderRadius: '10px', background: '#333', color: '#fff' },
-                    });
+                    toast.error(`تم خصم ${Math.abs(finalAmount)} نقطة من ${studentName}`, { icon: '📉' });
                 } else {
                     toast.success(`تم رصد ${pointsData.amount} نقطة لـ ${studentName}`);
                 }
-                fetchTestData();
+                // Silently refresh data in background to confirm
+                fetchTestData(false);
             } else {
                 const errorData = await res.json();
                 toast.error(errorData.error || 'فشل في رصد النقاط');
+                // Remove the optimistic entry if failed
+                setPointsLog(prev => prev.filter(log => log !== tempLogEntry));
             }
-            isProcessingRef.current = false;
         } catch (error) {
             console.error(error);
+            setPointsLog(prev => prev.filter(log => log !== tempLogEntry));
+        } finally {
             isProcessingRef.current = false;
         }
     };
 
-    if (!mounted || loading) return <div className="min-h-screen flex items-center justify-center">جاري التحميل...</div>;
+    if (!mounted || loading) return <LoadingScreen />;
 
     const categories = [
         { id: 'ATTENDANCE', name: 'حضور', icon: '⏰' },
@@ -232,18 +231,11 @@ export default function TeacherPointsPage() {
             <Navbar userType="teacher" userName={user?.name} />
             
             <main className="max-w-6xl mx-auto px-4 pt-28 pb-12">
-                {/* Custom Back Button for this page only */}
-                <button 
-                    onClick={() => router.push('/teacher')}
-                    className="group flex items-center gap-2 mb-8 text-slate-400 hover:text-emerald-600 transition-all font-black text-sm"
-                >
-                    <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-white transition-all shadow-sm">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-4 h-4 rotate-180">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-                        </svg>
-                    </div>
-                    <span>العودة للوحة التحكم</span>
-                </button>
+                <BackButton 
+                    href="/teacher" 
+                    text="العودة للوحة التحكم" 
+                    className="mb-8" 
+                />
 
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
                     <div>

@@ -8,6 +8,7 @@ import AddStudentModal from '../components/AddStudentModal';
 import SendNotification from '../components/SendNotification';
 import ReportModal from '../components/ReportModal';
 import { useTheme } from '../components/ThemeProvider';
+import LoadingScreen from '../components/LoadingScreen';
 
 const StudentCard = ({ student, router }) => (
     <div
@@ -167,6 +168,8 @@ export default function TeacherDashboard() {
 
     const { isDarkMode, mounted } = useTheme();
 
+    if (!mounted || loading) return <LoadingScreen />;
+    
     return (
         <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-main)] font-noto rtl transition-colors duration-300 relative overflow-hidden" dir="rtl">
             {/* Premium Edge Glows */}
@@ -286,28 +289,7 @@ export default function TeacherDashboard() {
                     </div>
                 </div>
 
-                {/* Students List */}
-                {(!mounted || loading) ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                        {[1, 2, 3, 4, 5, 6].map((i) => (
-                            <div key={i} className="premium-glass rounded-[2rem] sm:rounded-[2.5rem] p-7 animate-pulse border border-white/20 dark:border-slate-800/50">
-                                <div className="flex justify-between mb-6">
-                                    <div className="w-16 h-16 bg-slate-200 dark:bg-slate-800 rounded-3xl"></div>
-                                    <div className="w-20 h-6 bg-slate-100 dark:bg-slate-800/50 rounded-xl"></div>
-                                </div>
-                                <div className="h-8 bg-slate-200 dark:bg-slate-800 rounded-xl w-3/4 mb-4"></div>
-                                <div className="h-4 bg-slate-100 dark:bg-slate-800/50 rounded-lg w-1/2 mb-8"></div>
-                                <div className="space-y-3 p-5 bg-slate-50/50 dark:bg-slate-900/30 rounded-3xl border border-white/20 dark:border-slate-800">
-                                    <div className="flex justify-between">
-                                        <div className="w-12 h-3 bg-slate-200 dark:bg-slate-800 rounded"></div>
-                                        <div className="w-16 h-3 bg-slate-200 dark:bg-slate-800 rounded"></div>
-                                    </div>
-                                    <div className="w-full h-2.5 bg-slate-200 dark:bg-slate-800 rounded-full"></div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                ) : filteredStudents.length > 0 ? (
+                {filteredStudents.length > 0 ? (
                     <div className="space-y-6 sm:space-y-12">
                         {/* Quranic Active Students Section */}
                         {filteredStudents.some(s => s.isInActiveEvent) && (
@@ -375,17 +357,6 @@ export default function TeacherDashboard() {
                 teacher={user}
                 teacherNames={user?.name}
             />
-            <style jsx global>{`
-                @keyframes shimmer {
-                    0% { transform: translateX(-100%) translateY(-100%) rotate(-45deg); }
-                    100% { transform: translateX(200%) translateY(200%) rotate(-45deg); }
-                }
-                .animate-shimmer {
-                    animation: shimmer 10s infinite linear;
-                    width: 200%;
-                    height: 200%;
-                }
-            `}</style>
         </div>
     );
 }

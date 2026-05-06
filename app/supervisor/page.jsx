@@ -15,6 +15,7 @@ import Link from 'next/link';
 import AddStudentModal from '../components/AddStudentModal';
 import ManageHolidaysModal from '../components/ManageHolidaysModal';
 import SupervisorStats from '../components/SupervisorStats';
+import LoadingScreen from '../components/LoadingScreen';
 
 
 export default function SupervisorDashboard() {
@@ -197,39 +198,7 @@ export default function SupervisorDashboard() {
         .filter(h => normalizeText(h.name).includes(normalizeText(searchHalaqa)))
         .sort((a, b) => a.name.localeCompare(b.name, 'ar'));
 
-    if (!mounted || loading) return (
-        <div className="min-h-screen bg-[var(--bg-main)] rtl p-4 pt-28" dir="rtl">
-            <div className="max-w-7xl mx-auto space-y-8 animate-pulse">
-                {/* Header Skeleton */}
-                <div className="flex justify-between items-center mb-10">
-                    <div className="space-y-3">
-                        <div className="h-10 bg-slate-200 dark:bg-slate-800 rounded-2xl w-48"></div>
-                        <div className="h-4 bg-slate-100 dark:bg-slate-800/50 rounded-xl w-64"></div>
-                    </div>
-                    <div className="flex gap-3">
-                        <div className="h-12 bg-slate-200 dark:bg-slate-800 rounded-2xl w-32"></div>
-                        <div className="h-12 bg-slate-200 dark:bg-slate-800 rounded-2xl w-32"></div>
-                    </div>
-                </div>
-
-                {/* Stats Grid Skeleton */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {[1, 2, 3, 4].map(i => (
-                        <div key={i} className="h-32 bg-slate-100 dark:bg-slate-800/50 rounded-[2rem]"></div>
-                    ))}
-                </div>
-
-                {/* Main Content Skeleton */}
-                <div className="h-96 bg-slate-50 dark:bg-slate-900/30 rounded-[3rem] border border-slate-100 dark:border-slate-800"></div>
-                
-                {/* Lists Skeleton */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <div className="h-80 bg-slate-100 dark:bg-slate-800/50 rounded-[3rem]"></div>
-                    <div className="h-80 bg-slate-100 dark:bg-slate-800/50 rounded-[3rem]"></div>
-                </div>
-            </div>
-        </div>
-    );
+    if (!mounted || loading) return <LoadingScreen />;
 
     const handleCreateTeacher = async (e) => {
         e.preventDefault();

@@ -4,7 +4,10 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import Navbar from '../../components/Navbar';
+import BackButton from '../../components/BackButton';
+import BackButton from '../../components/BackButton';
 import { useTheme } from '../../components/ThemeProvider';
+import LoadingScreen from '../../components/LoadingScreen';
 
 export default function TeacherProfilePage() {
     const router = useRouter();
@@ -74,13 +77,14 @@ export default function TeacherProfilePage() {
         }
     };
 
-    if (loading) return <div className="min-h-screen bg-slate-50 flex items-center justify-center font-bold text-emerald-600 animate-pulse text-xl">جاري التحميل...</div>;
+    if (loading) return <LoadingScreen />;
 
     return (
         <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-main)] font-noto rtl" dir="rtl">
             <Navbar userType="teacher" userName={user?.name} onLogout={() => router.push('/login')} displayId={user?.displayId} />
             
             <main className="max-w-4xl mx-auto px-4 pt-32 pb-12">
+                <BackButton href="/teacher" text="رجوع للوحة التحكم" className="mb-8" />
                 <div className="premium-glass p-8 rounded-[3rem] shadow-2xl border border-white/20 dark:border-slate-800/50">
                     <div className="flex items-center gap-4 mb-10 pb-6 border-b border-slate-100 dark:border-slate-800">
                         <div className="w-16 h-16 bg-emerald-600 text-white rounded-2xl flex items-center justify-center text-3xl font-black shadow-lg shadow-emerald-200 dark:shadow-none">

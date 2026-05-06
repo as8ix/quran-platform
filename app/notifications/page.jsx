@@ -2,7 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'react-hot-toast';
+import LoadingScreen from '../components/LoadingScreen';
 import Navbar from '../components/Navbar';
+import BackButton from '../components/BackButton';
 
 export default function NotificationsPage() {
     const router = useRouter();
@@ -48,7 +51,7 @@ export default function NotificationsPage() {
         }
     };
 
-    if (loading) return <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center text-slate-500">جاري التحميل...</div>;
+    if (loading) return <LoadingScreen />;
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-950 rtl transition-colors duration-300" dir="rtl">
@@ -57,20 +60,10 @@ export default function NotificationsPage() {
             <main className="max-w-4xl mx-auto px-4 md:px-6 pb-12 pt-44">
                 <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-12">
                     <h1 className="text-4xl font-black text-slate-800 dark:text-white">كافة الإشعارات 🔔</h1>
-                    <button 
-                        onClick={() => {
-                            try {
-                                const stored = JSON.parse(localStorage.getItem('user'));
-                                const path = stored?.role === 'SUPERVISOR' ? '/supervisor' : stored?.role === 'TEACHER' ? '/teacher' : '/student';
-                                window.location.replace(path);
-                            } catch (e) {
-                                window.location.replace('/');
-                            }
-                        }}
-                        className="w-full md:w-auto px-10 py-4 bg-emerald-600 text-white rounded-[2rem] font-black text-lg shadow-xl shadow-emerald-500/20 hover:bg-emerald-700 transition-all active:scale-95 flex items-center justify-center gap-3"
-                    >
-                        <span>🏠</span> العودة للرئيسية
-                    </button>
+                    <BackButton 
+                        href="/" 
+                        text="العودة للرئيسية" 
+                    />
                 </div>
 
                 <div className="grid gap-4">

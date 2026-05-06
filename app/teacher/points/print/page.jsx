@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { QRCodeSVG } from 'qrcode.react';
 import Navbar from '../../../components/Navbar';
 import { useTheme } from '../../../components/ThemeProvider';
+import LoadingScreen from '../../../components/LoadingScreen';
+import BackButton from '../../../components/BackButton';
 
 export default function PrintCardsPage() {
     const router = useRouter();
@@ -41,7 +43,7 @@ export default function PrintCardsPage() {
         }
     };
 
-    if (!mounted || loading) return <div className="p-10 text-center">جاري تجهيز البطاقات...</div>;
+    if (!mounted || loading) return <LoadingScreen message="جاري تجهيز البطاقات..." />;
 
     const user = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || '{}') : {};
 
@@ -49,19 +51,14 @@ export default function PrintCardsPage() {
         <div className="min-h-screen bg-white dark:bg-slate-900 rtl font-noto" dir="rtl">
             <div className="no-print">
                 <Navbar userType={user.role?.toLowerCase() || 'teacher'} userName="طباعة البطاقات" />
-                <div className="max-w-4xl mx-auto pt-28 px-4 mb-10">
+                <div className="max-w-4xl mx-auto pt-28 px-4 mb-6">
+                    <BackButton text="رجوع" className="mb-4" />
                     <div className="bg-emerald-600 text-white p-8 rounded-[2rem] shadow-xl flex justify-between items-center">
                         <div>
                             <h1 className="text-3xl font-black mb-2">بطاقات الطلاب الذكية 💳</h1>
                             <p className="font-bold opacity-90">جاهزة للطباعة والقص واستخدامها في نظام النقاط</p>
                         </div>
                         <div className="flex gap-4">
-                            <button 
-                                onClick={() => router.back()}
-                                className="bg-emerald-700/50 text-white px-6 py-3 rounded-xl font-black hover:bg-emerald-800 transition-all border border-emerald-500/30"
-                            >
-                                رجوع
-                            </button>
                             <button 
                                 onClick={() => window.print()}
                                 className="bg-white text-emerald-600 px-6 py-3 rounded-xl font-black shadow-lg hover:scale-105 transition-all flex items-center gap-2"

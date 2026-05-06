@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTheme } from '../components/ThemeProvider';
+import LoadingScreen from '../components/LoadingScreen';
 
 export default function LoginPage() {
     const router = useRouter();
@@ -96,11 +97,7 @@ export default function LoginPage() {
     const { isDarkMode, toggleDarkMode, mounted } = useTheme();
 
     if (!mounted || checkingAuth) {
-        return (
-            <div className="min-h-screen bg-white dark:bg-slate-950 flex items-center justify-center">
-                <div className="w-12 h-12 border-4 border-emerald-100 dark:border-emerald-900 border-t-emerald-600 rounded-full animate-spin"></div>
-            </div>
-        );
+        return <LoadingScreen />;
     }
 
     return (

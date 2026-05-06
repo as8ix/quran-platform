@@ -122,15 +122,7 @@ export default function LandingPage() {
       <section className="py-16 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm reveal">
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {loading ? (
-              // Loading skeleton
-              Array(4).fill(0).map((_, i) => (
-                <div key={i} className="premium-glass rounded-3xl p-8 text-center shadow-lg border border-slate-100 dark:border-slate-700 animate-pulse">
-                  <div className="h-12 bg-slate-200 dark:bg-slate-700 rounded-xl mb-4"></div>
-                  <div className="h-6 bg-slate-200 dark:bg-slate-700 rounded-lg"></div>
-                </div>
-              ))
-            ) : (
+            {!loading && (
               <>
                 <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-3xl p-8 text-center shadow-lg border border-blue-200 dark:border-blue-900/30 hover:shadow-2xl hover:shadow-blue-100 dark:hover:shadow-none transition-all duration-300 transform hover:-translate-y-1">
                   <div className="text-5xl font-black text-blue-600 dark:text-blue-400 mb-2">{stats?.studentsCount || 0}</div>
