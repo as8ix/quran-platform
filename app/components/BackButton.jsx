@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 export default function BackButton({ 
     href, 
@@ -16,6 +17,23 @@ export default function BackButton({
             router.back();
         }
     };
+
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            // Check if user is typing in an input or textarea
+            const isTyping = e.target.tagName === 'INPUT' || 
+                             e.target.tagName === 'TEXTAREA' || 
+                             e.target.isContentEditable;
+            
+            if (e.key === 'Backspace' && !isTyping) {
+                e.preventDefault(); // Prevent browser back behavior
+                handleBack();
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [href, router]); // Re-run if href changes to ensure correct target
 
     return (
         <button
