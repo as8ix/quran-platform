@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Navbar from '../../../components/Navbar';
 import { useTheme } from '../../../components/ThemeProvider';
 import LoadingScreen from '../../../components/LoadingScreen';
+import BackButton from '../../../components/BackButton';
 import { toPng } from 'html-to-image';
 import { toast } from 'react-hot-toast';
 
@@ -134,7 +135,12 @@ export default function LeaderboardPage() {
                 <div className="absolute top-[30%] right-[10%] w-[30%] h-[30%] bg-purple-500 rounded-full blur-[120px] animate-pulse-slow" style={{ animationDelay: '-2s' }}></div>
             </div>
             
-            <main className="max-w-4xl mx-auto px-4 pt-28 pb-12 relative z-10">
+            <main className="max-w-6xl mx-auto px-4 pt-32 pb-12 relative z-10">
+                <BackButton 
+                    href="/supervisor" 
+                    text="العودة للوحة المشرف" 
+                    className="mb-8" 
+                />
                 <div className="text-center mb-10 relative">
                     <div className="inline-block animate-tada mb-6">
                         <span className="text-6xl sm:text-8xl">🏆</span>
