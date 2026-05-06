@@ -1,5 +1,7 @@
 import { prisma } from '@/app/lib/prisma';
 import { NextResponse } from 'next/server';
+import { db } from '@/app/lib/firebase';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 export async function GET(request) {
     try {
@@ -84,6 +86,20 @@ export async function POST(request) {
                 isRead: false
             }
         });
+
+        // --- Firebase Real-time Trigger ---
+        // We write a simple timestamp to a trigger document.
+        // The Navbar listens to this document and refreshes when it changes.
+        try {
+            const triggerId = userId ? `user_${userId}` : (studentId ? `student_${studentId}` : 'global');
+            await setDoc(doc(db, "notification_triggers", triggerId), {
+                lastUpdate: serverTimestamp(),
+                count: Math.floor(Math.random() * 1000) // Ensure a change even if same millisecond
+            }, { merge: true });
+        } catch (fbError) {
+            console.error('Firebase Trigger Error:', fbError);
+            // We don't fail the whole request if Firebase fails, just log it.
+        }
 
         return NextResponse.json(notification);
     } catch (error) {

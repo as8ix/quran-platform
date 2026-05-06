@@ -1,5 +1,7 @@
 import { prisma } from '@/app/lib/prisma';
 import { NextResponse } from 'next/server';
+import { db } from '@/app/lib/firebase';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 export async function GET(request) {
     try {
@@ -94,6 +96,30 @@ export async function PUT(request) {
                 assistants: { select: { name: true } }
             }
         });
+
+        // --- Firebase Real-time Trigger for Points Status ---
+        if (pointsEnabled !== undefined) {
+            try {
+                // Trigger for the main teacher
+                if (halaqa.teacherId) {
+                    await setDoc(doc(db, "notification_triggers", `user_${halaqa.teacherId}`), {
+                        lastUpdate: serverTimestamp(),
+                        type: 'POINTS_STATUS_CHANGE'
+                    }, { merge: true });
+                }
+                // Trigger for assistants
+                if (halaqa.assistants && halaqa.assistants.length > 0) {
+                    for (const assistant of halaqa.assistants) {
+                        await setDoc(doc(db, "notification_triggers", `user_${assistant.id}`), {
+                            lastUpdate: serverTimestamp(),
+                            type: 'POINTS_STATUS_CHANGE'
+                        }, { merge: true });
+                    }
+                }
+            } catch (fbError) {
+                console.error('Firebase Halaqa Trigger Error:', fbError);
+            }
+        }
 
         return NextResponse.json(halaqa);
     } catch (error) {

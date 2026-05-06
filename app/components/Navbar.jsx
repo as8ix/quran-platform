@@ -3,6 +3,8 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import { useTheme } from './ThemeProvider';
+import { db } from '../lib/firebase';
+import { doc, onSnapshot } from 'firebase/firestore';
 
 export default function Navbar({ userType, userName, onLogout, displayId }) {
     const router = useRouter();
@@ -36,15 +38,25 @@ export default function Navbar({ userType, userName, onLogout, displayId }) {
                 checkPointsStatus(user);
             }
 
-            // Set up polling interval (every 15 seconds)
-            const interval = setInterval(() => {
+            // --- Real-time Listeners (The "Lightweight" way) ---
+            const triggerId = (userType === 'student' || user.role === 'STUDENT') 
+                ? `student_${user.id}` 
+                : `user_${user.id}`;
+            
+            // 1. Listen to personal notifications
+            const unsubPersonal = onSnapshot(doc(db, "notification_triggers", triggerId), () => {
                 fetchNotifications(user);
-                if (userType === 'teacher') {
-                    checkPointsStatus(user);
-                }
-            }, 15000);
+            });
 
-            return () => clearInterval(interval);
+            // 2. Listen to global notifications
+            const unsubGlobal = onSnapshot(doc(db, "notification_triggers", "global"), () => {
+                fetchNotifications(user);
+            });
+
+            return () => {
+                unsubPersonal();
+                unsubGlobal();
+            };
         }
     }, [userType]);
 
