@@ -29,8 +29,8 @@ RUN npm run build
 FROM base AS runner
 WORKDIR /app
 
-# Install curl for health checks
-RUN apt-get update -y && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+# Install curl and wget for health checks (Cache burst: 1)
+RUN apt-get update -y && apt-get install -y curl wget && rm -rf /var/lib/apt/lists/*
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
