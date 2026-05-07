@@ -192,116 +192,168 @@ export default function StudentDetailsPage() {
     const applySmartDefaults = () => {
         if (!student || !history || history.length === 0) return;
 
-        // Sort history by date desc
-        const sortedHistory = [...history].sort((a, b) => new Date(b.date) - new Date(a.date));
+        // Helper to parse target from string or number
+        const parseTarget = (t) => {
+            if (!t) return 1;
+            if (typeof t === 'number') return t;
+            const s = String(t).toLowerCase();
+            if (s.includes('نصف') || s.includes('0.5')) return 0.5;
+            if (s.includes('ربع') || s.includes('0.25')) return 0.25;
+            if (s.includes('صفحة')) {
+                const num = parseFloat(s);
+                return isNaN(num) ? 1 : num;
+            }
+            const p = parseFloat(s);
+            return isNaN(p) ? 1 : p;
+        };
 
-        // 1. HIFZ SMART DEFAULTS & DIRECTION DETECTION
+        const normalizeSurahName = (name) => {
+            if (!name) return '';
+            return name.replace('سورة ', '').trim();
+        };
+
+        // Sort history by date desc, then by ID desc for stability
+        const sortedHistory = [...history].sort((a, b) => {
+            const dateDiff = new Date(b.date) - new Date(a.date);
+            if (dateDiff !== 0) return dateDiff;
+            return (b.id || 0) - (a.id || 0);
+        });
+
+        // 1. HIFZ SMART DEFAULTS (Forward only)
         const currentSurahId = student.currentHifzSurahId || 1;
         const currentSurahName = quranData.find(s => s.id === currentSurahId)?.name;
-        let hifzDirection = 'ASC'; // Default direction
-        
-        if (currentSurahName) {
-            // Filter history for THIS surah to detect direction
-            const hifzHistory = sortedHistory.filter(s => s.hifzSurah === currentSurahName && s.hifzToPage);
-            if (hifzHistory.length >= 2) {
-                // If latest page is GREATER than previous, we are moving ASCENDING (Normal: 1 -> 604)
-                if (hifzHistory[0].hifzToPage > hifzHistory[1].hifzToPage) {
-                    hifzDirection = 'ASC';
-                } else if (hifzHistory[0].hifzToPage < hifzHistory[1].hifzToPage) {
-                    hifzDirection = 'DESC';
-                }
-            }
+        const target = parseTarget(student.dailyTargetPages);
 
-            const lastHifzSession = hifzHistory[0];
-            if (lastHifzSession && lastHifzSession.hifzToPage) {
-                const lastPage = lastHifzSession.hifzToPage;
-                const nextPage = (hifzDirection === 'ASC') ? lastPage + 1 : lastPage - 1;
+        if (currentSurahName) {
+            const normalizedCurrentName = normalizeSurahName(currentSurahName);
+            const hifzHistory = sortedHistory.filter(s => 
+                normalizeSurahName(s.hifzSurah) === normalizedCurrentName && s.hifzToPage
+            );
+            const lastHifz = hifzHistory[0];
+
+            if (lastHifz && lastHifz.hifzToPage) {
+                const lastToPage = lastHifz.hifzToPage;
+                const lastToAyah = lastHifz.hifzToAyah || 1;
+                const lastFromPage = lastHifz.hifzFromPage;
+                const lastFromAyah = lastHifz.hifzFromAyah || 1;
+
+                // Determine if the last session was a "Half Page" or "Full Page" etc.
+                const pageData = pageAyahMap[lastToPage]?.[currentSurahId];
+                const startAyahOfPage = (typeof pageData === 'object') ? pageData.start : 1;
+                const endAyahOfPage = (typeof pageData === 'object') ? pageData.end : pageData;
+                const midAyahOfPage = Math.floor(startAyahOfPage + (endAyahOfPage - startAyahOfPage) / 2);
+
+                const lastTargetAyahs = Math.abs(lastToAyah - lastFromAyah) + 1;
+                // In history, we only see the final state. 
+                // To apply the 60% rule, we need to know what the TARGET was in that session.
+                // Since we don't store the "Target" in the session record, we estimate it:
+                // If it's a 0.5 plan, the target ayahs was likely around half a page (~7-8 ayahs).
+                
+                const threshold = lastTargetAyahs * 0.6;
+                // Since we want to advance if they completed the portion, we check if they did at least 60% of the PREVIOUSLY SUGGESTED target.
+                // For now, if they recorded a session, we assume they want to move forward.
+                const moveNext = true; 
+                
+                let startPage = lastToPage;
+                let startAyah = 1;
+
+                if (moveNext) {
+                    if (Number(lastToAyah) >= Number(endAyahOfPage)) {
+                        startPage = Number(lastToPage) + 1;
+                        const nextPData = pageAyahMap[startPage]?.[currentSurahId];
+                        startAyah = (typeof nextPData === 'object') ? nextPData.start : 1;
+                    } else {
+                        startPage = Number(lastToPage);
+                        startAyah = Number(lastToAyah) + 1;
+                    }
+                }
 
                 const allowedPages = getSurahPages(currentSurahId);
-                if (allowedPages.includes(nextPage)) {
-                    setHifzFromPage(nextPage);
-
-                    let startAyah = 1;
-                    if (pageAyahMap && pageAyahMap[nextPage] && pageAyahMap[nextPage][currentSurahId]) {
-                        const pageData = pageAyahMap[nextPage][currentSurahId];
-                        startAyah = (typeof pageData === 'object') ? (hifzDirection === 'DESC' ? pageData.start : pageData.end) : pageData;
-                    }
+                if (allowedPages.includes(startPage)) {
+                    setHifzFromPage(startPage);
                     setHifzFromAyah(startAyah);
 
-                    const target = student.dailyTargetPages || 1;
-                    let potentialToPage = (hifzDirection === 'DESC') ? nextPage + (Math.ceil(target) - 1) : nextPage - (Math.ceil(target) - 1);
+                    const nextPageData = pageAyahMap[startPage]?.[currentSurahId];
+                    const nextStartAyahOfPage = (typeof nextPageData === 'object') ? nextPageData.start : 1;
+                    const nextEndAyahOfPage = (typeof nextPageData === 'object') ? nextPageData.end : nextPageData;
+                    const nextMidAyahOfPage = Math.floor(nextStartAyahOfPage + (nextEndAyahOfPage - nextStartAyahOfPage) / 2);
 
-                    const lastAllowed = allowedPages[allowedPages.length - 1];
-                    const firstAllowed = allowedPages[0];
-                    
-                    if (hifzDirection === 'DESC' && potentialToPage > lastAllowed) potentialToPage = lastAllowed;
-                    if (hifzDirection === 'ASC' && potentialToPage < firstAllowed) potentialToPage = firstAllowed;
+                    if (target <= 0.5) {
+                        setHifzToPage(startPage);
+                        // If we are at the beginning of the page, go to mid.
+                        // If we are past the beginning, go to end.
+                        if (startAyah <= nextStartAyahOfPage + 1) { 
+                            setHifzToAyah(nextMidAyahOfPage);
+                        } else {
+                            setHifzToAyah(nextEndAyahOfPage);
+                        }
+                    } else {
 
-                    setHifzToPage(potentialToPage);
-
-                    if (pageAyahMap && pageAyahMap[potentialToPage] && pageAyahMap[potentialToPage][currentSurahId]) {
-                        const pageData = pageAyahMap[potentialToPage][currentSurahId];
-                        const endAyah = (typeof pageData === 'object') ? (hifzDirection === 'DESC' ? pageData.end : pageData.start) : pageData;
-                        setHifzToAyah(endAyah);
+                        // Full Page or more
+                        let potentialToPage = startPage + (Math.ceil(target) - 1);
+                        if (potentialToPage > allowedPages[allowedPages.length - 1]) potentialToPage = allowedPages[allowedPages.length - 1];
+                        setHifzToPage(potentialToPage);
+                        const endPageData = pageAyahMap[potentialToPage]?.[currentSurahId];
+                        setHifzToAyah((typeof endPageData === 'object' ? endPageData.end : endPageData) || 1);
                     }
                 }
             } else {
-                // Fresh start logic for Hifz (Same as before)
+
+                // Fresh start logic
                 const surah = quranData.find(s => s.id === currentSurahId);
                 if (surah) {
                     const startPage = surah.startPage;
-                    const allowedPages = getSurahPages(currentSurahId);
-                    const target = student.dailyTargetPages || 1;
-                    let potentialToPage = startPage + (Math.ceil(target) - 1);
-                    const lastAllowed = allowedPages[allowedPages.length - 1];
-                    if (potentialToPage > lastAllowed) potentialToPage = lastAllowed;
                     setHifzFromPage(startPage);
-                    setHifzToPage(potentialToPage);
-                    // ... set ayahs ...
-                    if (pageAyahMap && pageAyahMap[startPage] && pageAyahMap[startPage][currentSurahId]) {
-                        setHifzFromAyah(pageAyahMap[startPage][currentSurahId].start || 1);
-                    }
-                    if (pageAyahMap && pageAyahMap[potentialToPage] && pageAyahMap[potentialToPage][currentSurahId]) {
-                        const pData = pageAyahMap[potentialToPage][currentSurahId];
-                        setHifzToAyah(typeof pData === 'object' ? pData.end : pData);
+                    setHifzFromAyah(1);
+                    
+                    const pageData = pageAyahMap[startPage]?.[currentSurahId];
+                    const startAyahOfPage = (typeof pageData === 'object') ? pageData.start : 1;
+                    const endAyahOfPage = (typeof pageData === 'object') ? pageData.end : (pageData || 1);
+                    const midAyahOfPage = Math.floor(startAyahOfPage + (endAyahOfPage - startAyahOfPage) / 2);
+
+                    if (target <= 0.5) {
+                        setHifzToPage(startPage);
+                        setHifzToAyah(midAyahOfPage);
+                    } else {
+                        let potentialToPage = startPage + (Math.ceil(target) - 1);
+                        const allowedPages = getSurahPages(currentSurahId);
+                        if (potentialToPage > allowedPages[allowedPages.length-1]) potentialToPage = allowedPages[allowedPages.length-1];
+                        setHifzToPage(potentialToPage);
+                        
+                        const endPageData = pageAyahMap[potentialToPage]?.[currentSurahId];
+                        const endAyahOfToPage = (typeof endPageData === 'object') ? endPageData.end : endPageData;
+                        setHifzToAyah(endAyahOfToPage || 1);
                     }
                 }
             }
         }
 
-        // 2. MURAJAAH SMART DEFAULTS & DIRECTION DETECTION
+        // 2. MURAJAAH SMART DEFAULTS (Forward only)
         const murajaahHistory = sortedHistory.filter(s => s.murajaahToSurah);
         if (murajaahHistory.length > 0) {
-            let mDirection = 'ASC'; // Default: Fatiha -> Nas
-            if (murajaahHistory.length >= 2) {
-                const s0Id = quranData.find(s => s.name === murajaahHistory[0].murajaahToSurah)?.id || 0;
-                const s1Id = quranData.find(s => s.name === murajaahHistory[1].murajaahToSurah)?.id || 0;
-                // If latest ID is smaller than previous, we are going DESCENDING (Nas -> Fatiha)
-                if (s0Id < s1Id && s0Id !== 0 && s1Id !== 0) {
-                    mDirection = 'DESC';
-                } else if (s0Id > s1Id && s0Id !== 0 && s1Id !== 0) {
-                    mDirection = 'ASC';
-                }
-            }
-
-            const lastM = murajaahHistory[0];
-            const lastSurah = quranData.find(s => s.name === lastM.murajaahToSurah);
+            const latestM = murajaahHistory[0];
+            const lastSurah = quranData.find(s => s.name === latestM.murajaahToSurah);
+            
             if (lastSurah) {
-                // If DESC: next ID is smaller. If ASC: next ID is larger.
-                let nextSurahId = (mDirection === 'DESC') ? lastSurah.id - 1 : lastSurah.id + 1;
-                if (nextSurahId < 1) nextSurahId = 1;
+                const plan = student.reviewPlan || '';
+                const targetIncrement = plan.includes('نصف') ? 0.5 : (plan.includes('ربع') ? 0.25 : 1);
+                const pagesDone = latestM.pagesCount || 0;
+                const moveNext = pagesDone >= (targetIncrement * 20 * 0.6);
+
+                let nextSurahId = lastSurah.id;
+                if (moveNext) nextSurahId = lastSurah.id + 1;
                 if (nextSurahId > 114) nextSurahId = 114;
 
                 setMFromSurah(nextSurahId);
-                setMFromAyah(1);
-
-                // Default "To" surah (next in sequence)
                 setMToSurah(nextSurahId);
+                setMFromAyah(1);
                 const nextSurahData = quranData.find(s => s.id === nextSurahId);
                 if (nextSurahData) setMToAyah(nextSurahData.ayahs);
             }
         }
     };
+
+
 
     const fetchStudent = async () => {
         try {

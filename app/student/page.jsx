@@ -600,7 +600,7 @@ export default function StudentDashboard() {
                     <div className="bg-[#0f172a] rounded-[3rem] p-6 md:p-10 shadow-2xl border border-slate-800/60 mb-20 max-w-2xl mx-auto reveal reveal-delay-3 relative overflow-hidden text-right" dir="rtl">
                         <div className="absolute top-0 left-0 w-32 h-32 bg-indigo-500/5 blur-[80px] rounded-full"></div>
                         
-                        <h3 className="text-2xl font-black text-white mb-10 flex justify-between items-center relative z-10 text-right">
+                        <h3 className="text-xl sm:text-2xl font-black text-white mb-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 relative z-10 text-right">
                             <span className="flex items-center gap-4">
                                 <span className="p-3 bg-slate-800 rounded-2xl text-xl shadow-lg border border-slate-700">📜</span>
                                 سجل الإنجاز
@@ -621,24 +621,24 @@ export default function StudentDashboard() {
                                         {showDateSeparator && (
                                             <div className="flex items-center gap-4 py-4 mt-8 first:mt-0">
                                                 <div className="h-px bg-slate-800 flex-1"></div>
-                                                <div className="text-xs font-black text-slate-400 bg-slate-900 px-6 py-2 rounded-2xl border border-slate-800 shadow-[0_0_15px_rgba(0,0,0,0.5)]">
+                                                <div className="text-[10px] sm:text-xs font-black text-slate-400 bg-slate-900 px-4 sm:px-6 py-2 rounded-2xl border border-slate-800 shadow-[0_0_15px_rgba(0,0,0,0.5)]">
                                                     📅 {currentDateFormatted}
                                                 </div>
                                                 <div className="h-px bg-slate-800 flex-1"></div>
                                             </div>
                                         )}
                                         
-                                        <div className="bg-slate-900/40 rounded-[3rem] p-8 border border-white/5 backdrop-blur-sm relative group hover:border-indigo-500/30 transition-all duration-500 shadow-xl overflow-hidden text-right">
+                                        <div className="bg-slate-900/40 rounded-[2rem] sm:rounded-[3rem] p-5 sm:p-8 border border-white/5 backdrop-blur-sm relative group hover:border-indigo-500/30 transition-all duration-500 shadow-xl overflow-hidden text-right">
                                             {/* Header Section */}
-                                            <div className="flex justify-between items-center mb-8 pb-6 border-b border-white/5 text-right">
-                                                <div className="flex items-center gap-4 text-right">
+                                            <div className="flex flex-col sm:flex-row justify-between items-center sm:items-center gap-4 mb-8 pb-6 border-b border-white/5 text-center sm:text-right">
+                                                <div className="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-right w-full sm:w-auto">
                                                     <div className="w-14 h-14 bg-indigo-500/10 text-indigo-400 rounded-2xl flex flex-col items-center justify-center border border-indigo-500/20 shadow-inner">
                                                         <span className="text-xl font-black">{session.pagesCount || 0}</span>
                                                         <span className="text-[8px] font-bold uppercase tracking-widest">صفحة</span>
                                                     </div>
-                                                    <div className="text-right">
-                                                        <div className="text-xs font-black text-slate-500 uppercase tracking-widest text-right">توقيت الجلسة</div>
-                                                        <div className="text-white font-black text-sm text-right">
+                                                    <div className="text-center sm:text-right">
+                                                        <div className="text-[9px] sm:text-xs font-black text-slate-500 uppercase tracking-widest">توقيت الجلسة</div>
+                                                        <div className="text-white font-black text-sm">
                                                             {new Date(session.date).toLocaleTimeString('ar-SA', { hour: 'numeric', minute: '2-digit' })}
                                                         </div>
                                                     </div>
@@ -702,17 +702,17 @@ export default function StudentDashboard() {
                                                         <span className="w-2.5 h-2.5 bg-indigo-500 rounded-full shadow-[0_0_8px_rgba(99,102,241,0.5)]"></span>
                                                         المراجعة الكبرى
                                                     </h4>
-                                                    <div className="bg-slate-950/80 p-6 rounded-3xl border border-slate-800 mb-4">
-                                                        <div className="flex justify-between items-center">
-                                                            <div className="text-center flex-1">
+                                                    <div className="bg-slate-950/80 p-4 sm:p-6 rounded-3xl border border-slate-800 mb-4">
+                                                        <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+                                                            <div className="text-center flex-1 w-full">
                                                                 <div className="text-[10px] text-slate-500 font-bold mb-1">من سورة</div>
-                                                                <div className="text-lg font-black text-white">{session.murajaahFromSurah}</div>
+                                                                <div className="text-base sm:text-lg font-black text-white">{session.murajaahFromSurah}</div>
                                                                 <div className="text-[9px] text-indigo-400 font-bold uppercase mt-1">آية {session.murajaahFromAyah || 1}</div>
                                                             </div>
-                                                            <div className="px-4 text-slate-700">←</div>
-                                                            <div className="text-center flex-1">
+                                                            <div className="px-4 text-slate-700 rotate-90 sm:rotate-0">←</div>
+                                                            <div className="text-center flex-1 w-full">
                                                                 <div className="text-[10px] text-slate-500 font-bold mb-1">إلى سورة</div>
-                                                                <div className="text-lg font-black text-white">{session.murajaahToSurah}</div>
+                                                                <div className="text-base sm:text-lg font-black text-white">{session.murajaahToSurah}</div>
                                                                 <div className="text-[9px] text-indigo-400 font-bold uppercase mt-1">آية {session.murajaahToAyah || '؟'}</div>
                                                             </div>
                                                         </div>
