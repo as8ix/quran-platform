@@ -31,7 +31,7 @@ export async function POST(request) {
         const body = await request.json();
         const {
             studentId,
-            hifzSurah, hifzFromPage, hifzToPage, hifzFromAyah, hifzToAyah,
+            hifzSurah, hifzToSurah, hifzFromPage, hifzToPage, hifzFromAyah, hifzToAyah,
             murajaahFromSurah, murajaahFromAyah, murajaahToSurah, murajaahToAyah,
             minorMurajaahFromSurah, minorMurajaahFromAyah, minorMurajaahToSurah, minorMurajaahToAyah,
             pagesCount, resultString, notes, isFinishedSurah,
@@ -45,6 +45,7 @@ export async function POST(request) {
             data: {
                 studentId: parseInt(studentId),
                 hifzSurah,
+                hifzToSurah,
                 hifzFromPage: hifzFromPage ? parseInt(hifzFromPage) : null,
                 hifzToPage: hifzToPage ? parseInt(hifzToPage) : null,
                 hifzFromAyah: hifzFromAyah ? parseInt(hifzFromAyah) : null,
@@ -140,6 +141,7 @@ export async function PUT(request) {
 
         const updateData = {};
         if (fields.hifzSurah !== undefined)                updateData.hifzSurah = fields.hifzSurah;
+        if (fields.hifzToSurah !== undefined)              updateData.hifzToSurah = fields.hifzToSurah;
         if (fields.hifzFromPage !== undefined)             updateData.hifzFromPage = fields.hifzFromPage ? parseInt(fields.hifzFromPage) : null;
         if (fields.hifzToPage !== undefined)               updateData.hifzToPage = fields.hifzToPage ? parseInt(fields.hifzToPage) : null;
         if (fields.hifzFromAyah !== undefined)             updateData.hifzFromAyah = fields.hifzFromAyah ? parseInt(fields.hifzFromAyah) : null;

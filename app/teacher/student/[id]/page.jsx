@@ -881,7 +881,18 @@ export default function StudentDetailsPage() {
                     id: editingSessionId,
                     studentId,
                     // Only send hifz data if (includesHifz) AND (not Khatim) AND (not a Quranic Day session)
+                    // Calculate hifzToSurah based on page range and direction
                     hifzSurah: (includesHifz && !isKhatim && !isQuranicDay) ? (editingSessionId && editingSessionData?.hifzSurah ? editingSessionData.hifzSurah : currentSurah?.name) : null,
+                    hifzToSurah: (() => {
+                        if (!includesHifz || isKhatim || isQuranicDay) return null;
+                        const pData = pageAyahMap[hifzToPage];
+                        if (!pData) return null;
+                        const hifzSId = student?.currentHifzSurahId || 114;
+                        const hifzDirection = hifzSId <= 5 ? 'FORWARD' : 'BACKWARD';
+                        const sIds = Object.keys(pData).map(Number).sort((a,b) => hifzDirection === 'FORWARD' ? b - a : a - b);
+                        const endSId = hifzDirection === 'FORWARD' ? sIds[0] : sIds.sort((a,b)=>a-b)[0];
+                        return quranData.find(s => s.id === endSId)?.name || null;
+                    })(),
                     hifzFromPage: (includesHifz && !isKhatim && !isQuranicDay) ? parseInt(hifzFromPage) : null,
                     hifzToPage: (includesHifz && !isKhatim && !isQuranicDay) ? parseInt(hifzToPage) : null,
                     hifzFromAyah: (includesHifz && !isKhatim && !isQuranicDay) ? parseInt(hifzFromAyah) : null,
@@ -1917,7 +1928,7 @@ export default function StudentDetailsPage() {
                                                     <div className="mb-4">
                                                         <div className="text-xs font-black text-emerald-600 dark:text-emerald-500 mb-1 uppercase tracking-tighter">الحفظ الجديد</div>
                                                         <div className="text-md font-bold text-slate-800 dark:text-slate-200">
-                                                            سورة {session.hifzSurah} {session.hifzFromPage === session.hifzToPage ? `(ص ${session.hifzFromPage})` : `(من ص ${session.hifzFromPage} إلى ${session.hifzToPage})`}
+                                                            سورة {session.hifzSurah} {session.hifzToSurah && session.hifzToSurah !== session.hifzSurah ? `إلى سورة ${session.hifzToSurah}` : ''} {session.hifzFromPage === session.hifzToPage ? `(ص ${session.hifzFromPage})` : `(من ص ${session.hifzFromPage} إلى ${session.hifzToPage})`}
                                                         </div>
                                                         {(session.hifzFromAyah || session.hifzToAyah) && (
                                                             <div className="text-xs text-emerald-600 mt-1 font-medium">

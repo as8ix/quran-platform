@@ -93,6 +93,7 @@ model Session {
   studentId              Int
   date                   DateTime      @default(now())
   hifzSurah              String?
+  hifzToSurah            String?
   hifzFromPage           Int?
   hifzToPage             Int?
   hifzFromAyah           Int?
