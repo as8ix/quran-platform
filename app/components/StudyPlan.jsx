@@ -135,8 +135,12 @@ const StudyPlan = ({ student, onUpdate }) => {
                         const pData = pageAyahMap[targetHifzP];
                         if (pData) {
                             const sIds = Object.keys(pData).map(Number).sort((a,b) => hifzDirection === 'FORWARD' ? b - a : a - b);
-                            const endSId = sIds[0];
-                            const endAyah = (typeof pData[endSId] === 'object') ? pData[endSId].end : pData[endSId];
+                            // In BACKWARD mode, the "end" surah of the page task is the one with the lowest ID on that page
+                            const endSId = hifzDirection === 'FORWARD' ? sIds[0] : sIds.sort((a,b)=>a-b)[0];
+                            const sInfo = pData[endSId];
+                            const endAyah = hifzDirection === 'FORWARD' ? 
+                                ((typeof sInfo === 'object') ? sInfo.end : sInfo) :
+                                ((typeof sInfo === 'object') ? sInfo.start : 1);
 
                             newEntries.push({
                                 date: new Date(currentDate),
@@ -181,10 +185,12 @@ const StudyPlan = ({ student, onUpdate }) => {
                         const pData = pageAyahMap[targetMurP];
                         if (pData) {
                             const sIds = Object.keys(pData).map(Number).sort((a,b)=> hifzDirection === 'FORWARD' ? b - a : a - b);
-                            const endSId = sIds[0];
+                            // In BACKWARD mode, end of revision task is lowest ID
+                            const endSId = hifzDirection === 'FORWARD' ? sIds[0] : sIds.sort((a,b)=>a-b)[0];
+                            const sInfo = pData[endSId];
                             const endAyah = hifzDirection === 'FORWARD' ? 
-                                ((typeof pData[endSId] === 'object') ? pData[endSId].end : pData[endSId]) :
-                                ((typeof pData[endSId] === 'object') ? pData[endSId].start : 1);
+                                ((typeof sInfo === 'object') ? sInfo.end : sInfo) :
+                                ((typeof sInfo === 'object') ? sInfo.start : 1);
 
                             newEntries.push({
                                 date: new Date(currentDate),
