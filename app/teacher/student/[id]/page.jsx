@@ -1113,14 +1113,9 @@ export default function StudentDetailsPage() {
         // If Khatim, all surahs are available for review
         if (isKhatim) return true;
 
-        // For non-Khatim students:
-        // Revision only starts if they have at least 1 Juz or are deep into the Quran
-        if (!student.juzCount || student.juzCount < 1) return false;
-
         // Standard Path (114 -> 1): higher IDs are finished
-        // Alternative Path (1 -> 114): lower IDs are finished
-        // We'll show surahs that are NOT the current one and within their juzCount
-        return s.id > student.currentHifzSurahId;
+        // We show surahs that are "above" the current one
+        return s.id > (student.currentHifzSurahId || 114);
     });
 
     // Validating Murajaah Selection State
