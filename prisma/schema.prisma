@@ -66,6 +66,7 @@ model Student {
   notifications      Notification[]
   points             Point[]
   sessions           Session[]
+  studyPlanEntries   StudyPlanEntry[]
   halaqa             Halaqa?           @relation(fields: [halaqaId], references: [id])
 }
 
@@ -187,4 +188,18 @@ model Holiday {
   createdAt DateTime @default(now())
   halaqaId  Int?
   halaqa    Halaqa?  @relation(fields: [halaqaId], references: [id])
+}
+
+model StudyPlanEntry {
+  id           Int      @id @default(autoincrement())
+  studentId    Int
+  date         DateTime
+  type         String   // 'HIFZ' or 'MURAJAAH'
+  surahId      Int
+  fromAyah     Int
+  toAyah       Int
+  isCompleted  Boolean  @default(false)
+  actualDate   DateTime?
+  sessionId    Int?
+  student      Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
 }
