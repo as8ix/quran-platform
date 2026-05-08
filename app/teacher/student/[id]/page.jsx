@@ -245,17 +245,19 @@ export default function StudentDetailsPage() {
         let foundHistory = false;
 
         if (latestH) {
-            const lastSurah = quranData.find(s => normalizeSurahName(s.name) === normalizeSurahName(latestH.hifzSurah));
-            if (lastSurah) {
+            const startSurah = quranData.find(s => normalizeSurahName(s.name) === normalizeSurahName(latestH.hifzSurah));
+            const endSurah = latestH.hifzToSurah ? quranData.find(s => normalizeSurahName(s.name) === normalizeSurahName(latestH.hifzToSurah)) : startSurah;
+
+            if (startSurah && endSurah) {
                 foundHistory = true;
-                const isFinished = latestH.isFinishedSurah || (Number(latestH.hifzToAyah) >= Number(lastSurah.ayahs));
+                const isFinished = latestH.isFinishedSurah || (Number(latestH.hifzToAyah) >= Number(endSurah.ayahs));
                 
                 if (isFinished) {
                     // Move to PREVIOUS surah in reverse hifz (114 -> 1)
-                    if (lastSurah.id === 1) {
+                    if (endSurah.id === 1) {
                         hStartSId = 114;
                     } else {
-                        hStartSId = lastSurah.id - 1;
+                        hStartSId = endSurah.id - 1;
                         if (hStartSId < 1) hStartSId = 1; // Cap at Fatiha
                     }
                     const nextSurah = quranData.find(s => s.id === hStartSId);
@@ -263,7 +265,7 @@ export default function StudentDetailsPage() {
                     hStartAyah = 1;
                 } else {
                     // Stay in same surah, move to next page/ayah
-                    hStartSId = lastSurah.id;
+                    hStartSId = endSurah.id;
                     const lastToPage = Number(latestH.hifzToPage);
                     const lastToAyah = Number(latestH.hifzToAyah);
                     const pageData = pageAyahMap[lastToPage]?.[hStartSId];
