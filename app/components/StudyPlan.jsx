@@ -73,16 +73,16 @@ const StudyPlan = ({ student, onUpdate }) => {
             
             // Starting Points
             let hifzSId = student.currentHifzSurahId || 114;
-            let hifzAyah = 1; // Simplify to start of surah for plan
+            let hifzAyah = 1; 
+            let hifzP = getPageOfAyah(hifzSId, hifzAyah);
             
-            // For Murajaah, find latest session or start from first reviewable
-            const lastSession = student.sessions?.[0];
-            let murSId = 114; // Default
+            let murSId = 2; // Baqarah
             let murAyah = 1;
+            let murP = 2;
 
             const hifzTarget = student.dailyTargetPages || 1;
             
-            let murTarget = 20; // Default 1 Juz
+            let murTarget = 20; 
             const plan = student.reviewPlan || '';
             if (plan.includes('نصف جزء')) murTarget = 10;
             else if (plan === 'جزء') murTarget = 20;
@@ -97,59 +97,70 @@ const StudyPlan = ({ student, onUpdate }) => {
             let daysCount = 0;
 
             while (daysCount < maxDays) {
-                const day = currentDate.getDay(); // 0=Sun, 1=Mon, ..., 4=Thu, 5=Fri, 6=Sat
-                // Allowed days: Sun(0), Mon(1), Tue(2), Wed(3)
-                const isWorkDay = day >= 0 && day <= 3;
+                const day = currentDate.getDay(); 
+                const isWorkDay = day >= 0 && day <= 4; // Sun to Thu
 
                 if (isWorkDay) {
-                    // 1. HIFZ Entry (Nas -> Baqarah)
-                    if (hifzSId > 1) { 
-                        const hifzEnd = getAyahAtPageOffset(hifzSId, hifzAyah, hifzTarget, 'FORWARD');
+                    // 1. HIFZ Entry (Nas -> Baqarah: Pages 604 -> 1)
+                    if (hifzP >= 2) { 
+                        let targetHifzP = hifzP - (Math.ceil(hifzTarget) - 1);
+                        if (targetHifzP < 2) targetHifzP = 2;
+
+                        const pData = pageAyahMap[targetHifzP];
+                        const sIds = Object.keys(pData).map(Number).sort((a,b)=>a-b);
+                        const endSId = sIds[0]; // First surah on that page when moving backwards
+                        const endAyah = (typeof pData[endSId] === 'object') ? pData[endSId].end : pData[endSId];
+
                         newEntries.push({
                             date: new Date(currentDate),
                             type: 'HIFZ',
                             surahId: hifzSId,
                             fromAyah: hifzAyah,
-                            toAyah: hifzEnd.ayah,
-                            toSurahId: hifzEnd.surahId
+                            toAyah: endAyah,
+                            toSurahId: endSId
                         });
                         
-                        // Advance coordinates for next workday
-                        let nextP = hifzEnd.page + 1;
-                        if (nextP > 604) {
-                            hifzSId = 1; // Finished
-                        } else {
-                            const nextPData = pageAyahMap[nextP];
-                            const nextSId = Object.keys(nextPData).map(Number).sort((a,b)=>b-a)[0];
-                            hifzSId = nextSId;
-                            hifzAyah = (typeof nextPData[nextSId] === 'object') ? nextPData[nextSId].start : 1;
+                        hifzP = targetHifzP - 1;
+                        if (hifzP >= 2) {
+                            const nextPData = pageAyahMap[hifzP];
+                            const nextSIds = Object.keys(nextPData).map(Number).sort((a,b)=>b-a);
+                            hifzSId = nextSIds[0];
+                            hifzAyah = (typeof nextPData[hifzSId] === 'object') ? nextPData[hifzSId].start : 1;
                         }
                     }
 
-                    // 2. MURAJAAH Entry (Baqarah -> Nas)
-                    const murEnd = getAyahAtPageOffset(murSId, murAyah, murTarget, 'FORWARD');
-                    newEntries.push({
-                        date: new Date(currentDate),
-                        type: 'MURAJAAH',
-                        surahId: murSId,
-                        fromAyah: murAyah,
-                        toAyah: murEnd.ayah,
-                        toSurahId: murEnd.surahId
-                    });
-                    
-                    // Advance Murajaah
-                    let nextMurP = murEnd.page + 1;
-                    if (nextMurP > 604) nextMurP = 2; // Loop back to Baqarah start
-                    
-                    const nextPData = pageAyahMap[nextMurP];
-                    const nextSId = Object.keys(nextPData).map(Number).sort((a,b)=>a-b)[0];
-                    murSId = nextSId;
-                    murAyah = (typeof nextPData[nextSId] === 'object') ? nextPData[nextSId].start : 1;
+                    // 2. MURAJAAH Entry (Baqarah -> Nas: Pages 2 -> 604)
+                    if (murP <= 604) {
+                        let targetMurP = murP + (Math.ceil(murTarget) - 1);
+                        if (targetMurP > 604) targetMurP = 604;
+
+                        const pData = pageAyahMap[targetMurP];
+                        const sIds = Object.keys(pData).map(Number).sort((a,b)=>b-a);
+                        const endSId = sIds[0];
+                        const endAyah = (typeof pData[endSId] === 'object') ? pData[endSId].end : pData[endSId];
+
+                        newEntries.push({
+                            date: new Date(currentDate),
+                            type: 'MURAJAAH',
+                            surahId: murSId,
+                            fromAyah: murAyah,
+                            toAyah: endAyah,
+                            toSurahId: endSId
+                        });
+                        
+                        murP = targetMurP + 1;
+                        if (murP > 604) murP = 2; // Loop
+                        
+                        const nextPData = pageAyahMap[murP];
+                        const nextSIds = Object.keys(nextPData).map(Number).sort((a,b)=>a-b);
+                        murSId = nextSIds[0];
+                        murAyah = (typeof nextPData[murSId] === 'object') ? nextPData[murSId].start : 1;
+                    }
                 }
 
                 currentDate.setDate(currentDate.getDate() + 1);
                 daysCount++;
-                if (hifzSId === 1 && type === 'KHATM') break; 
+                if (hifzP < 2 && type === 'KHATM') break; 
             }
 
             // Save to DB

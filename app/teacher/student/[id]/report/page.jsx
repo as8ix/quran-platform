@@ -230,6 +230,12 @@ export default function StudentReportPage() {
                 </div>
                 <div className="flex gap-3">
                     <button
+                        onClick={() => router.push(`/teacher/student/${id}/plan`)}
+                        className="px-6 py-2.5 bg-indigo-50 text-indigo-600 border border-indigo-100 rounded-xl font-bold hover:bg-indigo-100 transition-colors shadow-sm"
+                    >
+                        📅 الجدول الدراسي
+                    </button>
+                    <button
                         onClick={() => router.push(`/teacher/student/${id}`)}
                         className="px-6 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold hover:bg-slate-50 transition-colors shadow-sm"
                     >
