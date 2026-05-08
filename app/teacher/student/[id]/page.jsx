@@ -39,7 +39,9 @@ export default function StudentDetailsPage() {
     const [loading, setLoading] = useState(true);
     const [history, setHistory] = useState([]);
     const [hifzFromPage, setHifzFromPage] = useState('');
+    const [hifzFromSId, setHifzFromSId] = useState('');
     const [hifzToPage, setHifzToPage] = useState('');
+    const [hifzToSId, setHifzToSId] = useState('');
     const [hifzFromAyah, setHifzFromAyah] = useState(1);
     const [hifzToAyah, setHifzToAyah] = useState(1);
 
@@ -257,30 +259,36 @@ export default function StudentDetailsPage() {
                 
                 if (isFinished) {
                     // Move to PREVIOUS surah in reverse hifz (114 -> 1)
-                    if (endSurah.id === 1) {
+                    if (endSurah.id <= 1) {
                         hStartSId = 114;
                     } else {
                         hStartSId = endSurah.id - 1;
-                        if (hStartSId < 1) hStartSId = 1; // Cap at Fatiha
                     }
                     const nextSurah = quranData.find(s => s.id === hStartSId);
                     hStartPage = nextSurah?.startPage || 1;
                     hStartAyah = 1;
                 } else {
-                    // Stay in same surah, move to next page/ayah
+                    // Stay in same endSurah, continue from where we left off
                     hStartSId = endSurah.id;
                     const lastToPage = Number(latestH.hifzToPage);
                     const lastToAyah = Number(latestH.hifzToAyah);
+                    // Look up endSurah's data on the lastToPage correctly
                     const pageData = pageAyahMap[lastToPage]?.[hStartSId];
-                    const endAyahOfPage = (typeof pageData === 'object') ? pageData.end : pageData;
-
-                    if (lastToAyah >= endAyahOfPage) {
-                        hStartPage = lastToPage + 1;
-                        const nextPData = pageAyahMap[hStartPage]?.[hStartSId];
-                        hStartAyah = (typeof nextPData === 'object') ? nextPData.start : 1;
+                    if (pageData) {
+                        const endAyahOfPage = (typeof pageData === 'object') ? pageData.end : pageData;
+                        if (lastToAyah >= endAyahOfPage) {
+                            hStartPage = lastToPage - 1; // Backward hifz moves to lower page numbers
+                            if (hStartPage < 1) hStartPage = 1;
+                            const nextPData = pageAyahMap[hStartPage]?.[hStartSId];
+                            hStartAyah = (typeof nextPData === 'object') ? nextPData.start : 1;
+                        } else {
+                            hStartPage = lastToPage;
+                            hStartAyah = lastToAyah + 1;
+                        }
                     } else {
-                        hStartPage = lastToPage;
-                        hStartAyah = lastToAyah + 1;
+                        // endSurah not on lastToPage — use endSurah's own startPage as next
+                        hStartPage = endSurah.startPage || lastToPage;
+                        hStartAyah = 1;
                     }
                 }
             }
@@ -296,8 +304,8 @@ export default function StudentDetailsPage() {
         }
 
         // Apply predicted values
-        // Apply predicted values
         setHifzFromPage(hStartPage);
+        setHifzFromSId(hStartSId);
         setHifzFromAyah(hStartAyah);
 
         const nextPageData = pageAyahMap[hStartPage]?.[hStartSId];
@@ -307,25 +315,29 @@ export default function StudentDetailsPage() {
 
         if (target <= 0.5) {
             setHifzToPage(hStartPage);
+            setHifzToSId(hStartSId);
             if (hStartAyah <= nextStartAyahOfPage + 1) {
                 setHifzToAyah(nextMidAyahOfPage);
             } else {
                 setHifzToAyah(nextEndAyahOfPage);
             }
         } else {
-            let potentialToPage = hStartPage + (Math.ceil(target) - 1);
-            if (potentialToPage > 604) potentialToPage = 604;
+            // Hifz goes BACKWARD in page number (603 -> 602 -> 601...)
+            let potentialToPage = hStartPage - (Math.ceil(target) - 1);
+            if (potentialToPage < 1) potentialToPage = 1;
             setHifzToPage(potentialToPage);
-            
+
             let endAyahOfPage = 1;
+            let endSurahIdOnPage = hStartSId;
             const potentialPageObj = pageAyahMap[potentialToPage];
             if (potentialPageObj) {
-                const hDirection = (hStartSId === 1 && potentialToPage > 600) ? 'BACKWARD' : (hStartSId <= 5 ? 'FORWARD' : 'BACKWARD');
-                const sIdsOnPage = Object.keys(potentialPageObj).map(Number).sort((a,b) => hDirection === 'FORWARD' ? a - b : b - a);
-                const endSurahIdOnPage = hDirection === 'FORWARD' ? sIdsOnPage[sIdsOnPage.length - 1] : [...sIdsOnPage].sort((a,b)=>a-b)[0];
+                // On lower page, take the LOWEST surah ID (earliest surah on that page)
+                const sIdsOnPage = Object.keys(potentialPageObj).map(Number).sort((a, b) => a - b);
+                endSurahIdOnPage = sIdsOnPage[0];
                 const eData = potentialPageObj[endSurahIdOnPage];
                 endAyahOfPage = (typeof eData === 'object' ? eData.end : eData) || 1;
             }
+            setHifzToSId(endSurahIdOnPage);
             setHifzToAyah(endAyahOfPage);
         }
 
