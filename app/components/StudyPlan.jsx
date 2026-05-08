@@ -230,7 +230,7 @@ const StudyPlan = ({ student, onUpdate }) => {
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-wrap justify-between items-center gap-4">
+            <div className="flex flex-wrap justify-between items-center gap-4 no-print mb-10">
                 <h2 className="text-2xl font-black text-slate-800 dark:text-white flex items-center gap-3">
                     <span className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-xl">📅</span>
                     الجدول الدراسي الزمني
@@ -306,7 +306,7 @@ const StudyPlan = ({ student, onUpdate }) => {
             </div>
 
             {entries.length === 0 ? (
-                <div className="p-20 text-center premium-glass rounded-[2rem] border-2 border-dashed border-slate-200">
+                <div className="p-20 text-center premium-glass rounded-[2rem] border-2 border-dashed border-slate-200 no-print">
                     <div className="text-5xl mb-4">📝</div>
                     <p className="text-slate-500 font-bold mb-6">لا يوجد جدول دراسي حالياً لهذا الطالب</p>
                     <button
