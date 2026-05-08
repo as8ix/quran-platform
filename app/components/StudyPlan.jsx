@@ -151,8 +151,9 @@ const StudyPlan = ({ student, onUpdate }) => {
                     }
 
                     // --- MURAJAAH GENERATION ---
-                    // Only generate if student has at least 1 Juz memorized or is in Khatm mode
-                    if (student.juzCount > 0 || type === 'KHATM') {
+                    // Revision only starts if the student has memorized at least 1 Juz
+                    const hasMemorizedEnough = (student.juzCount >= 1);
+                    if (hasMemorizedEnough || (type === 'KHATM' && student.juzCount > 0)) {
                         let targetMurP = murP + (Math.ceil(murTarget) - 1);
                         if (targetMurP > 604) targetMurP = 604;
 

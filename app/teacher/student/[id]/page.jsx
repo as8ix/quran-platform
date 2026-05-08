@@ -1058,7 +1058,12 @@ export default function StudentDetailsPage() {
         if (isKhatim) return true;
 
         // For non-Khatim students:
-        // In the 114 -> 1 path, higher IDs are finished surahs
+        // Revision only starts if they have at least 1 Juz or are deep into the Quran
+        if (!student.juzCount || student.juzCount < 1) return false;
+
+        // Standard Path (114 -> 1): higher IDs are finished
+        // Alternative Path (1 -> 114): lower IDs are finished
+        // We'll show surahs that are NOT the current one and within their juzCount
         return s.id > student.currentHifzSurahId;
     });
 
@@ -2210,12 +2215,23 @@ export default function StudentDetailsPage() {
                                     <button
                                         key={type.id}
                                         onClick={() => {
+                                            if (type.id !== 'HIFZ' && (student?.juzCount || 0) < 1) {
+                                                toast.error('الطالب لا يملك محفوظاً كافياً للمراجعة بعد');
+                                                return;
+                                            }
                                             setSessionType(type.id);
                                             setIsSessionActive(true);
                                             setShowTypeModal(false);
                                         }}
-                                        className={`group p-6 sm:p-8 rounded-[2.5rem] border-2 border-slate-50 dark:border-slate-800 hover:border-emerald-500 transition-all text-center flex flex-col items-center gap-4 ${type.bg} relative overflow-hidden active:scale-95`}
+                                        className={`group p-6 sm:p-8 rounded-[2.5rem] border-2 border-slate-50 dark:border-slate-800 hover:border-emerald-500 transition-all text-center flex flex-col items-center gap-4 ${type.bg} relative overflow-hidden active:scale-95 ${type.id !== 'HIFZ' && (student?.juzCount || 0) < 1 ? 'opacity-50 grayscale-[0.5]' : ''}`}
                                     >
+                                        {type.id !== 'HIFZ' && (student?.juzCount || 0) < 1 && (
+                                            <div className="absolute inset-0 bg-white/60 dark:bg-slate-900/60 backdrop-blur-[1px] flex items-center justify-center z-20">
+                                                <div className="bg-white/80 dark:bg-slate-800/80 px-3 py-1 rounded-full text-[10px] font-black text-slate-500 shadow-sm border border-slate-100">
+                                                    غير متاح للمبتدئين
+                                                </div>
+                                            </div>
+                                        )}
                                         <div className={`w-14 h-14 sm:w-16 sm:h-16 bg-white dark:bg-slate-800 shadow-xl text-slate-800 dark:text-white rounded-2xl flex items-center justify-center text-2xl sm:text-3xl group-hover:scale-110 transition-all relative z-10`}>
                                             {type.icon}
                                         </div>
