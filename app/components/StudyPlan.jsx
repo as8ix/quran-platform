@@ -66,10 +66,14 @@ const StudyPlan = ({ student, onUpdate }) => {
     };
 
     const generatePlan = async (type = 'KHATM') => {
+        console.log('Generating plan for student:', student?.name, 'ID:', student?.id);
+        console.log('Current Hifz Surah:', student?.currentHifzSurahId, 'Target:', student?.dailyTargetPages);
+        
         setGenerating(true);
         try {
             const newEntries = [];
             let currentDate = new Date();
+            currentDate.setHours(0,0,0,0);
             
             // Starting Points
             let hifzSId = student.currentHifzSurahId || 114;
@@ -80,7 +84,7 @@ const StudyPlan = ({ student, onUpdate }) => {
             let murAyah = 1;
             let murP = 2;
 
-            const hifzTarget = student.dailyTargetPages || 1;
+            const hifzTarget = parseFloat(student.dailyTargetPages) || 1;
             
             let murTarget = 20; 
             const plan = student.reviewPlan || '';
@@ -93,6 +97,8 @@ const StudyPlan = ({ student, onUpdate }) => {
             else if (plan === 'صفحتين') murTarget = 2;
             else if (!isNaN(parseFloat(plan))) murTarget = parseFloat(plan) * 20;
 
+            console.log('Starting coordinates - Hifz Page:', hifzP, 'Murajaah Page:', murP);
+
             const maxDays = type === 'MONTH' ? 30 : type === 'TERM' ? 90 : 400;
             let daysCount = 0;
 
@@ -101,31 +107,33 @@ const StudyPlan = ({ student, onUpdate }) => {
                 const isWorkDay = day >= 0 && day <= 4; // Sun to Thu
 
                 if (isWorkDay) {
-                    // 1. HIFZ Entry (Nas -> Baqarah: Pages 604 -> 1)
+                    // 1. HIFZ Entry (Nas -> Baqarah: Pages 604 -> 2)
                     if (hifzP >= 2) { 
                         let targetHifzP = hifzP - (Math.ceil(hifzTarget) - 1);
                         if (targetHifzP < 2) targetHifzP = 2;
 
                         const pData = pageAyahMap[targetHifzP];
-                        const sIds = Object.keys(pData).map(Number).sort((a,b)=>a-b);
-                        const endSId = sIds[0]; // First surah on that page when moving backwards
-                        const endAyah = (typeof pData[endSId] === 'object') ? pData[endSId].end : pData[endSId];
+                        if (pData) {
+                            const sIds = Object.keys(pData).map(Number).sort((a,b)=>a-b);
+                            const endSId = sIds[0];
+                            const endAyah = (typeof pData[endSId] === 'object') ? pData[endSId].end : pData[endSId];
 
-                        newEntries.push({
-                            date: new Date(currentDate),
-                            type: 'HIFZ',
-                            surahId: hifzSId,
-                            fromAyah: hifzAyah,
-                            toAyah: endAyah,
-                            toSurahId: endSId
-                        });
-                        
-                        hifzP = targetHifzP - 1;
-                        if (hifzP >= 2) {
-                            const nextPData = pageAyahMap[hifzP];
-                            const nextSIds = Object.keys(nextPData).map(Number).sort((a,b)=>b-a);
-                            hifzSId = nextSIds[0];
-                            hifzAyah = (typeof nextPData[hifzSId] === 'object') ? nextPData[hifzSId].start : 1;
+                            newEntries.push({
+                                date: new Date(currentDate),
+                                type: 'HIFZ',
+                                surahId: hifzSId,
+                                fromAyah: hifzAyah,
+                                toAyah: endAyah,
+                                toSurahId: endSId
+                            });
+                            
+                            hifzP = targetHifzP - 1;
+                            if (hifzP >= 2) {
+                                const nextPData = pageAyahMap[hifzP];
+                                const nextSIds = Object.keys(nextPData).map(Number).sort((a,b)=>b-a);
+                                hifzSId = nextSIds[0];
+                                hifzAyah = (typeof nextPData[hifzSId] === 'object') ? nextPData[hifzSId].start : 1;
+                            }
                         }
                     }
 
@@ -135,32 +143,43 @@ const StudyPlan = ({ student, onUpdate }) => {
                         if (targetMurP > 604) targetMurP = 604;
 
                         const pData = pageAyahMap[targetMurP];
-                        const sIds = Object.keys(pData).map(Number).sort((a,b)=>b-a);
-                        const endSId = sIds[0];
-                        const endAyah = (typeof pData[endSId] === 'object') ? pData[endSId].end : pData[endSId];
+                        if (pData) {
+                            const sIds = Object.keys(pData).map(Number).sort((a,b)=>b-a);
+                            const endSId = sIds[0];
+                            const endAyah = (typeof pData[endSId] === 'object') ? pData[endSId].end : pData[endSId];
 
-                        newEntries.push({
-                            date: new Date(currentDate),
-                            type: 'MURAJAAH',
-                            surahId: murSId,
-                            fromAyah: murAyah,
-                            toAyah: endAyah,
-                            toSurahId: endSId
-                        });
-                        
-                        murP = targetMurP + 1;
-                        if (murP > 604) murP = 2; // Loop
-                        
-                        const nextPData = pageAyahMap[murP];
-                        const nextSIds = Object.keys(nextPData).map(Number).sort((a,b)=>a-b);
-                        murSId = nextSIds[0];
-                        murAyah = (typeof nextPData[murSId] === 'object') ? nextPData[murSId].start : 1;
+                            newEntries.push({
+                                date: new Date(currentDate),
+                                type: 'MURAJAAH',
+                                surahId: murSId,
+                                fromAyah: murAyah,
+                                toAyah: endAyah,
+                                toSurahId: endSId
+                            });
+                            
+                            murP = targetMurP + 1;
+                            if (murP > 604) murP = 2; 
+                            
+                            const nextPData = pageAyahMap[murP];
+                            if (nextPData) {
+                                const nextSIds = Object.keys(nextPData).map(Number).sort((a,b)=>a-b);
+                                murSId = nextSIds[0];
+                                murAyah = (typeof nextPData[murSId] === 'object') ? nextPData[murSId].start : 1;
+                            }
+                        }
                     }
                 }
 
                 currentDate.setDate(currentDate.getDate() + 1);
                 daysCount++;
                 if (hifzP < 2 && type === 'KHATM') break; 
+            }
+
+            console.log('Final entries count:', newEntries.length);
+            if (newEntries.length === 0) {
+                toast.error('لم يتم توليد أي مهام. تأكد من إعدادات الطالب.');
+                setGenerating(false);
+                return;
             }
 
             // Save to DB
