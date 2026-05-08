@@ -2228,7 +2228,7 @@ export default function StudentDetailsPage() {
                                         {type.id !== 'HIFZ' && (student?.juzCount || 0) < 1 && (
                                             <div className="absolute inset-0 bg-white/60 dark:bg-slate-900/60 backdrop-blur-[1px] flex items-center justify-center z-20">
                                                 <div className="bg-white/80 dark:bg-slate-800/80 px-3 py-1 rounded-full text-[10px] font-black text-slate-500 shadow-sm border border-slate-100">
-                                                    غير متاح للمبتدئين
+                                                    غير متاح حالياً
                                                 </div>
                                             </div>
                                         )}
