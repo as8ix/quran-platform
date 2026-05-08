@@ -70,6 +70,9 @@ export default function StudentDetailsPage() {
     const [minorAlerts, setMinorAlerts] = useState(0); // For Minor Murajaah
     const [minorCleanPages, setMinorCleanPages] = useState(0); // For Minor Murajaah
 
+    const [hifzSurahEvaluations, setHifzSurahEvals] = useState({});
+    const [showSurahEvaluations, setShowSurahEvaluations] = useState(false);
+
     const [showEditModal, setShowEditModal] = useState(false);
     const [deleting, setDeleting] = useState(false);
     const [activeEvent, setActiveEvent] = useState(null);
@@ -949,6 +952,7 @@ export default function StudentDetailsPage() {
                     hifzErrors: (includesHifz && !isKhatim && !isQuranicDay) ? (parseInt(hifzErrors) || 0) : 0,
                     hifzAlerts: (includesHifz && !isKhatim && !isQuranicDay) ? (parseInt(hifzAlerts) || 0) : 0,
                     hifzCleanPages: (includesHifz && !isKhatim && !isQuranicDay) ? (parseFloat(hifzCleanPages) || 0) : 0,
+                    hifzSurahEvaluations: (includesHifz && !isKhatim && !isQuranicDay && showSurahEvaluations) ? hifzSurahEvaluations : null,
                     isFinishedSurah: includesHifz ? isFinishedSurah : false,
                     isGoalAchieved,
                     quranicEventId: isQuranicDaySession ? activeEvent?.id : null,
@@ -962,6 +966,8 @@ export default function StudentDetailsPage() {
                 setHifzErrors(0);
                 setHifzAlerts(0);
                 setHifzCleanPages(0);
+                setHifzSurahEvals({});
+                setShowSurahEvaluations(false);
                 setErrorsCount(0);
                 setAlertsCount(0);
                 setCleanPagesCount(0);
@@ -1019,6 +1025,13 @@ export default function StudentDetailsPage() {
             setHifzErrors(session.hifzErrors || 0);
             setHifzAlerts(session.hifzAlerts || 0);
             setHifzCleanPages(session.hifzCleanPages || 0);
+            if (session.hifzSurahEvaluations) {
+                setHifzSurahEvals(session.hifzSurahEvaluations);
+                setShowSurahEvaluations(true);
+            } else {
+                setHifzSurahEvals({});
+                setShowSurahEvaluations(false);
+            }
         }
 
         if (session.murajaahFromSurah) {
@@ -1416,6 +1429,43 @@ export default function StudentDetailsPage() {
                                                 </div>
                                             );
 
+                                            const computedHifzRange = (() => {
+                                                const fromPData = pageAyahMap[hifzFromPage];
+                                                const toPData = pageAyahMap[hifzToPage];
+                                                
+                                                let startSId = student?.currentHifzSurahId || 114;
+                                                let endSId = startSId;
+                                                const hifzDirection = (startSId === 1 && hifzFromPage > 600) ? 'BACKWARD' : (startSId <= 5 ? 'FORWARD' : 'BACKWARD');
+
+                                                if (fromPData) {
+                                                    const fromSIds = Object.keys(fromPData).map(Number).sort((a,b) => hifzDirection === 'FORWARD' ? a - b : b - a);
+                                                    startSId = fromSIds[0];
+                                                }
+                                                
+                                                if (toPData) {
+                                                    const toSIds = Object.keys(toPData).map(Number).sort((a,b) => hifzDirection === 'FORWARD' ? a - b : b - a);
+                                                    endSId = hifzDirection === 'FORWARD' ? toSIds[toSIds.length - 1] : [...toSIds].sort((a,b)=>a-b)[0];
+                                                }
+
+                                                return { startSId, endSId, hifzDirection };
+                                            })();
+
+                                            const hifzIncludedSurahs = (() => {
+                                                const { startSId, endSId, hifzDirection } = computedHifzRange;
+                                                if (!startSId || !endSId) return [];
+                                                if (editingSessionId && editingSessionData?.hifzSurah) {
+                                                    const s1 = quranData.find(s => s.name === editingSessionData.hifzSurah);
+                                                    const s2 = quranData.find(s => s.name === editingSessionData.hifzToSurah) || s1;
+                                                    if (!s1 || !s2) return [];
+                                                    const minId = Math.min(s1.id, s2.id);
+                                                    const maxId = Math.max(s1.id, s2.id);
+                                                    return quranData.filter(s => s.id >= minId && s.id <= maxId).sort((a, b) => hifzDirection === 'FORWARD' ? a.id - b.id : b.id - a.id);
+                                                }
+                                                const minId = Math.min(startSId, endSId);
+                                                const maxId = Math.max(startSId, endSId);
+                                                return quranData.filter(s => s.id >= minId && s.id <= maxId).sort((a, b) => hifzDirection === 'FORWARD' ? a.id - b.id : b.id - a.id);
+                                            })();
+
                                             return (
                                                 <div className="p-8 bg-emerald-50/50 dark:bg-emerald-900/20 rounded-[2.5rem] border border-emerald-100 dark:border-emerald-800 shadow-inner">
                                                     <div className="flex justify-between items-center mb-6">
@@ -1425,26 +1475,8 @@ export default function StudentDetailsPage() {
                                                                 if (editingSessionId && editingSessionData?.hifzSurah) {
                                                                     return `سورة ${editingSessionData.hifzSurah}${editingSessionData.hifzToSurah && editingSessionData.hifzToSurah !== editingSessionData.hifzSurah ? ` إلى سورة ${editingSessionData.hifzToSurah}` : ''}`;
                                                                 }
-                                                                const fromPData = pageAyahMap[hifzFromPage];
-                                                                const toPData = pageAyahMap[hifzToPage];
-                                                                
-                                                                let startSId = student?.currentHifzSurahId || 114;
-                                                                let endSId = startSId;
-                                                                const hifzDirection = (startSId === 1 && hifzFromPage > 600) ? 'BACKWARD' : (startSId <= 5 ? 'FORWARD' : 'BACKWARD');
-
-                                                                if (fromPData) {
-                                                                    const fromSIds = Object.keys(fromPData).map(Number).sort((a,b) => hifzDirection === 'FORWARD' ? a - b : b - a);
-                                                                    startSId = fromSIds[0];
-                                                                }
-                                                                
-                                                                if (toPData) {
-                                                                    const toSIds = Object.keys(toPData).map(Number).sort((a,b) => hifzDirection === 'FORWARD' ? a - b : b - a);
-                                                                    endSId = hifzDirection === 'FORWARD' ? toSIds[toSIds.length - 1] : [...toSIds].sort((a,b)=>a-b)[0];
-                                                                }
-
-                                                                const startS = quranData.find(s => s.id === startSId)?.name || currentSurah?.name;
-                                                                const endS = quranData.find(s => s.id === endSId)?.name || startS;
-                                                                
+                                                                const startS = quranData.find(s => s.id === computedHifzRange.startSId)?.name || currentSurah?.name;
+                                                                const endS = quranData.find(s => s.id === computedHifzRange.endSId)?.name || startS;
                                                                 return `سورة ${startS}${endS && endS !== startS ? ` إلى سورة ${endS}` : ''}`;
                                                             })()})
                                                         </h3>
@@ -1523,6 +1555,52 @@ export default function StudentDetailsPage() {
                                                             />
                                                         </div>
                                                     </div>
+
+                                                    {hifzIncludedSurahs.length > 1 && (
+                                                        <div className="mt-6 border-t border-emerald-900/10 dark:border-emerald-100/10 pt-6">
+                                                            <button type="button" onClick={() => setShowSurahEvaluations(!showSurahEvaluations)} className="w-full flex items-center justify-between px-4 py-3 bg-emerald-100/50 dark:bg-emerald-900/30 rounded-xl font-bold text-emerald-800 dark:text-emerald-300 hover:bg-emerald-200/50 transition-all">
+                                                                <span>تفصيل السور المحددة ({hifzIncludedSurahs.length} سور)</span>
+                                                                <span>{showSurahEvaluations ? '▲' : '▼'}</span>
+                                                            </button>
+                                                            {showSurahEvaluations && (
+                                                                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                                                    {hifzIncludedSurahs.map(s => {
+                                                                        const evalData = hifzSurahEvaluations[s.id] || { status: 'PERFECT', errors: 0, alerts: 0 };
+                                                                        return (
+                                                                            <div key={s.id} className={`p-4 rounded-2xl border-2 transition-all ${evalData.status === 'PERFECT' ? 'border-emerald-200 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-900/20' : evalData.status === 'REVIEW' ? 'border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-900/20' : 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20'}`}>
+                                                                                <div className="font-black text-lg mb-3 flex justify-between items-center">
+                                                                                    <span className={evalData.status === 'PERFECT' ? 'text-emerald-800 dark:text-emerald-300' : evalData.status === 'REVIEW' ? 'text-amber-800 dark:text-amber-300' : 'text-red-800 dark:text-red-300'}>سورة {s.name}</span>
+                                                                                    <div className="flex gap-1">
+                                                                                        <button type="button" onClick={() => setHifzSurahEvals(p => ({...p, [s.id]: {...evalData, status: 'PERFECT'}}))} className={`w-8 h-8 rounded-full flex items-center justify-center text-sm ${evalData.status === 'PERFECT' ? 'bg-emerald-500 text-white shadow-md' : 'bg-white text-emerald-300 border border-emerald-100 dark:border-emerald-800 dark:bg-slate-800'}`}>✔️</button>
+                                                                                        <button type="button" onClick={() => setHifzSurahEvals(p => ({...p, [s.id]: {...evalData, status: 'REVIEW'}}))} className={`w-8 h-8 rounded-full flex items-center justify-center text-sm ${evalData.status === 'REVIEW' ? 'bg-amber-500 text-white shadow-md' : 'bg-white text-amber-300 border border-amber-100 dark:border-amber-800 dark:bg-slate-800'}`}>⚠️</button>
+                                                                                        <button type="button" onClick={() => setHifzSurahEvals(p => ({...p, [s.id]: {...evalData, status: 'FAILED'}}))} className={`w-8 h-8 rounded-full flex items-center justify-center text-sm ${evalData.status === 'FAILED' ? 'bg-red-500 text-white shadow-md' : 'bg-white text-red-300 border border-red-100 dark:border-red-800 dark:bg-slate-800'}`}>❌</button>
+                                                                                    </div>
+                                                                                </div>
+                                                                                <div className="grid grid-cols-2 gap-2">
+                                                                                    <div>
+                                                                                        <label className="text-[10px] text-red-500 font-bold block text-center mb-1">أخطاء</label>
+                                                                                        <div className="flex items-center justify-between bg-white dark:bg-slate-800 rounded-lg overflow-hidden border border-red-100 dark:border-red-900">
+                                                                                            <button type="button" onClick={() => setHifzSurahEvals(p => ({...p, [s.id]: {...evalData, errors: Math.max(0, evalData.errors - 1)}}))} className="px-3 py-1 text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors">-</button>
+                                                                                            <span className="font-bold text-red-600 dark:text-red-400">{evalData.errors}</span>
+                                                                                            <button type="button" onClick={() => setHifzSurahEvals(p => ({...p, [s.id]: {...evalData, errors: evalData.errors + 1}}))} className="px-3 py-1 text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors">+</button>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                    <div>
+                                                                                        <label className="text-[10px] text-orange-500 font-bold block text-center mb-1">تنبيهات</label>
+                                                                                        <div className="flex items-center justify-between bg-white dark:bg-slate-800 rounded-lg overflow-hidden border border-orange-100 dark:border-orange-900">
+                                                                                            <button type="button" onClick={() => setHifzSurahEvals(p => ({...p, [s.id]: {...evalData, alerts: Math.max(0, evalData.alerts - 1)}}))} className="px-3 py-1 text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/30 transition-colors">-</button>
+                                                                                            <span className="font-bold text-orange-600 dark:text-orange-400">{evalData.alerts}</span>
+                                                                                            <button type="button" onClick={() => setHifzSurahEvals(p => ({...p, [s.id]: {...evalData, alerts: evalData.alerts + 1}}))} className="px-3 py-1 text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/30 transition-colors">+</button>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        );
+                                                                    })}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    )}
 
                                                 </div>
                                             );

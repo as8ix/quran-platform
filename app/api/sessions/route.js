@@ -37,7 +37,7 @@ export async function POST(request) {
             pagesCount, resultString, notes, isFinishedSurah,
             errorsCount, alertsCount, cleanPagesCount,
             minorErrorsCount, minorAlertsCount, minorCleanPagesCount,
-            hifzErrors, hifzAlerts, hifzCleanPages,
+            hifzErrors, hifzAlerts, hifzCleanPages, hifzSurahEvaluations,
             quranicEventId
         } = body;
 
@@ -46,6 +46,7 @@ export async function POST(request) {
                 studentId: parseInt(studentId),
                 hifzSurah,
                 hifzToSurah,
+                hifzSurahEvaluations,
                 hifzFromPage: hifzFromPage ? parseInt(hifzFromPage) : null,
                 hifzToPage: hifzToPage ? parseInt(hifzToPage) : null,
                 hifzFromAyah: hifzFromAyah ? parseInt(hifzFromAyah) : null,
@@ -168,6 +169,7 @@ export async function PUT(request) {
         if (fields.hifzErrors !== undefined)               updateData.hifzErrors = parseInt(fields.hifzErrors) || 0;
         if (fields.hifzAlerts !== undefined)               updateData.hifzAlerts = parseInt(fields.hifzAlerts) || 0;
         if (fields.hifzCleanPages !== undefined)           updateData.hifzCleanPages = parseFloat(fields.hifzCleanPages) || 0;
+        if (fields.hifzSurahEvaluations !== undefined)     updateData.hifzSurahEvaluations = fields.hifzSurahEvaluations;
         if (fields.minorErrorsCount !== undefined)         updateData.minorErrorsCount = parseInt(fields.minorErrorsCount) || 0;
         if (fields.minorAlertsCount !== undefined)         updateData.minorAlertsCount = parseInt(fields.minorAlertsCount) || 0;
         if (fields.minorCleanPagesCount !== undefined)     updateData.minorCleanPagesCount = parseFloat(fields.minorCleanPagesCount) || 0;

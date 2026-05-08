@@ -113,6 +113,7 @@ model Session {
   hifzAlerts             Int           @default(0)
   hifzErrors             Int           @default(0)
   hifzCleanPages         Float         @default(0)
+  hifzSurahEvaluations   Json?
   minorMurajaahFromAyah  Int?
   minorMurajaahFromSurah String?
   minorMurajaahToAyah    Int?
