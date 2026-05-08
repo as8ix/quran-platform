@@ -4,6 +4,12 @@ import { Suspense, useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import { formatHijri } from '../../../../utils/dateUtils';
+import { quranData } from '../../../../data/quranData';
+
+const normalizeSurahName = (name) => {
+    if (!name) return '';
+    return name.replace('سورة ', '').trim();
+};
 
 export default function StudentReportPage() {
     const router = useRouter();
@@ -26,13 +32,7 @@ export default function StudentReportPage() {
         return sun.toISOString().split('T')[0];
     });
     const [endDate, setEndDate] = useState(() => {
-        const d = new Date();
-        const day = d.getDay();
-        const sun = new Date(d);
-        sun.setDate(d.getDate() - day);
-        const wed = new Date(sun);
-        wed.setDate(sun.getDate() + 3); // 0 (Sun) + 3 = 3 (Wed)
-        return wed.toISOString().split('T')[0];
+        return new Date().toISOString().split('T')[0];
     });
 
     useEffect(() => {
@@ -104,6 +104,16 @@ export default function StudentReportPage() {
         }
         
         return true;
+    }).sort((a, b) => {
+        const dateDiff = new Date(b.date) - new Date(a.date);
+        if (dateDiff !== 0) return dateDiff;
+        
+        // Tie-breaker: Higher Surah ID first (assuming 1->114 progression)
+        const sA = quranData.find(s => normalizeSurahName(s.name) === normalizeSurahName(a.murajaahFromSurah))?.id || 0;
+        const sB = quranData.find(s => normalizeSurahName(s.name) === normalizeSurahName(b.murajaahFromSurah))?.id || 0;
+        if (sA !== sB) return sB - sA;
+
+        return (b.id || 0) - (a.id || 0);
     });
 
     const startHijri = startDate ? formatHijri(startDate, 'noYear') : '';

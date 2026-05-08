@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import Navbar from '../../../components/Navbar';
@@ -11,6 +11,10 @@ import { formatHijri } from '../../../utils/dateUtils';
 
 import AddStudentModal from '../../../components/AddStudentModal';
 import BackButton from '../../../components/BackButton';
+const normalizeSurahName = (name) => {
+    if (!name) return '';
+    return name.replace('سورة ', '').trim();
+};
 
 export default function StudentDetailsPage() {
     const params = useParams();
@@ -38,10 +42,6 @@ export default function StudentDetailsPage() {
     const [minorMToSurah, setMinorMToSurah] = useState(1);
     const [minorMToAyah, setMinorMToAyah] = useState(1);
 
-    const [pagesCount, setPagesCount] = useState(0);
-    const [minorPagesCount, setMinorPagesCount] = useState(0);
-    const [resultString, setResultString] = useState(''); // e.g. "جزء و 5 صفحات"
-    const [minorResultString, setMinorResultString] = useState('');
     const [notes, setNotes] = useState('');
     const [saving, setSaving] = useState(false);
     const [calculatedJuz, setCalculatedJuz] = useState(0);
@@ -69,6 +69,26 @@ export default function StudentDetailsPage() {
     const [sessionDate, setSessionDate] = useState('');
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [sessionToDelete, setSessionToDelete] = useState(null);
+    const [showAllHistory, setShowAllHistory] = useState(false);
+    const lastSmartUpdateRef = useRef(null);
+
+    // Shared Murajaah Calculation Logic
+    const getMurajaahTargetPages = (planStr) => {
+        if (!planStr) return 20;
+        const plan = planStr.trim();
+        const arabicToEn = (s) => s.replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d));
+        const match = plan.match(/([\d\u0660-\u0669]+(\.[\d\u0660-\u0669]+)?)/);
+        
+        if (plan === 'جزء' || plan === 'الجزء') return 20;
+        if (plan === 'جزئين' || plan === 'الجزئين') return 40;
+        if (plan.includes('ثلاث')) return 60;
+        if (plan.includes('نصف جزء')) return 10;
+        if (plan.includes('ربع جزء')) return 5;
+        if (match) return parseFloat(arabicToEn(match[0]));
+        if (plan.includes('نصف')) return 10;
+        if (plan.includes('ربع')) return 5;
+        return 20;
+    };
 
     const [user, setUser] = useState(null);
 
@@ -154,7 +174,7 @@ export default function StudentDetailsPage() {
                         const assignedRes = await fetch(`/api/quranic-events/assignments?eventId=${event.id}`);
                         if (assignedRes.ok) {
                             const assignments = await assignedRes.json();
-                            
+
                             // Check if this student is assigned to THIS teacher OR if the event is OPEN
                             const isAssignedToMe = assignments.some(a =>
                                 a.studentId === parseInt(studentId) &&
@@ -183,14 +203,15 @@ export default function StudentDetailsPage() {
     };
 
     useEffect(() => {
-        if (student) {
+        if (student && !loading) {
             calculateTotalProgress();
             applySmartDefaults();
         }
-    }, [student, history]);
+    }, [student, history, loading]);
 
     const applySmartDefaults = () => {
-        if (!student || !history || history.length === 0) return;
+        if (loading || !student || !history || isSessionActive) return;
+        console.log('Applying Smart Defaults for Student:', student);
 
         // Helper to parse target from string or number
         const parseTarget = (t) => {
@@ -207,10 +228,6 @@ export default function StudentDetailsPage() {
             return isNaN(p) ? 1 : p;
         };
 
-        const normalizeSurahName = (name) => {
-            if (!name) return '';
-            return name.replace('سورة ', '').trim();
-        };
 
         // Sort history by date desc, then by ID desc for stability
         const sortedHistory = [...history].sort((a, b) => {
@@ -219,137 +236,146 @@ export default function StudentDetailsPage() {
             return (b.id || 0) - (a.id || 0);
         });
 
-        // 1. HIFZ SMART DEFAULTS (Forward only)
-        const currentSurahId = student.currentHifzSurahId || 1;
-        const currentSurahName = quranData.find(s => s.id === currentSurahId)?.name;
+        // 1. HIFZ SMART DEFAULTS (Reverse Surah Direction 114 -> 1, Forward within Surah)
+        const hifzHistory = sortedHistory.filter(s => s.hifzSurah && s.hifzToPage);
+        const latestH = hifzHistory[0];
         const target = parseTarget(student.dailyTargetPages);
 
-        if (currentSurahName) {
-            const normalizedCurrentName = normalizeSurahName(currentSurahName);
-            const hifzHistory = sortedHistory.filter(s => 
-                normalizeSurahName(s.hifzSurah) === normalizedCurrentName && s.hifzToPage
-            );
-            const lastHifz = hifzHistory[0];
+        let hStartSId = student.currentHifzSurahId || 114;
+        let hStartPage = 1;
+        let hStartAyah = 1;
+        let foundHistory = false;
 
-            if (lastHifz && lastHifz.hifzToPage) {
-                const lastToPage = lastHifz.hifzToPage;
-                const lastToAyah = lastHifz.hifzToAyah || 1;
-                const lastFromPage = lastHifz.hifzFromPage;
-                const lastFromAyah = lastHifz.hifzFromAyah || 1;
-
-                // Determine if the last session was a "Half Page" or "Full Page" etc.
-                const pageData = pageAyahMap[lastToPage]?.[currentSurahId];
-                const startAyahOfPage = (typeof pageData === 'object') ? pageData.start : 1;
-                const endAyahOfPage = (typeof pageData === 'object') ? pageData.end : pageData;
-                const midAyahOfPage = Math.floor(startAyahOfPage + (endAyahOfPage - startAyahOfPage) / 2);
-
-                const lastTargetAyahs = Math.abs(lastToAyah - lastFromAyah) + 1;
-                // In history, we only see the final state. 
-                // To apply the 60% rule, we need to know what the TARGET was in that session.
-                // Since we don't store the "Target" in the session record, we estimate it:
-                // If it's a 0.5 plan, the target ayahs was likely around half a page (~7-8 ayahs).
+        if (latestH) {
+            const lastSurah = quranData.find(s => normalizeSurahName(s.name) === normalizeSurahName(latestH.hifzSurah));
+            if (lastSurah) {
+                foundHistory = true;
+                const isFinished = latestH.isFinishedSurah || (Number(latestH.hifzToAyah) >= Number(lastSurah.ayahs));
                 
-                const threshold = lastTargetAyahs * 0.6;
-                // Since we want to advance if they completed the portion, we check if they did at least 60% of the PREVIOUSLY SUGGESTED target.
-                // For now, if they recorded a session, we assume they want to move forward.
-                const moveNext = true; 
-                
-                let startPage = lastToPage;
-                let startAyah = 1;
+                if (isFinished) {
+                    // Move to PREVIOUS surah in reverse hifz (114 -> 1)
+                    hStartSId = lastSurah.id - 1;
+                    if (hStartSId < 1) hStartSId = 1; // Cap at Fatiha
+                    const nextSurah = quranData.find(s => s.id === hStartSId);
+                    hStartPage = nextSurah?.startPage || 1;
+                    hStartAyah = 1;
+                } else {
+                    // Stay in same surah, move to next page/ayah
+                    hStartSId = lastSurah.id;
+                    const lastToPage = Number(latestH.hifzToPage);
+                    const lastToAyah = Number(latestH.hifzToAyah);
+                    const pageData = pageAyahMap[lastToPage]?.[hStartSId];
+                    const endAyahOfPage = (typeof pageData === 'object') ? pageData.end : pageData;
 
-                if (moveNext) {
-                    if (Number(lastToAyah) >= Number(endAyahOfPage)) {
-                        startPage = Number(lastToPage) + 1;
-                        const nextPData = pageAyahMap[startPage]?.[currentSurahId];
-                        startAyah = (typeof nextPData === 'object') ? nextPData.start : 1;
+                    if (lastToAyah >= endAyahOfPage) {
+                        hStartPage = lastToPage + 1;
+                        const nextPData = pageAyahMap[hStartPage]?.[hStartSId];
+                        hStartAyah = (typeof nextPData === 'object') ? nextPData.start : 1;
                     } else {
-                        startPage = Number(lastToPage);
-                        startAyah = Number(lastToAyah) + 1;
-                    }
-                }
-
-                const allowedPages = getSurahPages(currentSurahId);
-                if (allowedPages.includes(startPage)) {
-                    setHifzFromPage(startPage);
-                    setHifzFromAyah(startAyah);
-
-                    const nextPageData = pageAyahMap[startPage]?.[currentSurahId];
-                    const nextStartAyahOfPage = (typeof nextPageData === 'object') ? nextPageData.start : 1;
-                    const nextEndAyahOfPage = (typeof nextPageData === 'object') ? nextPageData.end : nextPageData;
-                    const nextMidAyahOfPage = Math.floor(nextStartAyahOfPage + (nextEndAyahOfPage - nextStartAyahOfPage) / 2);
-
-                    if (target <= 0.5) {
-                        setHifzToPage(startPage);
-                        // If we are at the beginning of the page, go to mid.
-                        // If we are past the beginning, go to end.
-                        if (startAyah <= nextStartAyahOfPage + 1) { 
-                            setHifzToAyah(nextMidAyahOfPage);
-                        } else {
-                            setHifzToAyah(nextEndAyahOfPage);
-                        }
-                    } else {
-
-                        // Full Page or more
-                        let potentialToPage = startPage + (Math.ceil(target) - 1);
-                        if (potentialToPage > allowedPages[allowedPages.length - 1]) potentialToPage = allowedPages[allowedPages.length - 1];
-                        setHifzToPage(potentialToPage);
-                        const endPageData = pageAyahMap[potentialToPage]?.[currentSurahId];
-                        setHifzToAyah((typeof endPageData === 'object' ? endPageData.end : endPageData) || 1);
-                    }
-                }
-            } else {
-
-                // Fresh start logic
-                const surah = quranData.find(s => s.id === currentSurahId);
-                if (surah) {
-                    const startPage = surah.startPage;
-                    setHifzFromPage(startPage);
-                    setHifzFromAyah(1);
-                    
-                    const pageData = pageAyahMap[startPage]?.[currentSurahId];
-                    const startAyahOfPage = (typeof pageData === 'object') ? pageData.start : 1;
-                    const endAyahOfPage = (typeof pageData === 'object') ? pageData.end : (pageData || 1);
-                    const midAyahOfPage = Math.floor(startAyahOfPage + (endAyahOfPage - startAyahOfPage) / 2);
-
-                    if (target <= 0.5) {
-                        setHifzToPage(startPage);
-                        setHifzToAyah(midAyahOfPage);
-                    } else {
-                        let potentialToPage = startPage + (Math.ceil(target) - 1);
-                        const allowedPages = getSurahPages(currentSurahId);
-                        if (potentialToPage > allowedPages[allowedPages.length-1]) potentialToPage = allowedPages[allowedPages.length-1];
-                        setHifzToPage(potentialToPage);
-                        
-                        const endPageData = pageAyahMap[potentialToPage]?.[currentSurahId];
-                        const endAyahOfToPage = (typeof endPageData === 'object') ? endPageData.end : endPageData;
-                        setHifzToAyah(endAyahOfToPage || 1);
+                        hStartPage = lastToPage;
+                        hStartAyah = lastToAyah + 1;
                     }
                 }
             }
         }
 
+        if (!foundHistory) {
+            // Use profile defaults
+            const surah = quranData.find(s => s.id === hStartSId);
+            if (surah) {
+                hStartPage = surah.startPage;
+                hStartAyah = 1;
+            }
+        }
+
+        // Apply predicted values
+        const allowedPages = getSurahPages(hStartSId);
+        if (allowedPages.includes(hStartPage)) {
+            setHifzFromPage(hStartPage);
+            setHifzFromAyah(hStartAyah);
+
+            const nextPageData = pageAyahMap[hStartPage]?.[hStartSId];
+            const nextStartAyahOfPage = (typeof nextPageData === 'object') ? nextPageData.start : 1;
+            const nextEndAyahOfPage = (typeof nextPageData === 'object') ? nextPageData.end : nextPageData;
+            const nextMidAyahOfPage = Math.floor(nextStartAyahOfPage + (nextEndAyahOfPage - nextStartAyahOfPage) / 2);
+
+            if (target <= 0.5) {
+                setHifzToPage(hStartPage);
+                if (hStartAyah <= nextStartAyahOfPage + 1) {
+                    setHifzToAyah(nextMidAyahOfPage);
+                } else {
+                    setHifzToAyah(nextEndAyahOfPage);
+                }
+            } else {
+                let potentialToPage = hStartPage + (Math.ceil(target) - 1);
+                const lastPageOfSurah = allowedPages[allowedPages.length - 1];
+                if (potentialToPage > lastPageOfSurah) potentialToPage = lastPageOfSurah;
+                setHifzToPage(potentialToPage);
+                const endPageData = pageAyahMap[potentialToPage]?.[hStartSId];
+                setHifzToAyah((typeof endPageData === 'object' ? endPageData.end : endPageData) || 1);
+            }
+        }
+
         // 2. MURAJAAH SMART DEFAULTS (Forward only)
         const murajaahHistory = sortedHistory.filter(s => s.murajaahToSurah);
+        const plan = (student.reviewPlan || '').trim();
+        let targetPages = getMurajaahTargetPages(plan);
+
+        // Quranic Day override logic
+        if (isQuranicDaySession && student.juzCount > 0) {
+            const juzStartPages = [
+                0, 1, 22, 42, 62, 82, 102, 122, 142, 162, 182,
+                202, 222, 242, 262, 282, 302, 322, 342, 362, 382,
+                402, 422, 442, 462, 482, 502, 522, 542, 562, 582
+            ];
+            const startJuzIndex = Math.min(30, Math.max(1, 31 - Math.floor(student.juzCount)));
+            const startPage = juzStartPages[startJuzIndex];
+            targetPages = (604 - startPage + 1);
+        }
+
+        let startSId = reviewableSurahs.length > 0 ? reviewableSurahs[0].id : 1;
+        let startA = 1;
+
         if (murajaahHistory.length > 0) {
             const latestM = murajaahHistory[0];
-            const lastSurah = quranData.find(s => s.name === latestM.murajaahToSurah);
-            
+            const lastSurah = quranData.find(s => normalizeSurahName(s.name) === normalizeSurahName(latestM.murajaahToSurah));
             if (lastSurah) {
-                const plan = student.reviewPlan || '';
-                const targetIncrement = plan.includes('نصف') ? 0.5 : (plan.includes('ربع') ? 0.25 : 1);
-                const pagesDone = latestM.pagesCount || 0;
-                const moveNext = pagesDone >= (targetIncrement * 20 * 0.6);
+                // Calculate review-only pages from total pagesCount
+                const hifzDoneInLast = (latestM.hifzToPage && latestM.hifzFromPage) ? (latestM.hifzToPage - latestM.hifzFromPage + 1) : 0;
+                const pagesDone = (latestM.pagesCount || 0) - hifzDoneInLast;
 
-                let nextSurahId = lastSurah.id;
-                if (moveNext) nextSurahId = lastSurah.id + 1;
-                if (nextSurahId > 114) nextSurahId = 114;
-
-                setMFromSurah(nextSurahId);
-                setMToSurah(nextSurahId);
-                setMFromAyah(1);
-                const nextSurahData = quranData.find(s => s.id === nextSurahId);
-                if (nextSurahData) setMToAyah(nextSurahData.ayahs);
+                if (pagesDone >= (targetPages * 0.6)) {
+                    if (Number(latestM.murajaahToAyah) >= Number(lastSurah.ayahs)) {
+                        startSId = lastSurah.id + 1;
+                        startA = 1;
+                    } else {
+                        startSId = lastSurah.id;
+                        startA = Number(latestM.murajaahToAyah) + 1;
+                    }
+                } else {
+                    const lastFromSurah = quranData.find(s => normalizeSurahName(s.name) === normalizeSurahName(latestM.murajaahFromSurah));
+                    startSId = lastFromSurah ? lastFromSurah.id : lastSurah.id;
+                    startA = Number(latestM.murajaahFromAyah) || 1;
+                }
             }
+        }
+
+        // Loop back to the start of reviewable portion if we exceed An-Nas (114)
+        if (startSId > 114) {
+            startSId = reviewableSurahs.length > 0 ? reviewableSurahs[0].id : 1;
+            startA = 1;
+        }
+
+        const startPos = getExactPosition(startSId, startA, false);
+        const endPos = Math.min(604.99, startPos + targetPages);
+        const predicted = getAyahAtPosition(endPos);
+
+        if (predicted) {
+            setMFromSurah(startSId);
+            setMFromAyah(startA);
+            setMToSurah(predicted.surahId);
+            setMToAyah(predicted.ayah);
+            lastSmartUpdateRef.current = `${startSId}-${startA}`;
         }
     };
 
@@ -363,22 +389,7 @@ export default function StudentDetailsPage() {
             const found = Array.isArray(data) ? data.find(s => s.id === parseInt(studentId)) : data;
             setStudent(found);
 
-            // Set default pages based on current surah
-            const surah = quranData.find(s => s.id === (found?.currentHifzSurahId || 114));
-            if (surah) {
-                setHifzFromPage(surah.startPage);
-                setHifzToPage(surah.startPage);
-                setHifzFromAyah(1);
-
-                // Set default To Ayah to the last ayah of this surah on the start page
-                if (pageAyahMap && pageAyahMap[surah.startPage] && pageAyahMap[surah.startPage][surah.id]) {
-                    const pageData = pageAyahMap[surah.startPage][surah.id];
-                    const lastAyahOnFirstPage = (typeof pageData === 'object') ? pageData.end : pageData;
-                    setHifzToAyah(lastAyahOnFirstPage);
-                } else {
-                    setHifzToAyah(surah.ayahs); // Fallback
-                }
-            }
+            // Student data loaded, applySmartDefaults will run via useEffect
         } catch (e) { console.error(e); }
     };
 
@@ -387,13 +398,7 @@ export default function StudentDetailsPage() {
             const response = await fetch(`/api/sessions?studentId=${studentId}`);
             if (response.ok) {
                 const data = await response.json();
-
-                // Filter for sessions within the last 7 days
-                const oneWeekAgo = new Date();
-                oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-                const filtered = data.filter(s => new Date(s.date) >= oneWeekAgo);
-
-                setHistory(filtered);
+                setHistory(data);
             }
         } catch (e) { console.error(e); }
         setLoading(false);
@@ -423,97 +428,139 @@ export default function StudentDetailsPage() {
         return pages;
     };
 
-    const calculateMurajaah = () => {
-        const fromS = quranData.find(s => s.id === mFromSurah);
-        const toS = quranData.find(s => s.id === mToSurah);
-        if (!fromS || !toS) return;
+    // Helper: Get exact page position based on pageAyahMap data
+    const getExactPosition = (surahId, ayahNum, isEnd = false) => {
+        let p = 1;
+        const surahObj = quranData.find(s => s.id === surahId);
+        if (surahObj) {
+            p = surahObj.startPage;
 
-        // Helper: Get exact page position based on pageAyahMap data
-        const getExactPosition = (surahId, ayahNum, isEnd = false) => {
-            let p = 1;
-            const surahObj = quranData.find(s => s.id === surahId);
-            if (surahObj) {
-                p = surahObj.startPage;
+            // Find exact page containing this ayah
+            const maxPage = Math.min(604, surahObj.startPage + 50);
+            for (let i = surahObj.startPage; i <= maxPage; i++) {
+                if (!pageAyahMap || !pageAyahMap[i]) continue;
+                const sData = pageAyahMap[i][String(surahId)];
+                if (sData) {
+                    const start = Number((typeof sData === 'object') ? sData.start : sData);
+                    const end = Number((typeof sData === 'object') ? sData.end : sData);
 
-                // Find exact page containing this ayah
-                const maxPage = Math.min(604, surahObj.startPage + 50);
-                for (let i = surahObj.startPage; i <= maxPage; i++) {
-                    if (!pageAyahMap || !pageAyahMap[i]) continue;
-                    const sData = pageAyahMap[i][surahId];
-                    if (sData) {
-                        const start = (typeof sData === 'object') ? sData.start : sData;
-                        const end = (typeof sData === 'object') ? sData.end : sData;
-
-                        if (ayahNum >= start && ayahNum <= end) {
-                            p = i;
-                            break;
-                        }
+                    if (Number(ayahNum) >= start && Number(ayahNum) <= end) {
+                        p = i;
+                        break;
                     }
                 }
             }
+        }
 
-            // Calculate position within the page
-            if (!pageAyahMap || !pageAyahMap[p]) return p;
+        // Calculate position within the page
+        if (!pageAyahMap || !pageAyahMap[p]) return p;
 
-            let totalAyahsOnPage = 0;
-            let ayahsBefore = 0;
+        let totalAyahsOnPage = 0;
+        let ayahsBefore = 0;
 
-            const mapKeys = Object.keys(pageAyahMap[p]).map(Number).sort((a, b) => a - b);
+        const mapKeys = Object.keys(pageAyahMap[p]).map(Number).sort((a, b) => a - b);
 
-            for (const sId of mapKeys) {
-                const sData = pageAyahMap[p][sId];
-                const sStart = (typeof sData === 'object') ? sData.start : 1;
-                const sEnd = (typeof sData === 'object') ? sData.end : sData;
-                const count = sEnd - sStart + 1;
+        for (const sId of mapKeys) {
+            const sData = pageAyahMap[p][String(sId)];
+            const sStart = Number((typeof sData === 'object') ? sData.start : 1);
+            const sEnd = Number((typeof sData === 'object') ? sData.end : sData);
+            const count = sEnd - sStart + 1;
 
-                totalAyahsOnPage += count;
+            totalAyahsOnPage += count;
 
-                if (sId < surahId) {
-                    ayahsBefore += count;
-                } else if (sId === surahId) {
-                    if (isEnd) {
-                        ayahsBefore += (ayahNum - sStart + 1);
-                    } else {
-                        ayahsBefore += (ayahNum - sStart);
-                    }
+            if (Number(sId) < Number(surahId)) {
+                ayahsBefore += count;
+            } else if (Number(sId) === Number(surahId)) {
+                let effectiveAyah = Number(ayahNum);
+                if (effectiveAyah < sStart) effectiveAyah = sStart;
+                if (effectiveAyah > sEnd) effectiveAyah = sEnd;
+
+                if (isEnd) {
+                    ayahsBefore += (effectiveAyah - sStart + 1);
+                } else {
+                    ayahsBefore += (effectiveAyah - sStart);
                 }
             }
-
-            if (totalAyahsOnPage === 0) return p;
-
-            return p + (ayahsBefore / totalAyahsOnPage);
-        };
-
-        let majorVal = 0;
-        let minorVal = 0;
-
-        if (murajaahType === 'MAJOR' || murajaahType === 'BOTH') {
-            const startPos = getExactPosition(mFromSurah, mFromAyah, false);
-            const endPos = getExactPosition(mToSurah, mToAyah, true);
-            let val = endPos - startPos;
-            if (val < 0) val = Math.abs(val);
-            if (val === 0 && (mFromSurah !== mToSurah || mFromAyah !== mToAyah)) val = 0.5;
-            majorVal += val;
         }
 
-        if (murajaahType === 'MINOR' || murajaahType === 'BOTH') {
-            const startPos = getExactPosition(minorMFromSurah, minorMFromAyah, false);
-            const endPos = getExactPosition(minorMToSurah, minorMToAyah, true);
-            let val = endPos - startPos;
-            if (val < 0) val = Math.abs(val);
-            if (val === 0 && (minorMFromSurah !== minorMToSurah || minorMFromAyah !== minorMToAyah)) val = 0.5;
-            minorVal += val;
-        }
+        if (totalAyahsOnPage === 0) return p;
 
-        majorVal = Math.ceil(majorVal * 2) / 2;
-        minorVal = Math.ceil(minorVal * 2) / 2;
-
-        setPagesCount(majorVal);
-        setResultString(`${majorVal} صفحة`);
-
-        setMinorPagesCount(minorVal);
-        setMinorResultString(`${minorVal} صفحة`);
+        return p + (ayahsBefore / totalAyahsOnPage);
     };
+
+    const getAyahAtPosition = (pos) => {
+        let pageNum = Math.floor(pos);
+        let fraction = pos - pageNum;
+        
+        // If it's an exact integer > 1, treat it as the end of the previous page
+        // because "Position 228.0" means the completion of page 227.
+        if (fraction < 0.001 && pageNum > 1) {
+            pageNum = pageNum - 1;
+            fraction = 0.999;
+        }
+
+        const pageData = pageAyahMap[String(pageNum)];
+        if (!pageData) return null;
+
+        const surahsOnPage = Object.keys(pageData).map(Number).sort((a, b) => a - b);
+        if (surahsOnPage.length === 0) return null;
+
+        // Linear interpolation of ayahs across the page
+        let totalAyahs = 0;
+        surahsOnPage.forEach(sid => {
+            const data = pageData[String(sid)];
+            const start = (typeof data === 'object') ? data.start : 1;
+            const end = (typeof data === 'object') ? data.end : data;
+            totalAyahs += (end - start + 1);
+        });
+
+        let targetAyahIndex = Math.floor(fraction * totalAyahs);
+        if (fraction >= 0.99) targetAyahIndex = totalAyahs - 1;
+
+        let currentSum = 0;
+        for (const sid of surahsOnPage) {
+            const data = pageData[String(sid)];
+            const start = (typeof data === 'object') ? data.start : 1;
+            const end = (typeof data === 'object') ? data.end : data;
+            const count = (end - start + 1);
+            if (targetAyahIndex < currentSum + count) {
+                const ayah = start + (targetAyahIndex - currentSum);
+                return { surahId: sid, ayah: Math.max(start, Math.min(end, ayah)) };
+            }
+            currentSum += count;
+        }
+
+        const lastSid = surahsOnPage[surahsOnPage.length - 1];
+        const lastData = pageData[String(lastSid)];
+        return { surahId: lastSid, ayah: (typeof lastData === 'object' ? lastData.end : lastData) };
+    };
+
+    const majorMurajaahData = useMemo(() => {
+        if (!mFromSurah || !mToSurah) return { pages: 0, str: '0 صفحة' };
+        const startPos = getExactPosition(Number(mFromSurah), Number(mFromAyah), false);
+        const endPos = getExactPosition(Number(mToSurah), Number(mToAyah), true);
+        let val = endPos - startPos;
+        if (val < 0) val = Math.abs(val);
+        if (val === 0 && (Number(mFromSurah) !== Number(mToSurah) || Number(mFromAyah) !== Number(mToAyah))) val = 0.5;
+        val = Math.ceil(val * 2) / 2;
+        return { pages: val, str: `${val} صفحة` };
+    }, [mFromSurah, mFromAyah, mToSurah, mToAyah]);
+
+    const minorMurajaahData = useMemo(() => {
+        if (!minorMFromSurah || !minorMToSurah) return { pages: 0, str: '0 صفحة' };
+        const startPos = getExactPosition(Number(minorMFromSurah), Number(minorMFromAyah), false);
+        const endPos = getExactPosition(Number(minorMToSurah), Number(minorMToAyah), true);
+        let val = endPos - startPos;
+        if (val < 0) val = Math.abs(val);
+        if (val === 0 && (Number(minorMFromSurah) !== Number(minorMToSurah) || Number(minorMFromAyah) !== Number(minorMToAyah))) val = 0.5;
+        val = Math.ceil(val * 2) / 2;
+        return { pages: val, str: `${val} صفحة` };
+    }, [minorMFromSurah, minorMFromAyah, minorMToSurah, minorMToAyah]);
+
+    const pagesCount = majorMurajaahData.pages;
+    const resultString = majorMurajaahData.str;
+    const minorPagesCount = minorMurajaahData.pages;
+    const minorResultString = minorMurajaahData.str;
 
     const calculateTotalProgress = () => {
         if (!student) return;
@@ -600,29 +647,101 @@ export default function StudentDetailsPage() {
         // --- NEW LOGIC END ---
     };
 
-    // Auto-calculate clean pages whenever dependencies change
-    useEffect(() => {
-        const total = parseFloat(pagesCount) || 0;
-        const clean = Math.max(0, total - (parseFloat(errorsCount) || 0) - (parseFloat(alertsCount) || 0));
-        setCleanPagesCount(clean);
-    }, [pagesCount, errorsCount, alertsCount]);
 
-    // Auto-calculate hifz clean pages whenever dependencies change
+    // Live Smart Calculation for Murajaah
     useEffect(() => {
-        if (sessionType === 'HIFZ' || sessionType === 'BOTH') {
-            const from = parseInt(hifzFromPage);
-            const to = parseInt(hifzToPage);
-            if (!isNaN(from) && !isNaN(to)) {
-                const total = Math.max(0, (to - from) + 1);
-                const clean = Math.max(0, total - (parseFloat(hifzErrors) || 0) - (parseFloat(hifzAlerts) || 0));
-                setHifzCleanPages(clean);
+        if (!student || !isSessionActive || editingSessionId) return;
+
+        const sId = Number(mFromSurah);
+        const aNum = Number(mFromAyah) || 1;
+        
+        let targetPages = getMurajaahTargetPages(student.reviewPlan);
+        
+        // If it's a Quranic Day, the target is the student's entire memorized portion
+        if (isQuranicDaySession && student.juzCount > 0) {
+            const juzStartPages = [
+                0, 1, 22, 42, 62, 82, 102, 122, 142, 162, 182,
+                202, 222, 242, 262, 282, 302, 322, 342, 362, 382,
+                402, 422, 442, 462, 482, 502, 522, 542, 562, 582
+            ];
+            const startJuzIndex = Math.min(30, Math.max(1, 31 - Math.floor(student.juzCount)));
+            const startPage = juzStartPages[startJuzIndex];
+            targetPages = (604 - startPage + 1);
+        }
+
+        if (sId && quranData.find(s => s.id === sId)) {
+            const startPos = getExactPosition(sId, aNum, false);
+            let endPos = startPos + targetPages;
+            if (endPos > 604.99) endPos = 604.99;
+            
+            const predicted = getAyahAtPosition(endPos);
+            if (predicted) {
+                if (mToSurah !== predicted.surahId || mToAyah !== predicted.ayah) {
+                    setMToSurah(predicted.surahId);
+                    setMToAyah(predicted.ayah);
+                }
             }
         }
-    }, [hifzFromPage, hifzToPage, hifzErrors, hifzAlerts, sessionType]);
+    }, [mFromSurah, mFromAyah, student?.reviewPlan, isSessionActive, student, isQuranicDaySession]);
 
+    // Live Smart Calculation for Hifz
     useEffect(() => {
-        calculateMurajaah();
-    }, [mFromSurah, mFromAyah, mToSurah, mToAyah, minorMFromSurah, minorMFromAyah, minorMToSurah, minorMToAyah, murajaahType]);
+        if (!student || !isSessionActive || editingSessionId || (sessionType !== 'HIFZ' && sessionType !== 'BOTH')) return;
+
+        const fPage = parseInt(hifzFromPage);
+        const fAyah = parseInt(hifzFromAyah) || 1;
+        const target = parseTarget(student.dailyTargetPages);
+        const currentSId = student.currentHifzSurahId || 114;
+        
+        if (isNaN(fPage)) return;
+
+        // Predict To Page
+        let tPage = fPage + (Math.ceil(target) - 1);
+        const allowedPages = getSurahPages(currentSId);
+        if (allowedPages.length > 0) {
+            const lastPageOfSurah = allowedPages[allowedPages.length - 1];
+            if (tPage > lastPageOfSurah) tPage = lastPageOfSurah;
+        }
+        
+        // Predict To Ayah
+        const pageData = pageAyahMap[tPage]?.[currentSId];
+        let tAyah = 1;
+        if (target <= 0.5) {
+             const startA = (typeof pageData === 'object') ? pageData.start : 1;
+             const endA = (typeof pageData === 'object') ? pageData.end : (pageData || 1);
+             const midA = Math.floor(startA + (endA - startA) / 2);
+             tAyah = (fAyah <= startA + 1) ? midA : endA;
+        } else {
+             tAyah = (typeof pageData === 'object' ? pageData.end : pageData) || 1;
+        }
+
+        if (tPage !== parseInt(hifzToPage) || tAyah !== parseInt(hifzToAyah)) {
+            setHifzToPage(tPage);
+            setHifzToAyah(tAyah);
+        }
+    }, [hifzFromPage, hifzFromAyah, student?.dailyTargetPages, isSessionActive, sessionType, student?.currentHifzSurahId]);
+
+    // Auto-calculate Clean Pages
+    useEffect(() => {
+        if (!isSessionActive || editingSessionId) return;
+
+        // 1. Major Murajaah
+        const majorClean = Math.max(0, (parseFloat(pagesCount) || 0) - (parseInt(errorsCount) || 0) - (parseInt(alertsCount) || 0));
+        setCleanPagesCount(majorClean);
+
+        // 2. Minor Murajaah
+        const minorClean = Math.max(0, (parseFloat(minorPagesCount) || 0) - (parseInt(minorErrors) || 0) - (parseInt(minorAlerts) || 0));
+        setMinorCleanPages(minorClean);
+
+        // 3. Hifz
+        let hDone = 0;
+        if (hifzToPage && hifzFromPage) {
+            hDone = (parseInt(hifzToPage) - parseInt(hifzFromPage)) + 1;
+        }
+        const hifzClean = Math.max(0, hDone - (parseInt(hifzErrors) || 0) - (parseInt(hifzAlerts) || 0));
+        setHifzCleanPages(hifzClean);
+
+    }, [pagesCount, errorsCount, alertsCount, minorPagesCount, minorErrors, minorAlerts, hifzToPage, hifzFromPage, hifzErrors, hifzAlerts, isSessionActive, editingSessionId]);
 
     const findSurahId = (name) => {
         if (!name) return 1;
@@ -695,7 +814,7 @@ export default function StudentDetailsPage() {
                     reviewTarget = (604 - startPage + 1);
                 } else {
                     // Default if juzCount is 0 but they are in the event
-                    reviewTarget = 20; 
+                    reviewTarget = 20;
                 }
             }
 
@@ -726,8 +845,8 @@ export default function StudentDetailsPage() {
 
             // 3.5 Calculate Today's Past Sessions
             const todayStr = new Date().toISOString().split('T')[0];
-            const todaysSessions = history.filter(s => 
-                new Date(s.date).toISOString().split('T')[0] === todayStr && 
+            const todaysSessions = history.filter(s =>
+                new Date(s.date).toISOString().split('T')[0] === todayStr &&
                 s.id !== editingSessionId
             );
 
@@ -788,14 +907,14 @@ export default function StudentDetailsPage() {
                     pagesCount: (includesReview ? parseFloat(pagesCount) : 0) + (includesHifz ? hifzDone : 0),
                     resultString,
                     notes,
-                    errorsCount: (includesReview ? (parseInt(errorsCount) || 0) : 0) + (includesHifz ? (parseInt(hifzErrors) || 0) : 0),
-                    alertsCount: (includesReview ? (parseInt(alertsCount) || 0) : 0) + (includesHifz ? (parseInt(hifzAlerts) || 0) : 0),
-                    cleanPagesCount: (includesReview ? (parseFloat(cleanPagesCount) || 0) : 0) + (includesHifz ? (parseFloat(hifzCleanPages) || 0) : 0),
+                    errorsCount: (includesReview && (murajaahType === 'MAJOR' || murajaahType === 'BOTH')) ? (parseInt(errorsCount) || 0) : 0,
+                    alertsCount: (includesReview && (murajaahType === 'MAJOR' || murajaahType === 'BOTH')) ? (parseInt(alertsCount) || 0) : 0,
+                    cleanPagesCount: (includesReview && (murajaahType === 'MAJOR' || murajaahType === 'BOTH')) ? (parseFloat(cleanPagesCount) || 0) : 0,
 
                     // Specific Breakdowns (kept for record)
-                    hifzErrors: parseInt(hifzErrors) || 0,
-                    hifzAlerts: parseInt(hifzAlerts) || 0,
-                    hifzCleanPages: parseFloat(hifzCleanPages) || 0,
+                    hifzErrors: (includesHifz && !isKhatim && !isQuranicDay) ? (parseInt(hifzErrors) || 0) : 0,
+                    hifzAlerts: (includesHifz && !isKhatim && !isQuranicDay) ? (parseInt(hifzAlerts) || 0) : 0,
+                    hifzCleanPages: (includesHifz && !isKhatim && !isQuranicDay) ? (parseFloat(hifzCleanPages) || 0) : 0,
                     isFinishedSurah: includesHifz ? isFinishedSurah : false,
                     isGoalAchieved,
                     quranicEventId: isQuranicDaySession ? activeEvent?.id : null,
@@ -815,7 +934,7 @@ export default function StudentDetailsPage() {
                 setMinorErrors(0);
                 setMinorAlerts(0);
                 setMinorCleanPages(0);
-                setIsSessionActive(false); 
+                setIsSessionActive(false);
                 setSessionType(null);
                 setEditingSessionId(null);
                 setEditingSessionData(null);
@@ -832,7 +951,7 @@ export default function StudentDetailsPage() {
     const handleEditSession = (session) => {
         setEditingSessionId(session.id);
         setEditingSessionData(session);
-        
+
         if (session.date) {
             const d = new Date(session.date);
             const tzOffset = d.getTimezoneOffset() * 60000;
@@ -891,7 +1010,7 @@ export default function StudentDetailsPage() {
             setMinorAlerts(session.minorAlertsCount || 0);
             setMinorCleanPages(session.minorCleanPagesCount || 0);
         }
-        
+
         setNotes(session.notes || '');
         setPagesCount(session.pagesCount || 0);
         setIsSessionActive(true);
@@ -905,7 +1024,7 @@ export default function StudentDetailsPage() {
 
     const handleDeleteSession = async () => {
         if (!sessionToDelete) return;
-        
+
         try {
             const res = await fetch(`/api/sessions/${sessionToDelete}`, { method: 'DELETE' });
             if (res.ok) {
@@ -972,21 +1091,6 @@ export default function StudentDetailsPage() {
         }
     }, [reviewableSurahs, mFromSurah, mToSurah, minorMFromSurah, minorMToSurah]);
 
-    // Auto-update mToAyah when mToSurah changes
-    useEffect(() => {
-        const toSurah = quranData.find(s => s.id === mToSurah);
-        if (toSurah) {
-            setMToAyah(toSurah.ayahs);
-        }
-    }, [mToSurah]);
-
-    // Auto-update minorMToAyah when minorMToSurah changes
-    useEffect(() => {
-        const toSurah = quranData.find(s => s.id === minorMToSurah);
-        if (toSurah) {
-            setMinorMToAyah(toSurah.ayahs);
-        }
-    }, [minorMToSurah]);
 
 
     const handleDelete = () => {
@@ -1049,10 +1153,10 @@ export default function StudentDetailsPage() {
 
             <main className="max-w-6xl mx-auto px-4 pt-28 pb-12">
                 {/* Back Button */}
-                <BackButton 
-                    href="/teacher" 
-                    text="عودة للقائمة الرئيسية" 
-                    className="mb-6" 
+                <BackButton
+                    href="/teacher"
+                    text="عودة للقائمة الرئيسية"
+                    className="mb-6"
                 />
 
                 {/* Actions */}
@@ -1081,7 +1185,7 @@ export default function StudentDetailsPage() {
                 {/* Header Card */}
                 <div className="premium-glass rounded-[3rem] p-10 mb-10 relative overflow-hidden">
                     <div className="absolute top-0 left-0 w-32 h-32 bg-emerald-50 rounded-full -translate-x-10 -translate-y-10 opacity-50"></div>
-                    
+
                     <div className="flex flex-col md:flex-row justify-between items-center gap-8 relative z-10">
                         <div className="flex items-center gap-8">
                             <div className="w-24 h-24 bg-gradient-to-br from-emerald-500 to-teal-600 text-white rounded-[2rem] flex items-center justify-center text-4xl font-black shadow-lg shadow-emerald-200">
@@ -1157,8 +1261,8 @@ export default function StudentDetailsPage() {
                                     <div className="flex flex-wrap items-center gap-3">
                                         <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-900/50 p-2 rounded-2xl border border-slate-200 dark:border-slate-700">
                                             <label className="text-xs font-bold text-slate-500 dark:text-slate-400 mr-2 whitespace-nowrap">تاريخ الجلسة</label>
-                                            <input 
-                                                type="datetime-local" 
+                                            <input
+                                                type="datetime-local"
                                                 value={sessionDate}
                                                 onChange={(e) => setSessionDate(e.target.value)}
                                                 className="px-4 py-2 bg-white dark:bg-slate-800 border-2 border-transparent focus:border-emerald-400 rounded-xl outline-none font-bold text-sm text-slate-700 dark:text-slate-200 shadow-sm w-full md:w-auto"
@@ -1200,7 +1304,7 @@ export default function StudentDetailsPage() {
                                         {/* Decorative Glows */}
                                         <div className="absolute -top-12 -right-12 w-32 h-32 bg-red-500/10 dark:bg-red-500/20 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000"></div>
                                         <div className="absolute -bottom-12 -left-12 w-24 h-24 bg-amber-500/10 dark:bg-amber-500/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-1000"></div>
-                                        
+
                                         <div className="flex items-center gap-5 relative z-10">
                                             <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-amber-500 text-white rounded-2xl flex items-center justify-center text-xl shadow-lg shadow-red-500/20 animate-pulse-slow">
                                                 ⚠️
@@ -1376,10 +1480,10 @@ export default function StudentDetailsPage() {
                                                             </div>
                                                             <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-bold">
                                                                 يتم تسجيل المراجعة عادةً <span className="text-indigo-600 dark:text-indigo-400 underline underline-offset-4 decoration-2">نزولاً</span> (من أول آية إلى آخر آية في المصحف).
-                                                                <br/><br/>
+                                                                <br /><br />
                                                                 أما إذا كانت مراجعة الطالب <span className="text-indigo-600 dark:text-indigo-400 underline underline-offset-4 decoration-2">تصاعدية</span>، فيجب تسجيلها من (آخر آية) إلى (أول آية).
-                                                                <br/><br/>
-                                                            <span className="text-amber-500 bg-amber-50 dark:bg-amber-900/20 px-2 py-1 rounded-lg">⚠️ ملاحظة:</span> مراعاة الاتجاه ضروري جداً لضمان دقة حساب عدد الصفحات في التقرير.
+                                                                <br /><br />
+                                                                <span className="text-amber-500 bg-amber-50 dark:bg-amber-900/20 px-2 py-1 rounded-lg">⚠️ ملاحظة:</span> مراعاة الاتجاه ضروري جداً لضمان دقة حساب عدد الصفحات في التقرير.
                                                             </p>
                                                         </div>
                                                     </div>
@@ -1460,9 +1564,9 @@ export default function StudentDetailsPage() {
                                                                             value={mToSurah}
                                                                             onChange={e => {
                                                                                 const surahId = parseInt(e.target.value);
-                                                                                setMToSurah(surahId);
-                                                                                // Set default To Ayah to the last ayah of the selected surah
                                                                                 const s = quranData.find(x => x.id === surahId);
+                                                                                // Batch update to prevent flickering
+                                                                                setMToSurah(surahId);
                                                                                 if (s) setMToAyah(s.ayahs);
                                                                             }}
                                                                             className="w-full px-6 py-4 bg-indigo-50/50 dark:bg-slate-800 border-2 border-transparent focus:border-indigo-400 rounded-2xl outline-none transition-all font-bold dark:text-white"
@@ -1702,24 +1806,53 @@ export default function StudentDetailsPage() {
                     <div className="space-y-8">
                         <div className="premium-glass rounded-[3rem] p-8 sticky top-24">
                             <h3 className="text-2xl font-black text-slate-800 dark:text-white mb-8 flex items-center gap-4">
-                                <span className="p-2 bg-slate-100 rounded-xl text-lg">📜</span>
+                                <span className="p-2 bg-slate-100 dark:bg-slate-800 rounded-xl text-lg">📜</span>
                                 سجل الإنجاز
+                                <button
+                                    type="button"
+                                    onClick={() => setShowAllHistory(!showAllHistory)}
+                                    className="mr-auto text-[10px] font-black px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-indigo-600 rounded-full transition-colors border border-slate-200 dark:border-slate-700 shadow-sm"
+                                >
+                                    {showAllHistory ? 'عرض الأسبوع فقط' : 'إظهار السجل الكامل'}
+                                </button>
                             </h3>
                             <div className="space-y-6 max-h-[calc(100vh-350px)] overflow-y-auto pl-2 custom-scrollbar rtl-scroll">
-                                {history.length > 0 ? history.map((session, idx) => {
-                                    const currentDateFormatted = formatHijri(session.date, 'long');
-                                    const prevDateFormatted = idx > 0 ? formatHijri(history[idx - 1].date, 'long') : null;
-                                    const showDateSeparator = currentDateFormatted !== prevDateFormatted;
-
-                                    // Check if ANY session on this day achieved the goal
-                                    let dayAchieved = false;
-                                    if (showDateSeparator) {
-                                        const sessionsOnThisDay = history.filter(s => formatHijri(s.date, 'long') === currentDateFormatted);
-                                        dayAchieved = sessionsOnThisDay.some(s => s.isGoalAchieved);
+                                {(() => {
+                                    let displayedHistory = [...history];
+                                    if (!showAllHistory) {
+                                        const oneWeekAgo = new Date();
+                                        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+                                        displayedHistory = displayedHistory.filter(s => new Date(s.date) >= oneWeekAgo);
                                     }
 
+                                    // Sort by date (desc) and then by Surah ID (desc) for precise latest-first ordering
+                                    displayedHistory.sort((a, b) => {
+                                        const dateDiff = new Date(b.date) - new Date(a.date);
+                                        if (dateDiff !== 0) return dateDiff;
+                                        
+                                        // Tie-breaker: Higher Surah ID first (assuming 1->114 progression)
+                                        const sA = quranData.find(s => normalizeSurahName(s.name) === normalizeSurahName(a.murajaahFromSurah))?.id || 0;
+                                        const sB = quranData.find(s => normalizeSurahName(s.name) === normalizeSurahName(b.murajaahFromSurah))?.id || 0;
+                                        if (sA !== sB) return sB - sA;
+
+                                        return (b.id || 0) - (a.id || 0);
+                                    });
+
+                                    return displayedHistory.length > 0 ? displayedHistory.map((session, idx) => {
+                                        const historyArray = displayedHistory;
+                                        const currentDateFormatted = formatHijri(session.date, 'long');
+                                        const prevDateFormatted = idx > 0 ? formatHijri(historyArray[idx - 1].date, 'long') : null;
+                                        const showDateSeparator = currentDateFormatted !== prevDateFormatted;
+
+                                    // Check if ANY session on this day achieved the goal
+                                        let dayAchieved = false;
+                                        if (showDateSeparator) {
+                                            const sessionsOnThisDay = historyArray.filter(s => formatHijri(s.date, 'long') === currentDateFormatted);
+                                            dayAchieved = sessionsOnThisDay.some(s => s.isGoalAchieved);
+                                        }
+
                                     return (
-<div key={idx} className="space-y-6">
+                                        <div key={idx} className="space-y-6">
                                             {showDateSeparator && (
                                                 <div className="flex items-center gap-4 py-2 mt-4 first:mt-0 relative">
                                                     <div className="h-px bg-slate-200 dark:bg-slate-700 flex-1"></div>
@@ -1740,13 +1873,13 @@ export default function StudentDetailsPage() {
                                                 {session.hifzSurah && (
                                                     <div className="absolute top-0 right-0 w-1 h-full bg-emerald-500"></div>
                                                 )}
-                                                
+
                                                 <div className="flex justify-between items-start mb-4">
                                                     <div className="flex items-center gap-2">
                                                         <span className="text-[10px] font-black text-slate-400 bg-slate-200 dark:bg-slate-800 px-2 py-1 rounded-lg">
                                                             {new Date(session.date).toLocaleTimeString('ar-SA', { hour: 'numeric', minute: '2-digit' })}
                                                         </span>
-                                                        <button 
+                                                        <button
                                                             type="button"
                                                             onClick={() => handleEditSession(session)}
                                                             className="text-slate-300 hover:text-blue-500 hover:bg-blue-50 p-1.5 rounded-lg transition-colors"
@@ -1754,7 +1887,7 @@ export default function StudentDetailsPage() {
                                                         >
                                                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                                                         </button>
-                                                        <button 
+                                                        <button
                                                             type="button"
                                                             onClick={() => promptDeleteSession(session.id)}
                                                             className="text-slate-300 hover:text-red-500 hover:bg-red-50 p-1.5 rounded-lg transition-colors"
@@ -1811,11 +1944,17 @@ export default function StudentDetailsPage() {
                                                     </div>
                                                 )}
 
-                                                {(session.murajaahFromSurah || session.minorMurajaahFromSurah) && (
-                                                    <div className="mb-4">
+                                                {(session.murajaahFromSurah || session.minorMurajaahFromSurah || session.hifzSurah) && (
+                                                    <div className="mb-4 flex items-center justify-between">
                                                         <div className="text-xs text-slate-400 font-bold">
                                                             {session.resultString}
                                                         </div>
+                                                        {((session.cleanPagesCount || 0) + (session.hifzCleanPages || 0) + (session.minorCleanPagesCount || 0)) > 0 && (
+                                                            <div className="bg-emerald-500/10 text-emerald-600 px-2 py-1 rounded-lg text-[10px] font-black flex items-center gap-1">
+                                                                <span>✨</span>
+                                                                <span>{((session.cleanPagesCount || 0) + (session.hifzCleanPages || 0) + (session.minorCleanPagesCount || 0))} نقية</span>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 )}
 
@@ -1868,55 +2007,58 @@ export default function StudentDetailsPage() {
                                                         {session.minorMurajaahFromSurah && (
                                                             <div>
                                                                 <div className="text-[9px] font-bold text-blue-500 dark:text-blue-400 mb-2">إنجاز المراجعة الصغرى:</div>
-                                                        <div className="flex gap-2 text-[11px] flex-wrap">
-                                                            <span className={`px-2 py-0.5 rounded-lg font-bold ${(session.minorErrorsCount || 0) > 0 ? 'bg-red-50 text-red-600' : 'bg-white/50 dark:bg-slate-900/50 text-slate-300'}`}>
-                                                                ❌ {session.minorErrorsCount || 0} خطأ
-                                                            </span>
-                                                            <span className={`px-2 py-0.5 rounded-lg font-bold ${(session.minorAlertsCount || 0) > 0 ? 'bg-orange-50 text-orange-600' : 'bg-white/50 dark:bg-slate-900/50 text-slate-300'}`}>
-                                                                ⚠️ {session.minorAlertsCount || 0} تنبيه
-                                                            </span>
-                                                            <span className={`px-2 py-0.5 rounded-lg font-bold ${(session.minorCleanPagesCount || 0) > 0 ? 'bg-blue-50 text-blue-600' : 'bg-white/50 dark:bg-slate-900/50 text-slate-300'}`}>
-                                                                ✨ {session.minorCleanPagesCount || 0} نقية
-                                                            </span>
-                                                        </div>
+                                                                <div className="flex gap-2 text-[11px] flex-wrap">
+                                                                    <span className={`px-2 py-0.5 rounded-lg font-bold ${(session.minorErrorsCount || 0) > 0 ? 'bg-red-50 text-red-600' : 'bg-white/50 dark:bg-slate-900/50 text-slate-300'}`}>
+                                                                        ❌ {session.minorErrorsCount || 0} خطأ
+                                                                    </span>
+                                                                    <span className={`px-2 py-0.5 rounded-lg font-bold ${(session.minorAlertsCount || 0) > 0 ? 'bg-orange-50 text-orange-600' : 'bg-white/50 dark:bg-slate-900/50 text-slate-300'}`}>
+                                                                        ⚠️ {session.minorAlertsCount || 0} تنبيه
+                                                                    </span>
+                                                                    <span className={`px-2 py-0.5 rounded-lg font-bold ${(session.minorCleanPagesCount || 0) > 0 ? 'bg-blue-50 text-blue-600' : 'bg-white/50 dark:bg-slate-900/50 text-slate-300'}`}>
+                                                                        ✨ {session.minorCleanPagesCount || 0} نقية
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                {session.notes && (
+                                                    <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 text-xs text-slate-400 italic">
+                                                        " {session.notes} "
                                                     </div>
                                                 )}
                                             </div>
                                         </div>
-
-                                        {session.notes && (
-                                            <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 text-xs text-slate-400 italic">
-                                                " {session.notes} "
-                                            </div>
-                                        )}
+                                    )
+                                }) : (
+                                    <div className="text-center py-20">
+                                        <div className="text-6xl mb-4 opacity-20">📭</div>
+                                        <div className="text-slate-300 font-black">
+                                            {showAllHistory ? 'لا يوجد سجلات بعد' : 'لا يوجد سجلات في هذا الأسبوع'}
+                                        </div>
                                     </div>
-                                </div>
-                            )
-                        }) : (
-                            <div className="text-center py-20">
-                                <div className="text-6xl mb-4 opacity-20">📭</div>
-                                <div className="text-slate-300 font-black">لا يوجد سجلات بعد</div>
+                                )
+                                })()}
                             </div>
-                        )}
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    </main>
+            </main>
 
-    {student && (
-        <AddStudentModal
-            isOpen={showEditModal}
-            onClose={() => setShowEditModal(false)}
-            onAdd={() => {
-                setShowEditModal(false);
-                fetchStudent();
-            }}
-            halaqaId={student.halaqaId}
-            student={student}
-        />
-    )}
-    <style jsx global>{`
+            {student && (
+                <AddStudentModal
+                    isOpen={showEditModal}
+                    onClose={() => setShowEditModal(false)}
+                    onAdd={() => {
+                        setShowEditModal(false);
+                        fetchStudent();
+                    }}
+                    halaqaId={student.halaqaId}
+                    student={student}
+                />
+            )}
+            <style jsx global>{`
         @keyframes pulse-slow {
             0%, 100% { opacity: 1; transform: scale(1); }
             50% { opacity: 0.9; transform: scale(0.995); }
@@ -1926,182 +2068,182 @@ export default function StudentDetailsPage() {
         }
     `}</style>
 
-    {/* Delete Session Modal */}
-    {showDeleteModal && (
-        <div className="modal-overlay animate-fadeIn z-[110]" onClick={() => setShowDeleteModal(false)}>
-            <div className="modal-content animate-slideUp max-w-md text-center" onClick={(e) => e.stopPropagation()}>
-                <div className="modal-body py-8">
-                    <div className="w-20 h-20 bg-red-100 dark:bg-red-900/30 text-red-500 rounded-full flex items-center justify-center text-4xl mx-auto mb-6 shadow-inner ring-8 ring-red-50/50 dark:ring-red-900/10">
-                        🗑️
-                    </div>
-                    <h3 className="text-2xl font-black text-slate-800 dark:text-white mb-3">هل أنت متأكد من حذف هذه الجلسة؟</h3>
-                    <p className="text-slate-500 dark:text-slate-400 mb-2 font-bold">لن يمكن التراجع عن هذا الإجراء وسيتم حذفه من السجل نهائياً.</p>
-                </div>
+            {/* Delete Session Modal */}
+            {showDeleteModal && (
+                <div className="modal-overlay animate-fadeIn z-[110]" onClick={() => setShowDeleteModal(false)}>
+                    <div className="modal-content animate-slideUp max-w-md text-center" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-body py-8">
+                            <div className="w-20 h-20 bg-red-100 dark:bg-red-900/30 text-red-500 rounded-full flex items-center justify-center text-4xl mx-auto mb-6 shadow-inner ring-8 ring-red-50/50 dark:ring-red-900/10">
+                                🗑️
+                            </div>
+                            <h3 className="text-2xl font-black text-slate-800 dark:text-white mb-3">هل أنت متأكد من حذف هذه الجلسة؟</h3>
+                            <p className="text-slate-500 dark:text-slate-400 mb-2 font-bold">لن يمكن التراجع عن هذا الإجراء وسيتم حذفه من السجل نهائياً.</p>
+                        </div>
 
-                <div className="modal-footer flex gap-4">
-                    <button
-                        onClick={handleDeleteSession}
-                        className="flex-1 py-4 bg-red-500 text-white rounded-2xl font-black hover:bg-red-600 transition-all active:scale-95 shadow-lg shadow-red-100 dark:shadow-none"
-                    >
-                        نعم، احذفها
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => setShowDeleteModal(false)}
-                        className="flex-1 py-4 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-2xl font-black hover:bg-slate-200 dark:hover:bg-slate-600 transition-all active:scale-95"
-                    >
-                        تراجع
-                    </button>
-                </div>
-            </div>
-        </div>
-    )}
-
-    {/* Cancel Session Modal */}
-    {showCancelModal && (
-        <div className="modal-overlay animate-fadeIn z-[110]" onClick={() => setShowCancelModal(false)}>
-            <div className="modal-content animate-slideUp max-w-md text-center" onClick={(e) => e.stopPropagation()}>
-                <div className="modal-body py-8">
-                    <div className="w-20 h-20 bg-red-100 dark:bg-red-900/30 text-red-500 rounded-full flex items-center justify-center text-4xl mx-auto mb-6 shadow-inner ring-8 ring-red-50/50 dark:ring-red-900/10">
-                        ⚠️
-                    </div>
-                    <h3 className="text-2xl font-black text-slate-800 dark:text-white mb-3">هل أنت متأكد من إلغاء الجلسة؟</h3>
-                    <p className="text-slate-500 dark:text-slate-400 mb-2 font-bold">لن يتم حفظ أي بيانات قمت بإدخالها حتى الآن.</p>
-                </div>
-
-                <div className="modal-footer flex gap-4">
-                    <button
-                        onClick={() => {
-                            setIsSessionActive(false);
-                            setSessionType(null);
-                            setEditingSessionId(null);
-                            setEditingSessionData(null);
-                            setShowCancelModal(false);
-                        }}
-                        className="flex-1 py-4 bg-red-500 text-white rounded-2xl font-black hover:bg-red-600 transition-all active:scale-95 shadow-lg shadow-red-100 dark:shadow-none"
-                    >
-                        نعم، إلغاء
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => setShowCancelModal(false)}
-                        className="flex-1 py-4 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-2xl font-black hover:bg-slate-200 dark:hover:bg-slate-600 transition-all active:scale-95"
-                    >
-                        تراجع
-                    </button>
-                </div>
-            </div>
-        </div>
-    )}
-
-    {/* Exam Modal */}
-    {showExamModal && (
-        <div className="modal-overlay animate-fadeIn z-[100]" onClick={() => setShowExamModal(false)}>
-            <div className="modal-content animate-slideUp max-w-md" onClick={(e) => e.stopPropagation()}>
-                <div className="modal-header">
-                    <h3 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-white">📅 تحديد موعد الاختبار</h3>
-                </div>
-
-                <div className="modal-body space-y-6">
-                    <div>
-                        <label className="block text-sm font-bold text-slate-500 dark:text-slate-400 mb-2">تاريخ الاختبار</label>
-                        <input
-                            type="date"
-                            value={examDate}
-                            onChange={e => setExamDate(e.target.value)}
-                            className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border-2 border-transparent focus:border-indigo-500 outline-none transition-all font-bold dark:text-white rounded-xl"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-bold text-slate-500 dark:text-slate-400 mb-2">وقت الاختبار (مثال: بعد المغرب)</label>
-                        <input
-                            type="text"
-                            value={examTime}
-                            onChange={e => setExamTime(e.target.value)}
-                            placeholder="مثال: بعد صلاة العشاء"
-                            className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border-2 border-transparent focus:border-indigo-500 outline-none transition-all font-bold dark:text-white rounded-xl"
-                        />
-                    </div>
-                </div>
-
-                <div className="modal-footer flex gap-3">
-                    <button
-                        onClick={() => setShowExamModal(false)}
-                        className="flex-1 py-4 bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 rounded-2xl font-black hover:bg-slate-200 dark:hover:bg-slate-600 transition-all active:scale-95"
-                    >
-                        إلغاء
-                    </button>
-                    <button
-                        onClick={handleScheduleExam}
-                        className="flex-1 py-4 bg-indigo-600 text-white rounded-2xl font-black hover:bg-indigo-700 transition-all active:scale-95 shadow-lg shadow-indigo-100 dark:shadow-none"
-                    >
-                        حفظ الموعد
-                    </button>
-                </div>
-            </div>
-        </div>
-    )}
-    {/* Session Type Selection Modal */}
-    {showTypeModal && (
-        <div className="modal-overlay animate-fadeIn z-[100]" onClick={() => setShowTypeModal(false)}>
-            <div className="modal-content animate-slideUp max-w-2xl" onClick={(e) => e.stopPropagation()}>
-                <div className="modal-header flex flex-col items-center text-center py-6">
-                    <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/30 dark:to-teal-900/30 text-emerald-600 rounded-2xl sm:rounded-[2rem] flex items-center justify-center text-3xl sm:text-4xl mb-4 sm:mb-6 shadow-lg shadow-emerald-100 dark:shadow-none">✨</div>
-                    <h3 className="text-2xl sm:text-3xl font-black text-slate-800 dark:text-white mb-2 sm:mb-3 uppercase tracking-tight">ماذا سنسمع اليوم؟</h3>
-                    <p className="text-slate-500 dark:text-slate-400 font-black text-base sm:text-lg">اختر نوع الجلسة للبدء في التسجيل</p>
-                </div>
-
-                <div className="modal-body">
-                    <div className={`grid grid-cols-1 ${isKhatim || isQuranicDaySession ? 'max-w-xs mx-auto' : 'sm:grid-cols-3'} gap-4 sm:gap-6`}>
-                        {[
-                            { id: 'HIFZ', label: 'حفظ جديد', icon: '📖', color: 'emerald', desc: 'تسميع المقدار اليومي', bg: 'bg-emerald-50 dark:bg-emerald-900/20', hidden: isKhatim || isQuranicDaySession },
-                            { id: 'MURAJAAH', label: 'مراجعة فقط', icon: '🔄', color: 'indigo', desc: 'تثبيت السور السابقة', bg: 'bg-indigo-50 dark:bg-indigo-900/20' },
-                            { id: 'BOTH', label: 'الاثنين معاً', icon: '💎', color: 'amber', desc: 'حفظ ومراجعة شاملة', bg: 'bg-amber-50 dark:bg-amber-900/20', hidden: isKhatim || isQuranicDaySession },
-                        ].filter(t => !t.hidden).map((type) => (
+                        <div className="modal-footer flex gap-4">
                             <button
-                                key={type.id}
-                                onClick={() => {
-                                    setSessionType(type.id);
-                                    setIsSessionActive(true);
-                                    setShowTypeModal(false);
-                                }}
-                                className={`group p-6 sm:p-8 rounded-[2.5rem] border-2 border-slate-50 dark:border-slate-800 hover:border-emerald-500 transition-all text-center flex flex-col items-center gap-4 ${type.bg} relative overflow-hidden active:scale-95`}
+                                onClick={handleDeleteSession}
+                                className="flex-1 py-4 bg-red-500 text-white rounded-2xl font-black hover:bg-red-600 transition-all active:scale-95 shadow-lg shadow-red-100 dark:shadow-none"
                             >
-                                <div className={`w-14 h-14 sm:w-16 sm:h-16 bg-white dark:bg-slate-800 shadow-xl text-slate-800 dark:text-white rounded-2xl flex items-center justify-center text-2xl sm:text-3xl group-hover:scale-110 transition-all relative z-10`}>
-                                    {type.icon}
-                                </div>
-                                <div className="relative z-10">
-                                    <div className="font-black text-slate-800 dark:text-white text-lg sm:text-xl mb-1">{type.label}</div>
-                                    <div className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">{type.desc}</div>
-                                </div>
+                                نعم، احذفها
                             </button>
-                        ))}
+                            <button
+                                type="button"
+                                onClick={() => setShowDeleteModal(false)}
+                                className="flex-1 py-4 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-2xl font-black hover:bg-slate-200 dark:hover:bg-slate-600 transition-all active:scale-95"
+                            >
+                                تراجع
+                            </button>
+                        </div>
                     </div>
                 </div>
+            )}
 
-                <button
-                    onClick={() => setShowTypeModal(false)}
-                    className="w-full mt-6 sm:mt-12 py-3 sm:py-4 text-slate-400 font-black hover:text-red-500 transition-colors flex items-center justify-center gap-2 flex-shrink-0"
-                >
-                    <span>إغلاق</span>
-                    <span>✕</span>
-                </button>
-            </div>
+            {/* Cancel Session Modal */}
+            {showCancelModal && (
+                <div className="modal-overlay animate-fadeIn z-[110]" onClick={() => setShowCancelModal(false)}>
+                    <div className="modal-content animate-slideUp max-w-md text-center" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-body py-8">
+                            <div className="w-20 h-20 bg-red-100 dark:bg-red-900/30 text-red-500 rounded-full flex items-center justify-center text-4xl mx-auto mb-6 shadow-inner ring-8 ring-red-50/50 dark:ring-red-900/10">
+                                ⚠️
+                            </div>
+                            <h3 className="text-2xl font-black text-slate-800 dark:text-white mb-3">هل أنت متأكد من إلغاء الجلسة؟</h3>
+                            <p className="text-slate-500 dark:text-slate-400 mb-2 font-bold">لن يتم حفظ أي بيانات قمت بإدخالها حتى الآن.</p>
+                        </div>
+
+                        <div className="modal-footer flex gap-4">
+                            <button
+                                onClick={() => {
+                                    setIsSessionActive(false);
+                                    setSessionType(null);
+                                    setEditingSessionId(null);
+                                    setEditingSessionData(null);
+                                    setShowCancelModal(false);
+                                }}
+                                className="flex-1 py-4 bg-red-500 text-white rounded-2xl font-black hover:bg-red-600 transition-all active:scale-95 shadow-lg shadow-red-100 dark:shadow-none"
+                            >
+                                نعم، إلغاء
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setShowCancelModal(false)}
+                                className="flex-1 py-4 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-2xl font-black hover:bg-slate-200 dark:hover:bg-slate-600 transition-all active:scale-95"
+                            >
+                                تراجع
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Exam Modal */}
+            {showExamModal && (
+                <div className="modal-overlay animate-fadeIn z-[100]" onClick={() => setShowExamModal(false)}>
+                    <div className="modal-content animate-slideUp max-w-md" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h3 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-white">📅 تحديد موعد الاختبار</h3>
+                        </div>
+
+                        <div className="modal-body space-y-6">
+                            <div>
+                                <label className="block text-sm font-bold text-slate-500 dark:text-slate-400 mb-2">تاريخ الاختبار</label>
+                                <input
+                                    type="date"
+                                    value={examDate}
+                                    onChange={e => setExamDate(e.target.value)}
+                                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border-2 border-transparent focus:border-indigo-500 outline-none transition-all font-bold dark:text-white rounded-xl"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-bold text-slate-500 dark:text-slate-400 mb-2">وقت الاختبار (مثال: بعد المغرب)</label>
+                                <input
+                                    type="text"
+                                    value={examTime}
+                                    onChange={e => setExamTime(e.target.value)}
+                                    placeholder="مثال: بعد صلاة العشاء"
+                                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border-2 border-transparent focus:border-indigo-500 outline-none transition-all font-bold dark:text-white rounded-xl"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="modal-footer flex gap-3">
+                            <button
+                                onClick={() => setShowExamModal(false)}
+                                className="flex-1 py-4 bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 rounded-2xl font-black hover:bg-slate-200 dark:hover:bg-slate-600 transition-all active:scale-95"
+                            >
+                                إلغاء
+                            </button>
+                            <button
+                                onClick={handleScheduleExam}
+                                className="flex-1 py-4 bg-indigo-600 text-white rounded-2xl font-black hover:bg-indigo-700 transition-all active:scale-95 shadow-lg shadow-indigo-100 dark:shadow-none"
+                            >
+                                حفظ الموعد
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* Session Type Selection Modal */}
+            {showTypeModal && (
+                <div className="modal-overlay animate-fadeIn z-[100]" onClick={() => setShowTypeModal(false)}>
+                    <div className="modal-content animate-slideUp max-w-2xl" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-header flex flex-col items-center text-center py-6">
+                            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/30 dark:to-teal-900/30 text-emerald-600 rounded-2xl sm:rounded-[2rem] flex items-center justify-center text-3xl sm:text-4xl mb-4 sm:mb-6 shadow-lg shadow-emerald-100 dark:shadow-none">✨</div>
+                            <h3 className="text-2xl sm:text-3xl font-black text-slate-800 dark:text-white mb-2 sm:mb-3 uppercase tracking-tight">ماذا سنسمع اليوم؟</h3>
+                            <p className="text-slate-500 dark:text-slate-400 font-black text-base sm:text-lg">اختر نوع الجلسة للبدء في التسجيل</p>
+                        </div>
+
+                        <div className="modal-body">
+                            <div className={`grid grid-cols-1 ${isKhatim || isQuranicDaySession ? 'max-w-xs mx-auto' : 'sm:grid-cols-3'} gap-4 sm:gap-6`}>
+                                {[
+                                    { id: 'HIFZ', label: 'حفظ جديد', icon: '📖', color: 'emerald', desc: 'تسميع المقدار اليومي', bg: 'bg-emerald-50 dark:bg-emerald-900/20', hidden: isKhatim || isQuranicDaySession },
+                                    { id: 'MURAJAAH', label: 'مراجعة فقط', icon: '🔄', color: 'indigo', desc: 'تثبيت السور السابقة', bg: 'bg-indigo-50 dark:bg-indigo-900/20' },
+                                    { id: 'BOTH', label: 'الاثنين معاً', icon: '💎', color: 'amber', desc: 'حفظ ومراجعة شاملة', bg: 'bg-amber-50 dark:bg-amber-900/20', hidden: isKhatim || isQuranicDaySession },
+                                ].filter(t => !t.hidden).map((type) => (
+                                    <button
+                                        key={type.id}
+                                        onClick={() => {
+                                            setSessionType(type.id);
+                                            setIsSessionActive(true);
+                                            setShowTypeModal(false);
+                                        }}
+                                        className={`group p-6 sm:p-8 rounded-[2.5rem] border-2 border-slate-50 dark:border-slate-800 hover:border-emerald-500 transition-all text-center flex flex-col items-center gap-4 ${type.bg} relative overflow-hidden active:scale-95`}
+                                    >
+                                        <div className={`w-14 h-14 sm:w-16 sm:h-16 bg-white dark:bg-slate-800 shadow-xl text-slate-800 dark:text-white rounded-2xl flex items-center justify-center text-2xl sm:text-3xl group-hover:scale-110 transition-all relative z-10`}>
+                                            {type.icon}
+                                        </div>
+                                        <div className="relative z-10">
+                                            <div className="font-black text-slate-800 dark:text-white text-lg sm:text-xl mb-1">{type.label}</div>
+                                            <div className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">{type.desc}</div>
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={() => setShowTypeModal(false)}
+                            className="w-full mt-6 sm:mt-12 py-3 sm:py-4 text-slate-400 font-black hover:text-red-500 transition-colors flex items-center justify-center gap-2 flex-shrink-0"
+                        >
+                            <span>إغلاق</span>
+                            <span>✕</span>
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {student && (
+                <AddStudentModal
+                    isOpen={showEditModal}
+                    onClose={() => setShowEditModal(false)}
+                    onAdd={() => {
+                        setShowEditModal(false);
+                        fetchStudent();
+                    }}
+                    halaqaId={student.halaqaId}
+                    student={student}
+                />
+            )}
         </div>
-    )}
-
-    {student && (
-        <AddStudentModal
-            isOpen={showEditModal}
-            onClose={() => setShowEditModal(false)}
-            onAdd={() => {
-                setShowEditModal(false);
-                fetchStudent();
-            }}
-            halaqaId={student.halaqaId}
-            student={student}
-        />
-    )}
-</div>
-);
+    );
 }
