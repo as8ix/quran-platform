@@ -50,32 +50,22 @@ export default function StudentPlanPage() {
     }
 
     return (
-        <div className="min-h-screen bg-white font-noto p-8 text-right" dir="rtl">
+        <div className="min-h-screen bg-white dark:bg-slate-900 pt-24 pb-20 px-4" dir="rtl">
             
-            {/* ===== Controls - hidden on print ===== */}
-            <div className="no-print flex flex-wrap justify-between items-center gap-4 mb-8 bg-slate-50 rounded-3xl p-6 border border-slate-100 shadow-sm">
-                <div className="flex gap-4 items-center flex-wrap">
-                    <div className="flex items-center gap-3 ml-6">
-                        <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-2xl shadow-sm border border-slate-100">
-                            📅
-                        </div>
-                        <div>
-                            <h2 className="text-lg font-black text-slate-800">الجدول الدراسي الزمني</h2>
-                            <p className="text-sm font-bold text-slate-500">للطالب: {student.name}</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="flex gap-3">
-                    <button
+            {/* Action Bar - Hidden on Print */}
+            <div className="max-w-6xl mx-auto no-print mb-6 flex justify-between items-center bg-slate-50/80 dark:bg-slate-800/80 backdrop-blur-md p-4 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-xl shadow-slate-200/50 dark:shadow-none sticky top-24 z-10">
+                <div className="flex items-center gap-3">
+                    <button 
                         onClick={() => router.push(`/teacher/student/${studentId}`)}
-                        className="px-6 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold hover:bg-slate-50 transition-colors shadow-sm"
+                        className="px-5 py-2 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl font-bold hover:bg-slate-200 transition-all text-sm"
                     >
                         ← عودة لملف الطالب
                     </button>
-                    <button
+                </div>
+                <div className="flex gap-3">
+                    <button 
                         onClick={() => window.print()}
-                        className="flex items-center gap-2 px-6 py-2.5 bg-slate-900 text-white rounded-xl font-bold shadow-lg hover:bg-slate-800 transition-colors"
+                        className="px-6 py-2 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-all flex items-center gap-2 shadow-lg shadow-emerald-200/50"
                     >
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 00-2 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
                         طباعة / PDF
@@ -83,26 +73,53 @@ export default function StudentPlanPage() {
                 </div>
             </div>
 
-            {/* Main Plan Area */}
-            <div className="max-w-6xl mx-auto print:max-w-none">
-                <div className="bg-white rounded-[3rem] p-0 print:p-0">
-                    <StudyPlan student={student} onUpdate={fetchStudent} />
+            {/* Official Report Card */}
+            <main className="max-w-6xl mx-auto bg-white dark:bg-slate-950 p-8 md:p-12 rounded-[3rem] shadow-2xl border border-slate-100 dark:border-slate-800 print:shadow-none print:border-none print:p-0">
+                
+                {/* Official Branded Header */}
+                <div className="mb-12 flex flex-col md:flex-row justify-between items-center gap-8 border-b-4 border-emerald-600 pb-8">
+                    <div className="flex items-center gap-6">
+                        <img src="/logo_transparent.png" alt="Logo" className="h-24 w-auto" />
+                        <div className="text-right">
+                            <h1 className="text-4xl font-black text-emerald-700 mb-1">الخطة القرآنية</h1>
+                            <p className="text-sm font-bold text-slate-400">جميع الحقوق محفوظة لبرنامج مفصل</p>
+                        </div>
+                    </div>
+                    
+                    <div className="text-center md:text-left">
+                        <div className="bg-emerald-50 dark:bg-emerald-900/20 px-6 py-3 rounded-2xl border border-emerald-100 dark:border-emerald-800">
+                            <div className="text-2xl font-black text-slate-800 dark:text-white mb-1">{student.name}</div>
+                            <div className="text-sm font-bold text-emerald-600 dark:text-emerald-400">خطة متابعة الحفظ والمراجعة الزمانية</div>
+                        </div>
+                    </div>
                 </div>
-            </div>
+
+                {/* The Plan Component */}
+                <StudyPlan student={student} onUpdate={fetchStudent} />
+
+                {/* Footer (for print) */}
+                <div className="mt-16 pt-8 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center opacity-50 text-[10px] font-bold text-slate-400">
+                    <div>تم استخراج هذا التقرير بتاريخ: {new Date().toLocaleDateString('ar-SA')}</div>
+                    <div>منصة "مفصل" لمتابعة حفظ القرآن الكريم</div>
+                </div>
+            </main>
 
             <style jsx global>{`
                 @media print {
-                    .no-print, button {
+                    .no-print, .no-print * {
                         display: none !important;
                     }
                     body {
                         background: white !important;
                         padding: 0 !important;
+                        margin: 0 !important;
                     }
-                    .premium-glass {
-                        border: none !important;
-                        background: transparent !important;
+                    main {
                         box-shadow: none !important;
+                        border: none !important;
+                        max-width: 100% !important;
+                        width: 100% !important;
+                        padding: 0 !important;
                     }
                     * {
                         -webkit-print-color-adjust: exact;

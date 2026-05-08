@@ -198,25 +198,24 @@ const StudyPlan = ({ student, onUpdate }) => {
                 return;
             }
 
+            toast.loading('جاري حفظ الجدول في قاعدة البيانات...', { id: 'save-plan' });
+            
             // Save to DB
             const res = await fetch('/api/study-plan', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     studentId: student.id,
-                    entries: newEntries.map(e => ({
-                        date: e.date.toISOString(),
-                        type: e.type,
-                        surahId: e.surahId,
-                        fromAyah: e.fromAyah,
-                        toAyah: e.toAyah
-                    }))
+                    entries: newEntries
                 })
             });
 
             if (res.ok) {
-                toast.success('تم توليد الخطة بنجاح');
+                toast.success('تم توليد وحفظ الجدول بنجاح!', { id: 'save-plan' });
                 fetchPlan();
+            } else {
+                const errData = await res.json();
+                toast.error(`فشل الحفظ: ${errData.error || 'خطأ غير معروف'}`, { id: 'save-plan' });
             }
         } catch (error) {
             toast.error('خطأ في توليد الخطة');
@@ -226,31 +225,36 @@ const StudyPlan = ({ student, onUpdate }) => {
     };
 
     const exportToExcel = () => {
-        const worksheetData = entries.map(e => ({
-            'التاريخ': new Date(e.date).toLocaleDateString('ar-SA'),
-            'اليوم': new Date(e.date).toLocaleDateString('ar-SA', { weekday: 'long' }),
-            'النوع': e.type === 'HIFZ' ? 'حفظ' : 'مراجعة',
-            'السورة': quranData.find(s => s.id === e.surahId)?.name || '',
-            'من آية': e.fromAyah,
-            'إلى آية': e.toAyah,
-            'الحالة': e.isCompleted ? 'تم' : 'لم يتم'
-        }));
+        try {
+            const worksheetData = entries.map(e => ({
+                'التاريخ': new Date(e.date).toLocaleDateString('ar-SA'),
+                'اليوم': new Date(e.date).toLocaleDateString('ar-SA', { weekday: 'long' }),
+                'النوع': e.type === 'HIFZ' ? 'حفظ' : 'مراجعة',
+                'من سورة': quranData.find(s => s.id === e.surahId)?.name || '',
+                'من آية': e.fromAyah,
+                'إلى سورة': quranData.find(s => s.id === (e.toSurahId || e.surahId))?.name || '',
+                'إلى آية': e.toAyah,
+                'الحالة': e.isCompleted ? 'تم' : 'لم يتم'
+            }));
 
-        const ws = XLSX.utils.json_to_sheet(worksheetData);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, 'الجدول الدراسي');
-        XLSX.writeFile(wb, `جدول_${student.name}.xlsx`);
+            const ws = XLSX.utils.json_to_sheet(worksheetData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'الجدول الدراسي');
+            
+            const fileName = `جدول_دراسي_${student.name.replace(/\s+/g, '_')}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+            toast.success('تم تصدير ملف Excel بنجاح');
+        } catch (error) {
+            console.error('Excel Export Error:', error);
+            toast.error('فشل تصدير ملف Excel');
+        }
     };
 
     if (loading) return <div className="p-10 text-center font-bold">جاري تحميل الجدول...</div>;
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-wrap justify-between items-center gap-4 no-print mb-10">
-                <h2 className="text-2xl font-black text-slate-800 dark:text-white flex items-center gap-3">
-                    <span className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-xl">📅</span>
-                    الجدول الدراسي الزمني
-                </h2>
+            <div className="flex flex-wrap justify-end items-center gap-4 no-print mb-10">
                 <div className="flex gap-2">
                     <button
                         onClick={async () => {
@@ -334,46 +338,70 @@ const StudyPlan = ({ student, onUpdate }) => {
                     </button>
                 </div>
             ) : (
-                <div className="grid gap-4">
-                    {/* Group by date */}
-                    {Object.entries(
-                        entries.reduce((acc, entry) => {
-                            const date = new Date(entry.date).toDateString();
-                            if (!acc[date]) acc[date] = [];
-                            acc[date].push(entry);
-                            return acc;
-                        }, {})
-                    ).map(([date, dayEntries]) => (
-                        <div key={date} className="premium-glass rounded-3xl p-6 flex flex-col md:flex-row justify-between items-center gap-4 border border-slate-100 dark:border-slate-800">
-                            <div className="flex items-center gap-6">
-                                <div className="text-center min-w-[80px]">
-                                    <span className="block text-xs font-black text-slate-400 uppercase">{new Date(date).toLocaleDateString('ar-SA', { weekday: 'short' })}</span>
-                                    <span className="text-xl font-black text-slate-800 dark:text-white">{new Date(date).getDate()}</span>
-                                    <span className="block text-[10px] font-bold text-emerald-500">{new Date(date).toLocaleDateString('ar-SA', { month: 'short' })}</span>
-                                </div>
-                                <div className="space-y-2">
-                                    {dayEntries.map(entry => (
-                                        <div key={entry.id} className="flex items-center gap-3">
-                                            <span className={`px-2 py-0.5 rounded-md text-[10px] font-black ${entry.type === 'HIFZ' ? 'bg-emerald-100 text-emerald-700' : 'bg-indigo-100 text-indigo-700'}`}>
-                                                {entry.type === 'HIFZ' ? 'حفظ' : 'مراجعة'}
-                                            </span>
-                                            <span className="text-sm font-bold text-slate-700 dark:text-slate-300">
-                                                {quranData.find(s => s.id === entry.surahId)?.name} (من {entry.fromAyah} إلى {entry.toAyah})
-                                            </span>
-                                            {entry.isCompleted && <span className="text-emerald-500">✅</span>}
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-4">
-                                {dayEntries.every(e => e.isCompleted) ? (
-                                    <span className="px-4 py-2 bg-emerald-50 text-emerald-600 rounded-xl text-xs font-black">مكتمل ✨</span>
-                                ) : (
-                                    <span className="px-4 py-2 bg-slate-50 dark:bg-slate-900/50 text-slate-400 rounded-xl text-xs font-black">قيد الانتظار</span>
-                                )}
-                            </div>
-                        </div>
-                    ))}
+                <div className="overflow-hidden rounded-[2rem] border border-emerald-100 dark:border-emerald-900/30 shadow-2xl">
+                    <table className="w-full text-center border-collapse bg-white dark:bg-slate-950">
+                        <thead>
+                            <tr className="bg-emerald-50 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-200 border-b-2 border-emerald-600">
+                                <th className="p-4 text-xs font-black border-l border-emerald-100 dark:border-emerald-800/50" rowSpan="2">التاريخ</th>
+                                <th className="p-4 text-xs font-black border-l border-emerald-100 dark:border-emerald-800/50" rowSpan="2">اليوم</th>
+                                <th className="p-2 text-xs font-black border-l border-emerald-100 dark:border-emerald-800/50 border-b border-emerald-100 dark:border-emerald-800/50" colSpan="2">الحفظ الجديد</th>
+                                <th className="p-2 text-xs font-black border-l border-emerald-100 dark:border-emerald-800/50 border-b border-emerald-100 dark:border-emerald-800/50" colSpan="2">المراجعة</th>
+                                <th className="p-4 text-xs font-black" rowSpan="2">الإنجاز</th>
+                            </tr>
+                            <tr className="bg-emerald-50 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-200">
+                                <th className="p-2 text-[10px] font-bold border-l border-emerald-100 dark:border-emerald-800/50">من</th>
+                                <th className="p-2 text-[10px] font-bold border-l border-emerald-100 dark:border-emerald-800/50">إلى</th>
+                                <th className="p-2 text-[10px] font-bold border-l border-emerald-100 dark:border-emerald-800/50">من</th>
+                                <th className="p-2 text-[10px] font-bold border-l border-emerald-100 dark:border-emerald-800/50">إلى</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {Object.entries(
+                                entries.reduce((acc, entry) => {
+                                    const d = new Date(entry.date).toDateString();
+                                    if (!acc[d]) acc[d] = { HIFZ: null, MURAJAAH: null, date: entry.date };
+                                    acc[d][entry.type] = entry;
+                                    return acc;
+                                }, {})
+                            ).map(([dKey, dayData], idx) => {
+                                const entryDate = new Date(dayData.date);
+                                return (
+                                    <tr key={dKey} className={idx % 2 === 0 ? 'bg-white dark:bg-slate-950' : 'bg-emerald-50/30 dark:bg-emerald-900/10'}>
+                                        <td className="p-3 text-xs font-black text-slate-700 dark:text-slate-200 border-l border-emerald-100 dark:border-emerald-900/20">
+                                            {entryDate.toLocaleDateString('ar-SA')}
+                                        </td>
+                                        <td className="p-3 text-[10px] font-bold text-slate-500 border-l border-emerald-100 dark:border-emerald-900/20">
+                                            {entryDate.toLocaleDateString('ar-SA', { weekday: 'long' })}
+                                        </td>
+                                        
+                                        {/* HIFZ */}
+                                        <td className="p-3 text-xs font-bold text-emerald-700 dark:text-emerald-400 border-l border-emerald-100 dark:border-emerald-900/20">
+                                            {dayData.HIFZ ? `${quranData.find(s => s.id === dayData.HIFZ.surahId)?.name} (${dayData.HIFZ.fromAyah})` : '-'}
+                                        </td>
+                                        <td className="p-3 text-xs font-bold text-emerald-700 dark:text-emerald-400 border-l border-emerald-100 dark:border-emerald-900/20">
+                                            {dayData.HIFZ ? `${quranData.find(s => s.id === (dayData.HIFZ.toSurahId || dayData.HIFZ.surahId))?.name} (${dayData.HIFZ.toAyah})` : '-'}
+                                        </td>
+
+                                        {/* MURAJAAH */}
+                                        <td className="p-3 text-xs font-bold text-indigo-700 dark:text-indigo-400 border-l border-emerald-100 dark:border-emerald-900/20">
+                                            {dayData.MURAJAAH ? `${quranData.find(s => s.id === dayData.MURAJAAH.surahId)?.name} (${dayData.MURAJAAH.fromAyah})` : '-'}
+                                        </td>
+                                        <td className="p-3 text-xs font-bold text-indigo-700 dark:text-indigo-400 border-l border-emerald-100 dark:border-emerald-900/20">
+                                            {dayData.MURAJAAH ? `${quranData.find(s => s.id === (dayData.MURAJAAH.toSurahId || dayData.MURAJAAH.surahId))?.name} (${dayData.MURAJAAH.toAyah})` : '-'}
+                                        </td>
+
+                                        <td className="p-3 text-center">
+                                            {(dayData.HIFZ?.isCompleted || dayData.MURAJAAH?.isCompleted) ? (
+                                                <span className="text-emerald-500">✔</span>
+                                            ) : (
+                                                <div className="w-4 h-4 border border-slate-300 rounded mx-auto"></div>
+                                            )}
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </table>
                 </div>
             )}
         </div>
