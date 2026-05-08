@@ -882,13 +882,23 @@ export default function StudentDetailsPage() {
                     studentId,
                     // Only send hifz data if (includesHifz) AND (not Khatim) AND (not a Quranic Day session)
                     // Calculate hifzToSurah based on page range and direction
-                    hifzSurah: (includesHifz && !isKhatim && !isQuranicDay) ? (editingSessionId && editingSessionData?.hifzSurah ? editingSessionData.hifzSurah : currentSurah?.name) : null,
+                    // Calculate hifzSurah and hifzToSurah based on page range and direction
+                    hifzSurah: (() => {
+                        if (!includesHifz || isKhatim || isQuranicDay) return null;
+                        if (editingSessionId && editingSessionData?.hifzSurah) return editingSessionData.hifzSurah;
+                        const pData = pageAyahMap[hifzFromPage];
+                        if (!pData) return currentSurah?.name;
+                        const hifzSId = student?.currentHifzSurahId || 114;
+                        const hifzDirection = (hifzSId === 1 && hifzFromPage > 600) ? 'BACKWARD' : (hifzSId <= 5 ? 'FORWARD' : 'BACKWARD');
+                        const sIds = Object.keys(pData).map(Number).sort((a,b) => hifzDirection === 'FORWARD' ? a - b : b - a);
+                        return quranData.find(s => s.id === sIds[0])?.name || currentSurah?.name;
+                    })(),
                     hifzToSurah: (() => {
                         if (!includesHifz || isKhatim || isQuranicDay) return null;
                         const pData = pageAyahMap[hifzToPage];
                         if (!pData) return null;
                         const hifzSId = student?.currentHifzSurahId || 114;
-                        const hifzDirection = hifzSId <= 5 ? 'FORWARD' : 'BACKWARD';
+                        const hifzDirection = (hifzSId === 1 && hifzFromPage > 600) ? 'BACKWARD' : (hifzSId <= 5 ? 'FORWARD' : 'BACKWARD');
                         const sIds = Object.keys(pData).map(Number).sort((a,b) => hifzDirection === 'FORWARD' ? b - a : a - b);
                         const endSId = hifzDirection === 'FORWARD' ? sIds[0] : sIds.sort((a,b)=>a-b)[0];
                         return quranData.find(s => s.id === endSId)?.name || null;
@@ -1405,7 +1415,6 @@ export default function StudentDetailsPage() {
                                                                 
                                                                 const hifzSId = student?.currentHifzSurahId || 114;
                                                                 const isStartingFatiha = hifzSId === 1 && student?.juzCount === 0;
-                                                                // Direction is BACKWARD if we are starting from 114 range, even if student is at 1 (beginner)
                                                                 const hifzDirection = (isStartingFatiha && hifzFromPage > 600) ? 'BACKWARD' : (hifzSId <= 5 ? 'FORWARD' : 'BACKWARD');
 
                                                                 if (!fromPData || !toPData) return `سورة ${currentSurah?.name}`;
@@ -1413,7 +1422,7 @@ export default function StudentDetailsPage() {
                                                                 const fromSIds = Object.keys(fromPData).map(Number).sort((a,b) => hifzDirection === 'FORWARD' ? a - b : b - a);
                                                                 const toSIds = Object.keys(toPData).map(Number).sort((a,b) => hifzDirection === 'FORWARD' ? a - b : b - a);
                                                                 
-                                                                const startSId = hifzDirection === 'FORWARD' ? fromSIds[0] : fromSIds.sort((a,b)=>b-a)[0];
+                                                                const startSId = fromSIds[0];
                                                                 const endSId = hifzDirection === 'FORWARD' ? toSIds[toSIds.length - 1] : toSIds.sort((a,b)=>a-b)[0];
 
                                                                 const startS = quranData.find(s => s.id === startSId)?.name;
