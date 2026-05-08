@@ -1582,27 +1582,39 @@ export default function StudentDetailsPage() {
                                                                                 </div>
 
                                                                                 {/* Counters */}
-                                                                                <div className="grid grid-cols-2 gap-3 relative z-10">
-                                                                                    <div className="flex flex-col bg-white/80 dark:bg-slate-800/80 p-3 rounded-2xl border border-red-100 dark:border-red-900/50 shadow-sm items-center gap-2 transition-all hover:border-red-200 dark:hover:border-red-800">
-                                                                                        <span className="text-xs font-black text-red-500">أخطاء</span>
-                                                                                        <input 
-                                                                                            type="number" 
+                                                                                <div className="grid grid-cols-2 gap-4 mt-2">
+                                                                                    <div>
+                                                                                        <label className="block text-[11px] font-bold text-red-600 mb-2 mr-2">أخطاء السورة</label>
+                                                                                        <input
+                                                                                            type="number"
+                                                                                            value={evalData.errors}
+                                                                                            onFocus={() => evalData.errors === 0 && setHifzSurahEvals(p => ({...p, [s.id]: {...evalData, errors: ''}}))}
+                                                                                            onBlur={() => evalData.errors === '' && setHifzSurahEvals(p => ({...p, [s.id]: {...evalData, errors: 0}}))}
+                                                                                            onChange={e => {
+                                                                                                const val = e.target.value;
+                                                                                                if (val === '') setHifzSurahEvals(p => ({...p, [s.id]: {...evalData, errors: ''}}));
+                                                                                                else setHifzSurahEvals(p => ({...p, [s.id]: {...evalData, errors: Math.max(0, parseInt(val) || 0)}}));
+                                                                                            }}
                                                                                             min="0"
-                                                                                            value={evalData.errors === 0 ? '' : evalData.errors}
+                                                                                            className="w-full px-4 py-3 premium-glass border-2 border-transparent focus:border-red-400 rounded-xl outline-none transition-all font-bold text-lg dark:text-white"
                                                                                             placeholder="0"
-                                                                                            onChange={e => setHifzSurahEvals(p => ({...p, [s.id]: {...evalData, errors: Math.max(0, parseInt(e.target.value) || 0)}}))}
-                                                                                            className="w-full bg-red-50 dark:bg-red-900/20 border-2 border-transparent focus:border-red-300 rounded-xl py-2 text-center font-black text-2xl text-red-700 dark:text-red-300 outline-none transition-all placeholder-red-200 dark:placeholder-red-900/50"
                                                                                         />
                                                                                     </div>
-                                                                                    <div className="flex flex-col bg-white/80 dark:bg-slate-800/80 p-3 rounded-2xl border border-amber-100 dark:border-amber-900/50 shadow-sm items-center gap-2 transition-all hover:border-amber-200 dark:hover:border-amber-800">
-                                                                                        <span className="text-xs font-black text-amber-600 dark:text-amber-500">تنبيهات</span>
-                                                                                        <input 
-                                                                                            type="number" 
+                                                                                    <div>
+                                                                                        <label className="block text-[11px] font-bold text-orange-600 mb-2 mr-2">تنبيهات السورة</label>
+                                                                                        <input
+                                                                                            type="number"
+                                                                                            value={evalData.alerts}
+                                                                                            onFocus={() => evalData.alerts === 0 && setHifzSurahEvals(p => ({...p, [s.id]: {...evalData, alerts: ''}}))}
+                                                                                            onBlur={() => evalData.alerts === '' && setHifzSurahEvals(p => ({...p, [s.id]: {...evalData, alerts: 0}}))}
+                                                                                            onChange={e => {
+                                                                                                const val = e.target.value;
+                                                                                                if (val === '') setHifzSurahEvals(p => ({...p, [s.id]: {...evalData, alerts: ''}}));
+                                                                                                else setHifzSurahEvals(p => ({...p, [s.id]: {...evalData, alerts: Math.max(0, parseInt(val) || 0)}}));
+                                                                                            }}
                                                                                             min="0"
-                                                                                            value={evalData.alerts === 0 ? '' : evalData.alerts}
+                                                                                            className="w-full px-4 py-3 premium-glass border-2 border-transparent focus:border-orange-400 rounded-xl outline-none transition-all font-bold text-lg dark:text-white"
                                                                                             placeholder="0"
-                                                                                            onChange={e => setHifzSurahEvals(p => ({...p, [s.id]: {...evalData, alerts: Math.max(0, parseInt(e.target.value) || 0)}}))}
-                                                                                            className="w-full bg-amber-50 dark:bg-amber-900/20 border-2 border-transparent focus:border-amber-300 rounded-xl py-2 text-center font-black text-2xl text-amber-700 dark:text-amber-300 outline-none transition-all placeholder-amber-200 dark:placeholder-amber-900/50"
                                                                                         />
                                                                                     </div>
                                                                                 </div>
