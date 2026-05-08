@@ -315,8 +315,7 @@ export default function StudentDetailsPage() {
                 }
             } else {
                 let potentialToPage = hStartPage + (Math.ceil(target) - 1);
-                const lastPageOfSurah = allowedPages[allowedPages.length - 1];
-                if (potentialToPage > lastPageOfSurah) potentialToPage = lastPageOfSurah;
+                if (potentialToPage > 604) potentialToPage = 604;
                 setHifzToPage(potentialToPage);
                 
                 let endAyahOfPage = 1;
@@ -1425,22 +1424,33 @@ export default function StudentDetailsPage() {
                                             );
 
                                             const computedHifzRange = (() => {
-                                                const fromPData = pageAyahMap[hifzFromPage];
-                                                const toPData = pageAyahMap[hifzToPage];
-                                                
                                                 let startSId = student?.currentHifzSurahId || 114;
                                                 let endSId = startSId;
                                                 const hifzDirection = (startSId === 1 && hifzFromPage > 600) ? 'BACKWARD' : (startSId <= 5 ? 'FORWARD' : 'BACKWARD');
 
-                                                if (fromPData) {
-                                                    const fromSIds = Object.keys(fromPData).map(Number).sort((a,b) => hifzDirection === 'FORWARD' ? a - b : b - a);
-                                                    startSId = fromSIds[0];
-                                                }
-                                                
-                                                if (toPData) {
-                                                    const toSIds = Object.keys(toPData).map(Number).sort((a,b) => hifzDirection === 'FORWARD' ? a - b : b - a);
-                                                    endSId = hifzDirection === 'FORWARD' ? toSIds[toSIds.length - 1] : [...toSIds].sort((a,b)=>a-b)[0];
-                                                }
+                                                const getSurahIdForPageAyah = (page, ayah, isEnd = false) => {
+                                                    const pData = pageAyahMap[page];
+                                                    if (!pData) return null;
+                                                    const sIds = Object.keys(pData).map(Number).sort((a,b) => hifzDirection === 'FORWARD' ? a - b : b - a);
+                                                    
+                                                    for (const sId of sIds) {
+                                                        const range = pData[sId];
+                                                        const start = typeof range === 'object' ? range.start : 1;
+                                                        const end = typeof range === 'object' ? range.end : range;
+                                                        if (ayah >= start && ayah <= end) {
+                                                            return sId;
+                                                        }
+                                                    }
+                                                    return isEnd ? 
+                                                        (hifzDirection === 'FORWARD' ? sIds[sIds.length - 1] : [...sIds].sort((a,b)=>a-b)[0]) 
+                                                        : sIds[0];
+                                                };
+
+                                                const exactStart = getSurahIdForPageAyah(hifzFromPage, hifzFromAyah);
+                                                if (exactStart) startSId = exactStart;
+
+                                                const exactEnd = getSurahIdForPageAyah(hifzToPage, hifzToAyah, true);
+                                                if (exactEnd) endSId = exactEnd;
 
                                                 return { startSId, endSId, hifzDirection };
                                             })();
