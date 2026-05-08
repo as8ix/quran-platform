@@ -1413,20 +1413,22 @@ export default function StudentDetailsPage() {
                                                                 const fromPData = pageAyahMap[hifzFromPage];
                                                                 const toPData = pageAyahMap[hifzToPage];
                                                                 
-                                                                const hifzSId = student?.currentHifzSurahId || 114;
-                                                                const isStartingFatiha = hifzSId === 1 && student?.juzCount === 0;
-                                                                const hifzDirection = (isStartingFatiha && hifzFromPage > 600) ? 'BACKWARD' : (hifzSId <= 5 ? 'FORWARD' : 'BACKWARD');
+                                                                let startSId = student?.currentHifzSurahId || 114;
+                                                                let endSId = startSId;
+                                                                const hifzDirection = (startSId === 1 && hifzFromPage > 600) ? 'BACKWARD' : (startSId <= 5 ? 'FORWARD' : 'BACKWARD');
 
-                                                                if (!fromPData || !toPData) return `سورة ${currentSurah?.name}`;
+                                                                if (fromPData) {
+                                                                    const fromSIds = Object.keys(fromPData).map(Number).sort((a,b) => hifzDirection === 'FORWARD' ? a - b : b - a);
+                                                                    startSId = fromSIds[0];
+                                                                }
                                                                 
-                                                                const fromSIds = Object.keys(fromPData).map(Number).sort((a,b) => hifzDirection === 'FORWARD' ? a - b : b - a);
-                                                                const toSIds = Object.keys(toPData).map(Number).sort((a,b) => hifzDirection === 'FORWARD' ? a - b : b - a);
-                                                                
-                                                                const startSId = fromSIds[0];
-                                                                const endSId = hifzDirection === 'FORWARD' ? toSIds[toSIds.length - 1] : toSIds.sort((a,b)=>a-b)[0];
+                                                                if (toPData) {
+                                                                    const toSIds = Object.keys(toPData).map(Number).sort((a,b) => hifzDirection === 'FORWARD' ? a - b : b - a);
+                                                                    endSId = hifzDirection === 'FORWARD' ? toSIds[toSIds.length - 1] : [...toSIds].sort((a,b)=>a-b)[0];
+                                                                }
 
-                                                                const startS = quranData.find(s => s.id === startSId)?.name;
-                                                                const endS = quranData.find(s => s.id === endSId)?.name;
+                                                                const startS = quranData.find(s => s.id === startSId)?.name || currentSurah?.name;
+                                                                const endS = quranData.find(s => s.id === endSId)?.name || startS;
                                                                 
                                                                 return `سورة ${startS}${endS && endS !== startS ? ` إلى سورة ${endS}` : ''}`;
                                                             })()})
