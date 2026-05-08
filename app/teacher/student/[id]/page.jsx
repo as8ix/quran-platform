@@ -2429,7 +2429,7 @@ export default function StudentDetailsPage() {
                                     <button
                                         key={type.id}
                                         onClick={() => {
-                                            if (type.id !== 'HIFZ' && (student?.juzCount || 0) < 1) {
+                                            if (type.id !== 'HIFZ' && history.length === 0) {
                                                 toast.error('الطالب لا يملك محفوظاً كافياً للمراجعة بعد');
                                                 return;
                                             }
@@ -2437,9 +2437,9 @@ export default function StudentDetailsPage() {
                                             setIsSessionActive(true);
                                             setShowTypeModal(false);
                                         }}
-                                        className={`group p-6 sm:p-8 rounded-[2.5rem] border-2 border-slate-50 dark:border-slate-800 hover:border-emerald-500 transition-all text-center flex flex-col items-center gap-4 ${type.bg} relative overflow-hidden active:scale-95 ${type.id !== 'HIFZ' && (student?.juzCount || 0) < 1 ? 'opacity-50 grayscale-[0.5]' : ''}`}
+                                        className={`group p-6 sm:p-8 rounded-[2.5rem] border-2 border-slate-50 dark:border-slate-800 hover:border-emerald-500 transition-all text-center flex flex-col items-center gap-4 ${type.bg} relative overflow-hidden active:scale-95 ${type.id !== 'HIFZ' && history.length === 0 ? 'opacity-50 grayscale-[0.5]' : ''}`}
                                     >
-                                        {type.id !== 'HIFZ' && (student?.juzCount || 0) < 1 && (
+                                        {type.id !== 'HIFZ' && history.length === 0 && (
                                             <div className="absolute inset-0 bg-white/60 dark:bg-slate-900/60 backdrop-blur-[1px] flex items-center justify-center z-20">
                                                 <div className="bg-white/80 dark:bg-slate-800/80 px-3 py-1 rounded-full text-[10px] font-black text-slate-500 shadow-sm border border-slate-100">
                                                     غير متاح حالياً
