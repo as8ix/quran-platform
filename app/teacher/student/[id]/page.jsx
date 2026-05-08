@@ -1389,7 +1389,25 @@ export default function StudentDetailsPage() {
                                                     <div className="flex justify-between items-center mb-6">
                                                         <h3 className="text-emerald-800 dark:text-emerald-400 font-black text-xl flex items-center gap-3">
                                                             <span className="w-3 h-3 bg-emerald-500 rounded-full shadow-lg shadow-emerald-200 dark:shadow-none"></span>
-                                                            الحفظ الجديد (سورة {editingSessionData?.hifzSurah || currentSurah?.name})
+                                                            الحفظ الجديد ({(() => {
+                                                                if (editingSessionId && editingSessionData?.hifzSurah) {
+                                                                    return `سورة ${editingSessionData.hifzSurah}${editingSessionData.hifzToSurah && editingSessionData.hifzToSurah !== editingSessionData.hifzSurah ? ` إلى سورة ${editingSessionData.hifzToSurah}` : ''}`;
+                                                                }
+                                                                const fromPData = pageAyahMap[hifzFromPage];
+                                                                const toPData = pageAyahMap[hifzToPage];
+                                                                if (!fromPData || !toPData) return `سورة ${currentSurah?.name}`;
+                                                                
+                                                                const hifzSId = student?.currentHifzSurahId || 114;
+                                                                const hifzDirection = hifzSId <= 5 ? 'FORWARD' : 'BACKWARD';
+                                                                
+                                                                const fromSIds = Object.keys(fromPData).map(Number).sort((a,b) => hifzDirection === 'FORWARD' ? a - b : b - a);
+                                                                const toSIds = Object.keys(toPData).map(Number).sort((a,b) => hifzDirection === 'FORWARD' ? b - a : a - b);
+                                                                
+                                                                const startS = quranData.find(s => s.id === (hifzDirection === 'FORWARD' ? fromSIds[0] : fromSIds[0]))?.name;
+                                                                const endS = quranData.find(s => s.id === (hifzDirection === 'FORWARD' ? toSIds[toSIds.length - 1] : toSIds.sort((a,b)=>a-b)[0]))?.name;
+                                                                
+                                                                return `سورة ${startS}${endS && endS !== startS ? ` إلى سورة ${endS}` : ''}`;
+                                                            })()})
                                                         </h3>
                                                         <span className="text-xs font-bold text-emerald-600 bg-emerald-100 px-3 py-1 rounded-full">
                                                             صفحات السورة: {allowedPages[0]} - {allowedPages[allowedPages.length - 1]}
