@@ -296,39 +296,37 @@ export default function StudentDetailsPage() {
         }
 
         // Apply predicted values
-        const allowedPages = getSurahPages(hStartSId);
-        if (allowedPages.includes(hStartPage)) {
-            setHifzFromPage(hStartPage);
-            setHifzFromAyah(hStartAyah);
+        // Apply predicted values
+        setHifzFromPage(hStartPage);
+        setHifzFromAyah(hStartAyah);
 
-            const nextPageData = pageAyahMap[hStartPage]?.[hStartSId];
-            const nextStartAyahOfPage = (typeof nextPageData === 'object') ? nextPageData.start : 1;
-            const nextEndAyahOfPage = (typeof nextPageData === 'object') ? nextPageData.end : nextPageData;
-            const nextMidAyahOfPage = Math.floor(nextStartAyahOfPage + (nextEndAyahOfPage - nextStartAyahOfPage) / 2);
+        const nextPageData = pageAyahMap[hStartPage]?.[hStartSId];
+        const nextStartAyahOfPage = (typeof nextPageData === 'object') ? nextPageData.start : 1;
+        const nextEndAyahOfPage = (typeof nextPageData === 'object') ? nextPageData.end : nextPageData;
+        const nextMidAyahOfPage = Math.floor(nextStartAyahOfPage + (nextEndAyahOfPage - nextStartAyahOfPage) / 2);
 
-            if (target <= 0.5) {
-                setHifzToPage(hStartPage);
-                if (hStartAyah <= nextStartAyahOfPage + 1) {
-                    setHifzToAyah(nextMidAyahOfPage);
-                } else {
-                    setHifzToAyah(nextEndAyahOfPage);
-                }
+        if (target <= 0.5) {
+            setHifzToPage(hStartPage);
+            if (hStartAyah <= nextStartAyahOfPage + 1) {
+                setHifzToAyah(nextMidAyahOfPage);
             } else {
-                let potentialToPage = hStartPage + (Math.ceil(target) - 1);
-                if (potentialToPage > 604) potentialToPage = 604;
-                setHifzToPage(potentialToPage);
-                
-                let endAyahOfPage = 1;
-                const potentialPageObj = pageAyahMap[potentialToPage];
-                if (potentialPageObj) {
-                    const hDirection = (hStartSId === 1 && potentialToPage > 600) ? 'BACKWARD' : (hStartSId <= 5 ? 'FORWARD' : 'BACKWARD');
-                    const sIdsOnPage = Object.keys(potentialPageObj).map(Number).sort((a,b) => hDirection === 'FORWARD' ? a - b : b - a);
-                    const endSurahIdOnPage = hDirection === 'FORWARD' ? sIdsOnPage[sIdsOnPage.length - 1] : [...sIdsOnPage].sort((a,b)=>a-b)[0];
-                    const eData = potentialPageObj[endSurahIdOnPage];
-                    endAyahOfPage = (typeof eData === 'object' ? eData.end : eData) || 1;
-                }
-                setHifzToAyah(endAyahOfPage);
+                setHifzToAyah(nextEndAyahOfPage);
             }
+        } else {
+            let potentialToPage = hStartPage + (Math.ceil(target) - 1);
+            if (potentialToPage > 604) potentialToPage = 604;
+            setHifzToPage(potentialToPage);
+            
+            let endAyahOfPage = 1;
+            const potentialPageObj = pageAyahMap[potentialToPage];
+            if (potentialPageObj) {
+                const hDirection = (hStartSId === 1 && potentialToPage > 600) ? 'BACKWARD' : (hStartSId <= 5 ? 'FORWARD' : 'BACKWARD');
+                const sIdsOnPage = Object.keys(potentialPageObj).map(Number).sort((a,b) => hDirection === 'FORWARD' ? a - b : b - a);
+                const endSurahIdOnPage = hDirection === 'FORWARD' ? sIdsOnPage[sIdsOnPage.length - 1] : [...sIdsOnPage].sort((a,b)=>a-b)[0];
+                const eData = potentialPageObj[endSurahIdOnPage];
+                endAyahOfPage = (typeof eData === 'object' ? eData.end : eData) || 1;
+            }
+            setHifzToAyah(endAyahOfPage);
         }
 
         // 2. MURAJAAH SMART DEFAULTS (Forward only)
