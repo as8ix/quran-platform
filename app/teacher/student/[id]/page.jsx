@@ -1583,21 +1583,27 @@ export default function StudentDetailsPage() {
 
                                                                                 {/* Counters */}
                                                                                 <div className="grid grid-cols-2 gap-3 relative z-10">
-                                                                                    <div className="bg-white/70 dark:bg-slate-900/70 rounded-2xl p-3 border border-slate-100 dark:border-slate-800/50 shadow-sm backdrop-blur-sm">
-                                                                                        <label className="text-xs text-red-600 dark:text-red-400 font-black block text-center mb-2">أخطاء</label>
-                                                                                        <div className="flex items-center justify-between bg-white dark:bg-slate-800 rounded-xl overflow-hidden shadow-sm border border-red-100 dark:border-red-900/50" dir="ltr">
-                                                                                            <button type="button" onClick={() => setHifzSurahEvals(p => ({...p, [s.id]: {...evalData, errors: Math.max(0, evalData.errors - 1)}}))} className="w-10 h-9 flex items-center justify-center text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors bg-red-50/50 dark:bg-red-900/10 font-black text-lg border-r border-red-100 dark:border-red-900/50">-</button>
-                                                                                            <span className="font-black text-red-600 dark:text-red-400 text-lg w-8 text-center">{evalData.errors}</span>
-                                                                                            <button type="button" onClick={() => setHifzSurahEvals(p => ({...p, [s.id]: {...evalData, errors: evalData.errors + 1}}))} className="w-10 h-9 flex items-center justify-center text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors bg-red-50/50 dark:bg-red-900/10 font-black text-lg border-l border-red-100 dark:border-red-900/50">+</button>
-                                                                                        </div>
+                                                                                    <div className="flex flex-col bg-white/80 dark:bg-slate-800/80 p-3 rounded-2xl border border-red-100 dark:border-red-900/50 shadow-sm items-center gap-2 transition-all hover:border-red-200 dark:hover:border-red-800">
+                                                                                        <span className="text-xs font-black text-red-500">أخطاء</span>
+                                                                                        <input 
+                                                                                            type="number" 
+                                                                                            min="0"
+                                                                                            value={evalData.errors === 0 ? '' : evalData.errors}
+                                                                                            placeholder="0"
+                                                                                            onChange={e => setHifzSurahEvals(p => ({...p, [s.id]: {...evalData, errors: Math.max(0, parseInt(e.target.value) || 0)}}))}
+                                                                                            className="w-full bg-red-50 dark:bg-red-900/20 border-2 border-transparent focus:border-red-300 rounded-xl py-2 text-center font-black text-2xl text-red-700 dark:text-red-300 outline-none transition-all placeholder-red-200 dark:placeholder-red-900/50"
+                                                                                        />
                                                                                     </div>
-                                                                                    <div className="bg-white/70 dark:bg-slate-900/70 rounded-2xl p-3 border border-slate-100 dark:border-slate-800/50 shadow-sm backdrop-blur-sm">
-                                                                                        <label className="text-xs text-amber-600 dark:text-amber-400 font-black block text-center mb-2">تنبيهات</label>
-                                                                                        <div className="flex items-center justify-between bg-white dark:bg-slate-800 rounded-xl overflow-hidden shadow-sm border border-amber-100 dark:border-amber-900/50" dir="ltr">
-                                                                                            <button type="button" onClick={() => setHifzSurahEvals(p => ({...p, [s.id]: {...evalData, alerts: Math.max(0, evalData.alerts - 1)}}))} className="w-10 h-9 flex items-center justify-center text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/30 transition-colors bg-amber-50/50 dark:bg-amber-900/10 font-black text-lg border-r border-amber-100 dark:border-amber-900/50">-</button>
-                                                                                            <span className="font-black text-amber-600 dark:text-amber-400 text-lg w-8 text-center">{evalData.alerts}</span>
-                                                                                            <button type="button" onClick={() => setHifzSurahEvals(p => ({...p, [s.id]: {...evalData, alerts: evalData.alerts + 1}}))} className="w-10 h-9 flex items-center justify-center text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/30 transition-colors bg-amber-50/50 dark:bg-amber-900/10 font-black text-lg border-l border-amber-100 dark:border-amber-900/50">+</button>
-                                                                                        </div>
+                                                                                    <div className="flex flex-col bg-white/80 dark:bg-slate-800/80 p-3 rounded-2xl border border-amber-100 dark:border-amber-900/50 shadow-sm items-center gap-2 transition-all hover:border-amber-200 dark:hover:border-amber-800">
+                                                                                        <span className="text-xs font-black text-amber-600 dark:text-amber-500">تنبيهات</span>
+                                                                                        <input 
+                                                                                            type="number" 
+                                                                                            min="0"
+                                                                                            value={evalData.alerts === 0 ? '' : evalData.alerts}
+                                                                                            placeholder="0"
+                                                                                            onChange={e => setHifzSurahEvals(p => ({...p, [s.id]: {...evalData, alerts: Math.max(0, parseInt(e.target.value) || 0)}}))}
+                                                                                            className="w-full bg-amber-50 dark:bg-amber-900/20 border-2 border-transparent focus:border-amber-300 rounded-xl py-2 text-center font-black text-2xl text-amber-700 dark:text-amber-300 outline-none transition-all placeholder-amber-200 dark:placeholder-amber-900/50"
+                                                                                        />
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
