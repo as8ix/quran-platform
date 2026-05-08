@@ -75,18 +75,25 @@ const StudyPlan = ({ student, onUpdate }) => {
             let currentDate = new Date();
             currentDate.setHours(0,0,0,0);
             
-            // 1. Determine Hifz Direction
-            // If at Surah 1, direction is Forward (1 -> 604).
-            // If at Surah 114, direction is Backward (604 -> 1).
+            // 1. Determine Hifz Direction and Start Point
             let hifzSId = student.currentHifzSurahId || 114;
-            const hifzDirection = hifzSId <= 5 ? 'FORWARD' : 'BACKWARD'; // Simple heuristic
+            let hifzAyah = 1;
             
-            let hifzAyah = 1; 
+            // Handle the "Fatiha first" rule: if at Fatiha and not finished, start there.
+            // But if already finished Fatiha, and at 1, move to 114 (Nas) for backward path.
+            if (hifzSId === 1 && student.juzCount === 0) {
+                // Keep at 1 for the first day
+            } else if (hifzSId === 1 && student.juzCount > 0) {
+                hifzSId = 114; // Move to Nas
+            }
+
+            const hifzDirection = (hifzSId === 1 && student.juzCount === 0) ? 'FORWARD' : (hifzSId > 1 && hifzSId <= 5 ? 'FORWARD' : 'BACKWARD');
+            
             let hifzP = getPageOfAyah(hifzSId, hifzAyah);
             
             // 2. Murajaah Starting Point
-            // Usually starts from the opposite end of Hifz
-            let murSId = hifzDirection === 'BACKWARD' ? 2 : 114;
+            // If backward (114 -> 1), revision starts from Nas (604) and builds up.
+            let murSId = hifzDirection === 'BACKWARD' ? 114 : 1;
             let murAyah = 1;
             let murP = getPageOfAyah(murSId, murAyah);
 
@@ -140,12 +147,21 @@ const StudyPlan = ({ student, onUpdate }) => {
                                 toSurahId: endSId
                             });
                             
-                            hifzP = hifzDirection === 'FORWARD' ? targetHifzP + 1 : targetHifzP - 1;
+                            // Jump Logic: If just finished Fatiha, jump to Nas (604) for backward path
+                            if (hifzSId === 1 && hifzDirection === 'FORWARD' && targetHifzP === 1) {
+                                hifzP = 604;
+                                // Force direction to BACKWARD for the rest of the plan
+                                // We need a way to track this outside the loop if possible, 
+                                // but for now we'll rely on the heuristic in the next iteration.
+                            } else {
+                                hifzP = hifzDirection === 'FORWARD' ? targetHifzP + 1 : targetHifzP - 1;
+                            }
+
                             if ((hifzDirection === 'FORWARD' && hifzP <= 604) || (hifzDirection === 'BACKWARD' && hifzP >= 2)) {
                                 const nextPData = pageAyahMap[hifzP];
-                                const nextSIds = Object.keys(nextPData).map(Number).sort((a,b) => hifzDirection === 'FORWARD' ? a - b : b - a);
+                                const nextSIds = Object.keys(nextPData).map(Number).sort((a,b) => (hifzSId === 1 || hifzDirection === 'FORWARD') ? a - b : b - a);
                                 hifzSId = nextSIds[0];
-                                hifzAyah = (typeof nextPData[hifzSId] === 'object') ? nextPData[hifzSId].start : 1;
+                                hifzAyah = (typeof nextPData[hifzSId] === 'object') ? (hifzDirection === 'FORWARD' ? nextPData[hifzSId].start : nextPData[nextSIds[0]].end) : 1;
                             }
                         }
                     }
@@ -154,14 +170,21 @@ const StudyPlan = ({ student, onUpdate }) => {
                     // Revision only starts if the student has memorized at least 1 Juz
                     const hasMemorizedEnough = (student.juzCount >= 1);
                     if (hasMemorizedEnough || (type === 'KHATM' && student.juzCount > 0)) {
-                        let targetMurP = murP + (Math.ceil(murTarget) - 1);
-                        if (targetMurP > 604) targetMurP = 604;
+                        let targetMurP = hifzDirection === 'FORWARD' ? murP + (Math.ceil(murTarget) - 1) : murP - (Math.ceil(murTarget) - 1);
+                        
+                        if (hifzDirection === 'FORWARD') {
+                            if (targetMurP > 604) targetMurP = 604;
+                        } else {
+                            if (targetMurP < 2) targetMurP = 2; // Stop at Baqarah
+                        }
 
                         const pData = pageAyahMap[targetMurP];
                         if (pData) {
-                            const sIds = Object.keys(pData).map(Number).sort((a,b)=>b-a);
+                            const sIds = Object.keys(pData).map(Number).sort((a,b)=> hifzDirection === 'FORWARD' ? b - a : a - b);
                             const endSId = sIds[0];
-                            const endAyah = (typeof pData[endSId] === 'object') ? pData[endSId].end : pData[endSId];
+                            const endAyah = hifzDirection === 'FORWARD' ? 
+                                ((typeof pData[endSId] === 'object') ? pData[endSId].end : pData[endSId]) :
+                                ((typeof pData[endSId] === 'object') ? pData[endSId].start : 1);
 
                             newEntries.push({
                                 date: new Date(currentDate),
@@ -172,14 +195,15 @@ const StudyPlan = ({ student, onUpdate }) => {
                                 toSurahId: endSId
                             });
                             
-                            murP = targetMurP + 1;
-                            if (murP > 604) murP = 2; 
+                            murP = hifzDirection === 'FORWARD' ? targetMurP + 1 : targetMurP - 1;
+                            if (hifzDirection === 'FORWARD' && murP > 604) murP = 2; 
+                            if (hifzDirection === 'BACKWARD' && murP < 2) murP = 604;
                             
                             const nextPData = pageAyahMap[murP];
                             if (nextPData) {
-                                const nextSIds = Object.keys(nextPData).map(Number).sort((a,b)=>a-b);
+                                const nextSIds = Object.keys(nextPData).map(Number).sort((a,b)=> hifzDirection === 'FORWARD' ? a - b : b - a);
                                 murSId = nextSIds[0];
-                                murAyah = (typeof nextPData[murSId] === 'object') ? nextPData[murSId].start : 1;
+                                murAyah = (typeof nextPData[murSId] === 'object') ? (hifzDirection === 'FORWARD' ? nextPData[murSId].start : nextPData[murSId].end) : 1;
                             }
                         }
                     }
