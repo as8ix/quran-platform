@@ -252,8 +252,12 @@ export default function StudentDetailsPage() {
                 
                 if (isFinished) {
                     // Move to PREVIOUS surah in reverse hifz (114 -> 1)
-                    hStartSId = lastSurah.id - 1;
-                    if (hStartSId < 1) hStartSId = 1; // Cap at Fatiha
+                    if (lastSurah.id === 1) {
+                        hStartSId = 114;
+                    } else {
+                        hStartSId = lastSurah.id - 1;
+                        if (hStartSId < 1) hStartSId = 1; // Cap at Fatiha
+                    }
                     const nextSurah = quranData.find(s => s.id === hStartSId);
                     hStartPage = nextSurah?.startPage || 1;
                     hStartAyah = 1;
@@ -309,8 +313,17 @@ export default function StudentDetailsPage() {
                 const lastPageOfSurah = allowedPages[allowedPages.length - 1];
                 if (potentialToPage > lastPageOfSurah) potentialToPage = lastPageOfSurah;
                 setHifzToPage(potentialToPage);
-                const endPageData = pageAyahMap[potentialToPage]?.[hStartSId];
-                setHifzToAyah((typeof endPageData === 'object' ? endPageData.end : endPageData) || 1);
+                
+                let endAyahOfPage = 1;
+                const potentialPageObj = pageAyahMap[potentialToPage];
+                if (potentialPageObj) {
+                    const hDirection = (hStartSId === 1 && potentialToPage > 600) ? 'BACKWARD' : (hStartSId <= 5 ? 'FORWARD' : 'BACKWARD');
+                    const sIdsOnPage = Object.keys(potentialPageObj).map(Number).sort((a,b) => hDirection === 'FORWARD' ? a - b : b - a);
+                    const endSurahIdOnPage = hDirection === 'FORWARD' ? sIdsOnPage[sIdsOnPage.length - 1] : [...sIdsOnPage].sort((a,b)=>a-b)[0];
+                    const eData = potentialPageObj[endSurahIdOnPage];
+                    endAyahOfPage = (typeof eData === 'object' ? eData.end : eData) || 1;
+                }
+                setHifzToAyah(endAyahOfPage);
             }
         }
 
