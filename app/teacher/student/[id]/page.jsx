@@ -2169,6 +2169,39 @@ export default function StudentDetailsPage() {
                                                                         ✨ {session.hifzCleanPages || 0} نقية
                                                                     </span>
                                                                 </div>
+
+                                                                {/* Granular Surah Evaluations */}
+                                                                {(() => {
+                                                                    const evalsObj = session.hifzSurahEvaluations;
+                                                                    if (!evalsObj) return null;
+                                                                    let evals = evalsObj;
+                                                                    if (typeof evalsObj === 'string') {
+                                                                        try { evals = JSON.parse(evalsObj); } catch (e) { return null; }
+                                                                    }
+                                                                    if (Object.keys(evals).length === 0) return null;
+
+                                                                    return (
+                                                                        <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-700/50 grid grid-cols-1 md:grid-cols-2 gap-2">
+                                                                            {Object.entries(evals).map(([surahId, evalData]) => {
+                                                                                const sName = quranData.find(s => s.id === parseInt(surahId))?.name || `سورة ${surahId}`;
+                                                                                return (
+                                                                                    <div key={surahId} className="flex items-center justify-between bg-white dark:bg-slate-800 p-2 rounded-xl border border-slate-100 dark:border-slate-700/50 shadow-sm">
+                                                                                        <span className="text-xs font-bold text-slate-700 dark:text-slate-300">سورة {sName}</span>
+                                                                                        <div className="flex items-center gap-2">
+                                                                                            <div className="flex gap-1 text-[10px] ml-1">
+                                                                                                {evalData.errors > 0 && <span className="bg-red-50 text-red-600 px-1.5 rounded font-bold">{evalData.errors}خ</span>}
+                                                                                                {evalData.alerts > 0 && <span className="bg-orange-50 text-orange-600 px-1.5 rounded font-bold">{evalData.alerts}ت</span>}
+                                                                                            </div>
+                                                                                            {evalData.status === 'PERFECT' && <span className="bg-emerald-100 text-emerald-700 text-[10px] px-2 py-0.5 rounded-md font-bold">✔️ متقن</span>}
+                                                                                            {evalData.status === 'REVIEW' && <span className="bg-amber-100 text-amber-700 text-[10px] px-2 py-0.5 rounded-md font-bold">⚠️ وسط</span>}
+                                                                                            {evalData.status === 'FAILED' && <span className="bg-red-100 text-red-700 text-[10px] px-2 py-0.5 rounded-md font-bold">❌ إعادة</span>}
+                                                                                        </div>
+                                                                                    </div>
+                                                                                );
+                                                                            })}
+                                                                        </div>
+                                                                    );
+                                                                })()}
                                                             </div>
                                                         )}
 
