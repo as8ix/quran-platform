@@ -67,7 +67,6 @@ const StudyPlan = ({ student, onUpdate }) => {
 
     const generatePlan = async (type = 'KHATM') => {
         console.log('Generating plan for student:', student?.name, 'ID:', student?.id);
-        console.log('Current Hifz Surah:', student?.currentHifzSurahId, 'Target:', student?.dailyTargetPages);
         
         setGenerating(true);
         try {
@@ -75,14 +74,20 @@ const StudyPlan = ({ student, onUpdate }) => {
             let currentDate = new Date();
             currentDate.setHours(0,0,0,0);
             
-            // Starting Points
+            // 1. Determine Hifz Direction
+            // If at Surah 1, direction is Forward (1 -> 604).
+            // If at Surah 114, direction is Backward (604 -> 1).
             let hifzSId = student.currentHifzSurahId || 114;
+            const hifzDirection = hifzSId <= 5 ? 'FORWARD' : 'BACKWARD'; // Simple heuristic
+            
             let hifzAyah = 1; 
             let hifzP = getPageOfAyah(hifzSId, hifzAyah);
             
-            let murSId = 2; // Baqarah
+            // 2. Murajaah Starting Point
+            // Usually starts from the opposite end of Hifz
+            let murSId = hifzDirection === 'BACKWARD' ? 2 : 114;
             let murAyah = 1;
-            let murP = 2;
+            let murP = getPageOfAyah(murSId, murAyah);
 
             const hifzTarget = parseFloat(student.dailyTargetPages) || 1;
             
@@ -97,7 +102,7 @@ const StudyPlan = ({ student, onUpdate }) => {
             else if (plan === 'صفحتين') murTarget = 2;
             else if (!isNaN(parseFloat(plan))) murTarget = parseFloat(plan) * 20;
 
-            console.log('Starting coordinates - Hifz Page:', hifzP, 'Murajaah Page:', murP);
+            console.log('Direction:', hifzDirection, 'HifzP:', hifzP, 'MurTarget:', murTarget);
 
             const maxDays = type === 'MONTH' ? 30 : type === 'TERM' ? 90 : 400;
             let daysCount = 0;
@@ -107,14 +112,21 @@ const StudyPlan = ({ student, onUpdate }) => {
                 const isWorkDay = day >= 0 && day <= 4; // Sun to Thu
 
                 if (isWorkDay) {
-                    // 1. HIFZ Entry (Nas -> Baqarah: Pages 604 -> 2)
-                    if (hifzP >= 2) { 
-                        let targetHifzP = hifzP - (Math.ceil(hifzTarget) - 1);
-                        if (targetHifzP < 2) targetHifzP = 2;
+                    // --- HIFZ GENERATION ---
+                    const canHifz = hifzDirection === 'FORWARD' ? hifzP <= 604 : hifzP >= 2;
+                    if (canHifz) {
+                        let targetHifzP;
+                        if (hifzDirection === 'FORWARD') {
+                            targetHifzP = hifzP + (Math.ceil(hifzTarget) - 1);
+                            if (targetHifzP > 604) targetHifzP = 604;
+                        } else {
+                            targetHifzP = hifzP - (Math.ceil(hifzTarget) - 1);
+                            if (targetHifzP < 2) targetHifzP = 2;
+                        }
 
                         const pData = pageAyahMap[targetHifzP];
                         if (pData) {
-                            const sIds = Object.keys(pData).map(Number).sort((a,b)=>a-b);
+                            const sIds = Object.keys(pData).map(Number).sort((a,b) => hifzDirection === 'FORWARD' ? b - a : a - b);
                             const endSId = sIds[0];
                             const endAyah = (typeof pData[endSId] === 'object') ? pData[endSId].end : pData[endSId];
 
@@ -127,18 +139,19 @@ const StudyPlan = ({ student, onUpdate }) => {
                                 toSurahId: endSId
                             });
                             
-                            hifzP = targetHifzP - 1;
-                            if (hifzP >= 2) {
+                            hifzP = hifzDirection === 'FORWARD' ? targetHifzP + 1 : targetHifzP - 1;
+                            if ((hifzDirection === 'FORWARD' && hifzP <= 604) || (hifzDirection === 'BACKWARD' && hifzP >= 2)) {
                                 const nextPData = pageAyahMap[hifzP];
-                                const nextSIds = Object.keys(nextPData).map(Number).sort((a,b)=>b-a);
+                                const nextSIds = Object.keys(nextPData).map(Number).sort((a,b) => hifzDirection === 'FORWARD' ? a - b : b - a);
                                 hifzSId = nextSIds[0];
                                 hifzAyah = (typeof nextPData[hifzSId] === 'object') ? nextPData[hifzSId].start : 1;
                             }
                         }
                     }
 
-                    // 2. MURAJAAH Entry (Baqarah -> Nas: Pages 2 -> 604)
-                    if (murP <= 604) {
+                    // --- MURAJAAH GENERATION ---
+                    // Only generate if student has at least 1 Juz memorized or is in Khatm mode
+                    if (student.juzCount > 0 || type === 'KHATM') {
                         let targetMurP = murP + (Math.ceil(murTarget) - 1);
                         if (targetMurP > 604) targetMurP = 604;
 
@@ -172,7 +185,9 @@ const StudyPlan = ({ student, onUpdate }) => {
 
                 currentDate.setDate(currentDate.getDate() + 1);
                 daysCount++;
-                if (hifzP < 2 && type === 'KHATM') break; 
+                
+                const hifzFinished = hifzDirection === 'FORWARD' ? hifzP > 604 : hifzP < 2;
+                if (hifzFinished && type === 'KHATM') break; 
             }
 
             console.log('Final entries count:', newEntries.length);
