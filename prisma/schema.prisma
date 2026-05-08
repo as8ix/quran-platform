@@ -1,6 +1,6 @@
 generator client {
   provider   = "prisma-client-js"
-  engineType = "library"
+  engineType = "binary"
 }
 
 datasource db {
@@ -198,6 +198,7 @@ model StudyPlanEntry {
   surahId      Int
   fromAyah     Int
   toAyah       Int
+  toSurahId    Int?
   isCompleted  Boolean  @default(false)
   actualDate   DateTime?
   sessionId    Int?

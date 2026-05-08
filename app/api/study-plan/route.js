@@ -23,8 +23,12 @@ export async function POST(request) {
     try {
         const body = await request.json();
         const { studentId, entries } = body;
+        console.log('API: Saving plan for student:', studentId, 'Entries count:', entries?.length);
 
-        if (!studentId || !entries) return NextResponse.json({ error: 'Missing data' }, { status: 400 });
+        if (!studentId || !entries) {
+            console.error('API: Missing data');
+            return NextResponse.json({ error: 'Missing data' }, { status: 400 });
+        }
 
         // Delete existing plan first
         await prisma.studyPlanEntry.deleteMany({
@@ -32,23 +36,44 @@ export async function POST(request) {
         });
 
         // Create new entries
-        const created = await prisma.studyPlanEntry.createMany({
-            data: entries.map(e => ({
-                studentId: parseInt(studentId),
+        const mappedEntries = entries.map(e => {
+            const sId = parseInt(e.surahId);
+            const fA = parseInt(e.fromAyah);
+            const tA = parseInt(e.toAyah);
+            const tsId = e.toSurahId ? parseInt(e.toSurahId) : sId;
+            const sIdNum = parseInt(studentId);
+
+            if (isNaN(sId) || isNaN(fA) || isNaN(tA) || isNaN(sIdNum)) {
+                console.error('API: Invalid numeric data in entry:', e);
+                return null;
+            }
+
+            return {
+                studentId: sIdNum,
                 date: new Date(e.date),
                 type: e.type,
-                surahId: e.surahId,
-                fromAyah: e.fromAyah,
-                toAyah: e.toAyah,
+                surahId: sId,
+                fromAyah: fA,
+                toAyah: tA,
+                toSurahId: tsId,
                 isCompleted: e.isCompleted || false,
                 actualDate: e.actualDate ? new Date(e.actualDate) : null,
                 sessionId: e.sessionId || null
-            }))
+            };
+        }).filter(e => e !== null && !isNaN(e.date.getTime()));
+
+        if (mappedEntries.length === 0) {
+            return NextResponse.json({ error: 'No valid entries to save' }, { status: 400 });
+        }
+
+        const created = await prisma.studyPlanEntry.createMany({
+            data: mappedEntries
         });
 
         return NextResponse.json({ success: true, count: created.count });
     } catch (error) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        console.error('API Error in POST /api/study-plan:', error);
+        return NextResponse.json({ error: error.message, stack: error.stack }, { status: 500 });
     }
 }
 

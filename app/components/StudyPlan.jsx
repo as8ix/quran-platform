@@ -13,6 +13,7 @@ const StudyPlan = ({ student, onUpdate }) => {
 
     useEffect(() => {
         if (student) {
+            console.log('StudyPlan Component - Current Student Data:', student);
             fetchPlan();
         }
     }, [student]);
