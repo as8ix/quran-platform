@@ -107,7 +107,12 @@ export async function POST(request) {
                     });
                 } else {
                     // Normal upward progression (descending order 114 -> 3)
-                    nextSurahId = (currentSurahId || 114) - 1;
+                    let lastFinishedSId = currentSurahId;
+                    if (hifzToSurah) {
+                        const toS = quranData.find(s => s.name === hifzToSurah);
+                        if (toS) lastFinishedSId = toS.id;
+                    }
+                    nextSurahId = (lastFinishedSId || 114) - 1;
                 }
 
                 if (nextSurahId) {
