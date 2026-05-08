@@ -1052,7 +1052,14 @@ export default function StudentDetailsPage() {
     };
 
     const currentSurah = quranData.find(s => s.id === (student?.currentHifzSurahId || 114));
-    const allowedPages = getSurahPages(currentSurah?.id || 114);
+    const allowedPages = (() => {
+        const basePages = getSurahPages(currentSurah?.id || 114);
+        // If beginner at Fatiha, also allow jumping to An-Nas (604)
+        if (currentSurah?.id === 1 && student?.juzCount === 0) {
+            return [...new Set([...basePages, 604])].sort((a,b)=>a-b);
+        }
+        return basePages;
+    })();
 
     // Check if student is Khatim (completed the Quran)
     // Khatim = completed 30 Juz + Fatiha (marked as 31)
@@ -1395,18 +1402,22 @@ export default function StudentDetailsPage() {
                                                                 }
                                                                 const fromPData = pageAyahMap[hifzFromPage];
                                                                 const toPData = pageAyahMap[hifzToPage];
-                                                                if (!fromPData || !toPData) return `سورة ${currentSurah?.name}`;
                                                                 
                                                                 const hifzSId = student?.currentHifzSurahId || 114;
                                                                 const isStartingFatiha = hifzSId === 1 && student?.juzCount === 0;
                                                                 // Direction is BACKWARD if we are starting from 114 range, even if student is at 1 (beginner)
                                                                 const hifzDirection = (isStartingFatiha && hifzFromPage > 600) ? 'BACKWARD' : (hifzSId <= 5 ? 'FORWARD' : 'BACKWARD');
+
+                                                                if (!fromPData || !toPData) return `سورة ${currentSurah?.name}`;
                                                                 
                                                                 const fromSIds = Object.keys(fromPData).map(Number).sort((a,b) => hifzDirection === 'FORWARD' ? a - b : b - a);
                                                                 const toSIds = Object.keys(toPData).map(Number).sort((a,b) => hifzDirection === 'FORWARD' ? a - b : b - a);
                                                                 
-                                                                const startS = quranData.find(s => s.id === (hifzDirection === 'FORWARD' ? fromSIds[0] : fromSIds.sort((a,b)=>b-a)[0]))?.name;
-                                                                const endS = quranData.find(s => s.id === (hifzDirection === 'FORWARD' ? toSIds[toSIds.length - 1] : toSIds.sort((a,b)=>a-b)[0]))?.name;
+                                                                const startSId = hifzDirection === 'FORWARD' ? fromSIds[0] : fromSIds.sort((a,b)=>b-a)[0];
+                                                                const endSId = hifzDirection === 'FORWARD' ? toSIds[toSIds.length - 1] : toSIds.sort((a,b)=>a-b)[0];
+
+                                                                const startS = quranData.find(s => s.id === startSId)?.name;
+                                                                const endS = quranData.find(s => s.id === endSId)?.name;
                                                                 
                                                                 return `سورة ${startS}${endS && endS !== startS ? ` إلى سورة ${endS}` : ''}`;
                                                             })()})
