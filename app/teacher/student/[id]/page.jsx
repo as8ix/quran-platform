@@ -1434,34 +1434,34 @@ export default function StudentDetailsPage() {
                                             );
 
                                             const computedHifzRange = (() => {
-                                                let startSId = student?.currentHifzSurahId || 114;
-                                                let endSId = startSId;
-                                                const hifzDirection = (startSId === 1 && hifzFromPage > 600) ? 'BACKWARD' : (startSId <= 5 ? 'FORWARD' : 'BACKWARD');
+                                                // Use explicit surah IDs set by applySmartDefaults/page-change handlers
+                                                // Fall back to ayah-based lookup only when the explicit IDs are not set
+                                                let startSId = hifzFromSId || student?.currentHifzSurahId || 114;
+                                                let endSId = hifzToSId || startSId;
 
-                                                const getSurahIdForPageAyah = (page, ayah, isEnd = false) => {
-                                                    const pData = pageAyahMap[page];
-                                                    if (!pData) return null;
-                                                    const sIds = Object.keys(pData).map(Number).sort((a,b) => hifzDirection === 'FORWARD' ? a - b : b - a);
-                                                    
-                                                    for (const sId of sIds) {
-                                                        const range = pData[sId];
-                                                        const start = typeof range === 'object' ? range.start : 1;
-                                                        const end = typeof range === 'object' ? range.end : range;
-                                                        if (ayah >= start && ayah <= end) {
-                                                            return sId;
+                                                // If explicit IDs are not set yet, try to derive from page+ayah
+                                                if (!hifzFromSId && hifzFromPage && hifzFromAyah) {
+                                                    const pData = pageAyahMap[hifzFromPage];
+                                                    if (pData) {
+                                                        for (const [sid, range] of Object.entries(pData)) {
+                                                            const s = typeof range === 'object' ? range.start : 1;
+                                                            const e = typeof range === 'object' ? range.end : range;
+                                                            if (hifzFromAyah >= s && hifzFromAyah <= e) { startSId = Number(sid); break; }
                                                         }
                                                     }
-                                                    return isEnd ? 
-                                                        (hifzDirection === 'FORWARD' ? sIds[sIds.length - 1] : [...sIds].sort((a,b)=>a-b)[0]) 
-                                                        : sIds[0];
-                                                };
+                                                }
+                                                if (!hifzToSId && hifzToPage && hifzToAyah) {
+                                                    const pData = pageAyahMap[hifzToPage];
+                                                    if (pData) {
+                                                        for (const [sid, range] of Object.entries(pData)) {
+                                                            const s = typeof range === 'object' ? range.start : 1;
+                                                            const e = typeof range === 'object' ? range.end : range;
+                                                            if (hifzToAyah >= s && hifzToAyah <= e) { endSId = Number(sid); break; }
+                                                        }
+                                                    }
+                                                }
 
-                                                const exactStart = getSurahIdForPageAyah(hifzFromPage, hifzFromAyah);
-                                                if (exactStart) startSId = exactStart;
-
-                                                const exactEnd = getSurahIdForPageAyah(hifzToPage, hifzToAyah, true);
-                                                if (exactEnd) endSId = exactEnd;
-
+                                                const hifzDirection = 'BACKWARD'; // Hifz always goes backward (114->1)
                                                 return { startSId, endSId, hifzDirection };
                                             })();
 
@@ -1503,7 +1503,7 @@ export default function StudentDetailsPage() {
                                                         <div>
                                                             <label className="block text-xs font-bold text-emerald-600 mb-2 mr-2">من الصفحة</label>
                                                             <div className="flex gap-2">
-                                                                <select value={hifzFromPage} onChange={e => { const p = parseInt(e.target.value); setHifzFromPage(p); if (pageAyahMap && pageAyahMap[p] && currentSurah) { const pageData = pageAyahMap[p][currentSurah.id]; if (pageData && pageData.start) setHifzFromAyah(pageData.start); } }} className="w-2/3 px-4 py-4 premium-glass border-2 border-transparent focus:border-emerald-500 rounded-2xl outline-none transition-all font-bold text-lg dark:text-white" > 
+                                                                <select value={hifzFromPage} onChange={e => { const p = parseInt(e.target.value); setHifzFromPage(p); const pData = pageAyahMap[p]; if (pData) { const sIds = Object.keys(pData).map(Number).sort((a,b)=>b-a); const firstSId = sIds[0]; setHifzFromSId(firstSId); const d = pData[firstSId]; setHifzFromAyah(typeof d === 'object' ? d.start : 1); } }} className="w-2/3 px-4 py-4 premium-glass border-2 border-transparent focus:border-emerald-500 rounded-2xl outline-none transition-all font-bold text-lg dark:text-white" > 
                                                                     {Array.from({length: 604}, (_, i) => i + 1).map(p => <option key={p} value={p} className="text-slate-900 dark:text-white dark:bg-slate-900">صفحة {p}</option>)} 
                                                                 </select>
                                                                 <div className="w-1/3 relative"><span className="absolute -top-6 right-0 text-[10px] text-emerald-400 font-bold">آية</span><input type="number" value={hifzFromAyah} min="1" max={quranData.find(s => s.id === computedHifzRange.startSId)?.ayahs || 286} onFocus={() => hifzFromAyah === 1 && setHifzFromAyah('')} onBlur={() => hifzFromAyah === '' && setHifzFromAyah(1)} onChange={e => { const val = e.target.value; if (val === '') setHifzFromAyah(''); else { const parsed = parseInt(val); const max = quranData.find(s => s.id === computedHifzRange.startSId)?.ayahs || 286; if (parsed > max) setHifzFromAyah(max); else setHifzFromAyah(parsed); } }} className="w-full px-4 py-4 premium-glass border-2 border-transparent focus:border-emerald-500 rounded-2xl outline-none font-bold text-center dark:text-white" placeholder="آية" /></div>
@@ -1512,7 +1512,7 @@ export default function StudentDetailsPage() {
                                                         <div>
                                                             <label className="block text-xs font-bold text-emerald-600 mb-2 mr-2">إلى الصفحة</label>
                                                             <div className="flex gap-2">
-                                                                <select value={hifzToPage} onChange={e => { const p = parseInt(e.target.value); setHifzToPage(p); if (pageAyahMap && pageAyahMap[p] && currentSurah) { const pageData = pageAyahMap[p][currentSurah.id]; if (pageData) { const endAyah = (typeof pageData === 'object') ? pageData.end : pageData; if (endAyah) setHifzToAyah(endAyah); } } }} className="w-2/3 px-4 py-4 premium-glass border-2 border-transparent focus:border-emerald-500 rounded-2xl outline-none transition-all font-bold text-lg dark:text-white" > 
+                                                                <select value={hifzToPage} onChange={e => { const p = parseInt(e.target.value); setHifzToPage(p); const pData = pageAyahMap[p]; if (pData) { const sIds = Object.keys(pData).map(Number).sort((a,b)=>a-b); const lastSId = sIds[0]; setHifzToSId(lastSId); const d = pData[lastSId]; setHifzToAyah(typeof d === 'object' ? d.end : d || 1); } }} className="w-2/3 px-4 py-4 premium-glass border-2 border-transparent focus:border-emerald-500 rounded-2xl outline-none transition-all font-bold text-lg dark:text-white" > 
                                                                     {Array.from({length: 604}, (_, i) => i + 1).map(p => <option key={p} value={p} className="text-slate-900 dark:text-white dark:bg-slate-900">صفحة {p}</option>)} 
                                                                 </select>
                                                                 <div className="w-1/3 relative"><span className="absolute -top-6 right-0 text-[10px] text-emerald-400 font-bold">آية</span><input type="number" value={hifzToAyah} min="1" max={quranData.find(s => s.id === computedHifzRange.endSId)?.ayahs || 286} onFocus={() => hifzToAyah === 1 && setHifzToAyah('')} onBlur={() => hifzToAyah === '' && setHifzToAyah(1)} onChange={e => { const val = e.target.value; if (val === '') setHifzToAyah(''); else { const parsed = parseInt(val); const max = quranData.find(s => s.id === computedHifzRange.endSId)?.ayahs || 286; if (parsed > max) setHifzToAyah(max); else setHifzToAyah(parsed); } }} className="w-full px-4 py-4 premium-glass border-2 border-transparent focus:border-emerald-500 rounded-2xl outline-none font-bold text-center dark:text-white" placeholder="آية" /></div>
