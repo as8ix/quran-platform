@@ -101,6 +101,7 @@ export default function TeacherDashboard() {
     const [loading, setLoading] = useState(true);
     const [isInitialLoading, setIsInitialLoading] = useState(true);
     const [students, setStudents] = useState([]);
+    const [totalCounts, setTotalCounts] = useState({ regular: 0, event: 0 });
 
     const [user, setUser] = useState(null);
     const [teacherHalaqas, setTeacherHalaqas] = useState([]);
@@ -159,6 +160,13 @@ export default function TeacherDashboard() {
             const response = await fetch(url);
             const data = await response.json();
             setStudents(data);
+
+            // Update total counts only if we are viewing 'all' (initial or reset state)
+            if (juzFilter === 'all') {
+                const regular = data.filter(s => !s.isInActiveEvent).length;
+                const event = data.filter(s => s.isInActiveEvent).length;
+                setTotalCounts({ regular, event });
+            }
         } catch (error) {
             console.error("Error fetching students:", error);
         } finally {
@@ -209,9 +217,9 @@ export default function TeacherDashboard() {
                             مرحباً بك، <span className="text-emerald-600 dark:text-emerald-500">يا {user ? getFirstName(user.name) : 'أستاذ'}!</span>
                         </h1>
                         <p className="text-slate-500 dark:text-slate-400 mt-2 text-lg">
-                            لديك {students.filter(s => !s.isInActiveEvent).length} طالب في حلقتك
-                            {students.some(s => s.isInActiveEvent) && (
-                                <span className="text-amber-600 dark:text-amber-500 font-black"> + {students.filter(s => s.isInActiveEvent).length} مشارك (اليوم القرآني)</span>
+                            لديك {totalCounts.regular} طالب في حلقتك
+                            {totalCounts.event > 0 && (
+                                <span className="text-amber-600 dark:text-amber-500 font-black"> + {totalCounts.event} مشارك (اليوم القرآني)</span>
                             )}
                         </p>
                     </div>
