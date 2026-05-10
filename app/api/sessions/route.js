@@ -1,6 +1,7 @@
 import { prisma } from '../../lib/prisma';
 import { NextResponse } from 'next/server';
 import { quranData } from '@/app/data/quranData';
+// Refresh trigger for Prisma Client update
 
 export async function GET(request) {
     try {
@@ -70,42 +71,50 @@ export async function POST(request) {
                 minorAlertsCount: parseInt(minorAlertsCount) || 0,
                 minorCleanPagesCount: parseFloat(minorCleanPagesCount) || 0,
                 isGoalAchieved: body.isGoalAchieved || false,
+                isFinishedSurah: isFinishedSurah || false,
                 quranicEventId: quranicEventId ? parseInt(quranicEventId) : null,
                 date: body.sessionDate ? new Date(body.sessionDate) : new Date()
             }
         });
 
-        /* EXAMS FEATURE DISABLED
-        if (isFinishedSurah) {
-             const student = await prisma.student.findUnique({ where: { id: parseInt(studentId) } });
-            // ... Exam logic commented out ...
-        }
-        */
-
-        // MOVED UPDATE LOGIC OUTSIDE OF COMMENTED EXAM BLOCK
         console.log("Session created. isFinishedSurah:", isFinishedSurah);
 
+        // 1. ALWAYS Update Progress to the last recorded ToSurah/ToAyah
+        const hifzToSurahIdNum = hifzSurah ? quranData.find(s => s.name === hifzSurah.replace('سورة ', '').trim())?.id : null;
+        
+        if (hifzToSurahIdNum) {
+            await prisma.student.update({
+                where: { id: parseInt(studentId) },
+                data: {
+                    currentHifzSurahId: hifzToSurahIdNum,
+                    currentHifzAyah: hifzToAyah ? parseInt(hifzToAyah) : 1,
+                }
+            });
+        }
+
+        // 2. Handle Surah Completion Logic
         if (isFinishedSurah) {
             const student = await prisma.student.findUnique({ where: { id: parseInt(studentId) } });
             if (student) {
-                // Determine Next Surah
-                let currentSurahId = student.currentHifzSurahId;
+                const currentSurahId = Number(student.currentHifzSurahId);
                 let nextSurahId = null;
 
                 if (currentSurahId === 1) {
-                    // Finished Fatiha (1) -> Start from An-Nas (114)
+                    // Finished Fatiha, wrap to Nas (114)
                     nextSurahId = 114;
                 } else if (currentSurahId === 2) {
-                    // Finished Baqarah (2) -> KHATIM
+                    // Finished Baqarah -> KHATIM (Stop here)
                     await prisma.student.update({
                         where: { id: parseInt(studentId) },
                         data: {
-                            juzCount: 30, 
-                            hifzProgress: "خاتم للقرآن الكريم"
+                            juzCount: 30,
+                            hifzProgress: "خاتم للقرآن الكريم",
+                            currentHifzSurahId: 2,
+                            currentHifzAyah: 286 // Baqarah has 286 ayahs
                         }
                     });
                 } else {
-                    // Normal upward progression (descending order 114 -> 3)
+                    // Move to previous surah in reverse order
                     nextSurahId = (currentSurahId || 114) - 1;
                 }
 
@@ -116,6 +125,7 @@ export async function POST(request) {
                             where: { id: parseInt(studentId) },
                             data: {
                                 currentHifzSurahId: nextSurahId,
+                                currentHifzAyah: 1,
                                 hifzProgress: nextSurah.name
                             }
                         });
@@ -165,6 +175,7 @@ export async function PUT(request) {
         if (fields.minorAlertsCount !== undefined)         updateData.minorAlertsCount = parseInt(fields.minorAlertsCount) || 0;
         if (fields.minorCleanPagesCount !== undefined)     updateData.minorCleanPagesCount = parseFloat(fields.minorCleanPagesCount) || 0;
         if (fields.isGoalAchieved !== undefined)           updateData.isGoalAchieved = fields.isGoalAchieved;
+        if (fields.isFinishedSurah !== undefined)          updateData.isFinishedSurah = fields.isFinishedSurah;
         if (fields.quranicEventId !== undefined)           updateData.quranicEventId = fields.quranicEventId ? parseInt(fields.quranicEventId) : null;
 
         const updated = await prisma.session.update({
@@ -182,10 +193,30 @@ export async function PUT(request) {
 export async function DELETE(request) {
     try {
         const { searchParams } = new URL(request.url);
-        const id = searchParams.get('id');
-        if (!id) return NextResponse.json({ error: 'Missing session id' }, { status: 400 });
+        const idStr = searchParams.get('id');
+        if (!idStr) return NextResponse.json({ error: 'Missing session id' }, { status: 400 });
+        
+        const id = parseInt(idStr);
+        console.log('Attempting to delete session:', id);
 
-        await prisma.session.delete({ where: { id: parseInt(id) } });
+        // 1. Nullify any references in StudyPlanEntry to avoid potential constraints or logical orphans
+        await prisma.studyPlanEntry.updateMany({
+            where: { sessionId: id },
+            data: { sessionId: null }
+        });
+
+        // 2. Delete the session (using deleteMany to avoid 404/P2025 error if already deleted)
+        const result = await prisma.session.deleteMany({
+            where: { id: id }
+        });
+
+        console.log('Session delete result:', result);
+
+        if (result.count === 0) {
+            // Already deleted or never existed, but we return success to the UI to stay in sync
+            return NextResponse.json({ success: true, message: 'Already deleted' });
+        }
+
         return NextResponse.json({ success: true });
     } catch (error) {
         console.error('Session Delete Error:', error);

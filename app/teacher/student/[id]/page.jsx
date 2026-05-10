@@ -7,6 +7,7 @@ import Navbar from '../../../components/Navbar';
 import LoadingScreen from '../../../components/LoadingScreen';
 import { quranData } from '../../../data/quranData';
 import { pageAyahMap } from '../../../data/pageAyahMap';
+import { exactAyahMap } from '../../../data/exactAyahMap';
 import { formatHijri } from '../../../utils/dateUtils';
 
 import AddStudentModal from '../../../components/AddStudentModal';
@@ -42,6 +43,8 @@ export default function StudentDetailsPage() {
     const [hifzToPage, setHifzToPage] = useState('');
     const [hifzFromAyah, setHifzFromAyah] = useState(1);
     const [hifzToAyah, setHifzToAyah] = useState(1);
+    const [hifzFromSurahId, setHifzFromSurahId] = useState(null);
+    const [hifzToSurahId, setHifzToSurahId] = useState(null);
 
     // Form State - Murajaah
     const [murajaahType, setMurajaahType] = useState('MAJOR'); // 'MAJOR', 'MINOR', 'BOTH'
@@ -70,11 +73,14 @@ export default function StudentDetailsPage() {
     const [minorAlerts, setMinorAlerts] = useState(0); // For Minor Murajaah
     const [minorCleanPages, setMinorCleanPages] = useState(0); // For Minor Murajaah
 
+    const [pagesCount, setPagesCount] = useState(0);
+    const [minorPagesCount, setMinorPagesCount] = useState(0);
+
     const [showEditModal, setShowEditModal] = useState(false);
     const [deleting, setDeleting] = useState(false);
     const [activeEvent, setActiveEvent] = useState(null);
     const [isQuranicDaySession, setIsQuranicDaySession] = useState(false);
-    const [sessionType, setSessionType] = useState(null); // 'HIFZ', 'MURAJAAH', 'BOTH'
+    const [sessionType, setSessionType] = useState('HIFZ'); // Default to HIFZ instead of null
     const [showTypeModal, setShowTypeModal] = useState(false);
     const [isSessionActive, setIsSessionActive] = useState(false);
     const [showCancelModal, setShowCancelModal] = useState(false);
@@ -112,9 +118,11 @@ export default function StudentDetailsPage() {
             setUser(JSON.parse(storedUser));
         }
         if (!studentId) return;
-        fetchStudent();
-        fetchHistory();
-        fetchActiveEvent();
+        Promise.all([
+            fetchStudent(),
+            fetchHistory(),
+            fetchActiveEvent()
+        ]);
     }, [studentId]);
 
     // Exam State
@@ -257,17 +265,18 @@ export default function StudentDetailsPage() {
                     const nextSurah = quranData.find(s => s.id === hStartSId);
                     hStartPage = nextSurah?.startPage || 1;
                     hStartAyah = 1;
+                    console.log('Surah finished, moving to:', nextSurah?.name, 'Page:', hStartPage);
                 } else {
                     // Stay in same surah, move to next page/ayah
                     hStartSId = lastSurah.id;
                     const lastToPage = Number(latestH.hifzToPage);
                     const lastToAyah = Number(latestH.hifzToAyah);
-                    const pageData = pageAyahMap[lastToPage]?.[hStartSId];
+                    const pageData = pageAyahMap[lastToPage]?.[String(hStartSId)];
                     const endAyahOfPage = (typeof pageData === 'object') ? pageData.end : pageData;
 
                     if (lastToAyah >= endAyahOfPage) {
                         hStartPage = lastToPage + 1;
-                        const nextPData = pageAyahMap[hStartPage]?.[hStartSId];
+                        const nextPData = pageAyahMap[hStartPage]?.[String(hStartSId)];
                         hStartAyah = (typeof nextPData === 'object') ? nextPData.start : 1;
                     } else {
                         hStartPage = lastToPage;
@@ -281,8 +290,11 @@ export default function StudentDetailsPage() {
             // Use profile defaults
             const surah = quranData.find(s => s.id === hStartSId);
             if (surah) {
-                hStartPage = surah.startPage;
-                hStartAyah = 1;
+                const ay = student.currentHifzAyah || 1;
+                hStartAyah = ay;
+                // Determine page for this ayah
+                const aData = exactAyahMap[hStartSId]?.[ay];
+                hStartPage = aData?.p || surah.startPage;
             }
         }
 
@@ -291,26 +303,35 @@ export default function StudentDetailsPage() {
         if (allowedPages.includes(hStartPage)) {
             setHifzFromPage(hStartPage);
             setHifzFromAyah(hStartAyah);
+            setHifzFromSurahId(hStartSId);
+            setHifzToSurahId(hStartSId);
 
-            const nextPageData = pageAyahMap[hStartPage]?.[hStartSId];
+            const nextPageData = pageAyahMap[hStartPage]?.[String(hStartSId)];
             const nextStartAyahOfPage = (typeof nextPageData === 'object') ? nextPageData.start : 1;
-            const nextEndAyahOfPage = (typeof nextPageData === 'object') ? nextPageData.end : nextPageData;
+            const nextEndAyahOfPage = (typeof nextPageData === 'object' ? nextPageData.end : nextPageData) || 1;
             const nextMidAyahOfPage = Math.floor(nextStartAyahOfPage + (nextEndAyahOfPage - nextStartAyahOfPage) / 2);
 
-            if (target <= 0.5) {
+            if (hStartSId === 114) {
+                // Special case for An-Nas: Default to entire surah (1-6)
                 setHifzToPage(hStartPage);
-                if (hStartAyah <= nextStartAyahOfPage + 1) {
-                    setHifzToAyah(nextMidAyahOfPage);
+                setHifzToAyah(6);
+            } else if (target <= 0.5) {
+                setHifzToPage(hStartPage);
+                const startA = getPageStartAyah(hStartPage, hStartSId);
+                const endA = getPageEndAyah(hStartPage, hStartSId);
+                const midA = Math.floor(startA + (endA - startA) / 2);
+                if (hStartAyah <= startA + 1) {
+                    setHifzToAyah(midA);
                 } else {
-                    setHifzToAyah(nextEndAyahOfPage);
+                    setHifzToAyah(endA);
                 }
             } else {
                 let potentialToPage = hStartPage + (Math.ceil(target) - 1);
                 const lastPageOfSurah = allowedPages[allowedPages.length - 1];
                 if (potentialToPage > lastPageOfSurah) potentialToPage = lastPageOfSurah;
+                
                 setHifzToPage(potentialToPage);
-                const endPageData = pageAyahMap[potentialToPage]?.[hStartSId];
-                setHifzToAyah((typeof endPageData === 'object' ? endPageData.end : endPageData) || 1);
+                setHifzToAyah(getPageEndAyah(potentialToPage, hStartSId));
             }
         }
 
@@ -415,7 +436,7 @@ export default function StudentDetailsPage() {
         // If not, it means the current surah ended on the previous page
         if (pageAyahMap && pageAyahMap[endPage]) {
             // Does this page contain ayahs for the CURRENT surah?
-            if (!pageAyahMap[endPage][surahId]) {
+            if (!pageAyahMap[endPage][String(surahId)]) {
                 // If not, reduce endPage by 1
                 endPage = endPage - 1;
             }
@@ -424,6 +445,25 @@ export default function StudentDetailsPage() {
         const pages = [];
         for (let i = surah.startPage; i <= endPage; i++) pages.push(i);
         return pages;
+    };
+
+    // Helper: Get the end ayah of a specific surah on a specific page
+    const getPageEndAyah = (pageNum, surahId) => {
+        if (!pageAyahMap || !pageAyahMap[String(pageNum)]) return 1;
+        const pageData = pageAyahMap[String(pageNum)][String(surahId)];
+        if (!pageData) {
+            // Fallback: If surah not found on this page, maybe it ended on a previous page or hasn't started
+            const surah = quranData.find(s => s.id === surahId);
+            return surah?.ayahs || 1;
+        }
+        return (typeof pageData === 'object' ? pageData.end : pageData) || 1;
+    };
+
+    const getPageStartAyah = (pageNum, surahId) => {
+        if (!pageAyahMap || !pageAyahMap[String(pageNum)]) return 1;
+        const pageData = pageAyahMap[String(pageNum)][String(surahId)];
+        if (!pageData) return 1;
+        return (typeof pageData === 'object' ? pageData.start : 1) || 1;
     };
 
     // Helper: Get exact page position based on pageAyahMap data
@@ -540,7 +580,7 @@ export default function StudentDetailsPage() {
         let val = endPos - startPos;
         if (val < 0) val = Math.abs(val);
         if (val === 0 && (Number(mFromSurah) !== Number(mToSurah) || Number(mFromAyah) !== Number(mToAyah))) val = 0.5;
-        val = Math.ceil(val * 2) / 2;
+        val = Math.round(val * 10) / 10;
         return { pages: val, str: `${val} صفحة` };
     }, [mFromSurah, mFromAyah, mToSurah, mToAyah]);
 
@@ -551,13 +591,13 @@ export default function StudentDetailsPage() {
         let val = endPos - startPos;
         if (val < 0) val = Math.abs(val);
         if (val === 0 && (Number(minorMFromSurah) !== Number(minorMToSurah) || Number(minorMFromAyah) !== Number(minorMToAyah))) val = 0.5;
-        val = Math.ceil(val * 2) / 2;
+        val = Math.round(val * 10) / 10;
         return { pages: val, str: `${val} صفحة` };
     }, [minorMFromSurah, minorMFromAyah, minorMToSurah, minorMToAyah]);
 
-    const pagesCount = majorMurajaahData.pages;
+    // const pagesCount = majorMurajaahData.pages; // Removed to avoid conflict with state
     const resultString = majorMurajaahData.str;
-    const minorPagesCount = minorMurajaahData.pages;
+    // const minorPagesCount = minorMurajaahData.pages; // Removed to avoid conflict with state
     const minorResultString = minorMurajaahData.str;
 
     const calculateTotalProgress = () => {
@@ -702,15 +742,14 @@ export default function StudentDetailsPage() {
         }
         
         // Predict To Ayah
-        const pageData = pageAyahMap[tPage]?.[currentSId];
         let tAyah = 1;
         if (target <= 0.5) {
-             const startA = (typeof pageData === 'object') ? pageData.start : 1;
-             const endA = (typeof pageData === 'object') ? pageData.end : (pageData || 1);
+             const startA = getPageStartAyah(tPage, currentSId);
+             const endA = getPageEndAyah(tPage, currentSId);
              const midA = Math.floor(startA + (endA - startA) / 2);
              tAyah = (fAyah <= startA + 1) ? midA : endA;
         } else {
-             tAyah = (typeof pageData === 'object' ? pageData.end : pageData) || 1;
+             tAyah = getPageEndAyah(tPage, currentSId);
         }
 
         if (tPage !== parseInt(hifzToPage) || tAyah !== parseInt(hifzToAyah)) {
@@ -725,21 +764,108 @@ export default function StudentDetailsPage() {
 
         // 1. Major Murajaah
         const majorClean = Math.max(0, (parseFloat(pagesCount) || 0) - (parseInt(errorsCount) || 0) - (parseInt(alertsCount) || 0));
-        setCleanPagesCount(majorClean);
+        setCleanPagesCount(parseFloat(majorClean.toFixed(1)));
 
         // 2. Minor Murajaah
         const minorClean = Math.max(0, (parseFloat(minorPagesCount) || 0) - (parseInt(minorErrors) || 0) - (parseInt(minorAlerts) || 0));
-        setMinorCleanPages(minorClean);
+        setMinorCleanPages(parseFloat(minorClean.toFixed(1)));
 
-        // 3. Hifz
+        // 3. Hifz (Precise Line-based with Multi-Surah Support)
         let hDone = 0;
         if (hifzToPage && hifzFromPage) {
-            hDone = (parseInt(hifzToPage) - parseInt(hifzFromPage)) + 1;
+            try {
+                const startS = hifzFromSurahId || student?.currentHifzSurahId;
+                const endS = hifzToSurahId || student?.currentHifzSurahId;
+                
+                if (startS && hifzFromAyah && endS && hifzToAyah) {
+                    let lines = 0;
+                    if (startS === endS) {
+                        const startData = exactAyahMap[startS]?.[hifzFromAyah];
+                        const endData = exactAyahMap[endS]?.[hifzToAyah];
+                        if (startData && endData) {
+                            lines = (endData.p - startData.p) * 15 + (endData.e - startData.s + 1);
+                        }
+                    } else {
+                        // Multi-surah lines: Handle all surahs in range [startS...endS]
+                        const sRange = [];
+                        if (startS < endS) {
+                            for (let i = startS; i <= endS; i++) sRange.push(i);
+                        } else {
+                            for (let i = startS; i >= endS; i--) sRange.push(i);
+                        }
+
+                        sRange.forEach((sId, index) => {
+                            const surahObj = quranData.find(s => s.id === sId);
+                            if (!surahObj) return;
+
+                            let fromA = 1;
+                            let toA = surahObj.ayahs;
+
+                            if (index === 0) fromA = hifzFromAyah;
+                            if (index === sRange.length - 1) toA = hifzToAyah;
+
+                            const startData = exactAyahMap[sId]?.[fromA];
+                            const endData = exactAyahMap[sId]?.[toA];
+                            
+                            if (startData && endData) {
+                                // Add lines of this surah
+                                lines += (endData.p - startData.p) * 15 + (endData.e - startData.s + 1);
+                                
+                                // Add Header + Basmalah if it's the start of the surah on this page
+                                if (fromA === 1) {
+                                    const surahsOnThisPage = Object.keys(pageAyahMap[startData.p] || {});
+                                    const isFirstOnPage = surahsOnThisPage[0] == sId;
+                                    if (isFirstOnPage) {
+                                        lines += (startData.s - 1);
+                                    }
+                                }
+
+                                // Add gap if next surah is on the same page (Header + Basmalah of next surah)
+                                if (index < sRange.length - 1) {
+                                    const nextSId = sRange[index+1];
+                                    const nextStartData = exactAyahMap[nextSId]?.[1];
+                                    if (nextStartData && nextStartData.p === endData.p) {
+                                        const gap = nextStartData.s - endData.e - 1;
+                                        if (gap > 0) lines += gap;
+                                    }
+                                }
+                            }
+                        });
+                    }
+                    // Cap at 15 lines per page for single-page ranges to ensure 1.0
+                    if (hifzFromPage === hifzToPage) lines = Math.min(15, lines);
+                    
+                    hDone = Math.round((lines / 15) * 10) / 10;
+                    // Ensure full page is exactly 1.0
+                    if (lines >= 15 && hifzFromPage === hifzToPage) hDone = 1.0;
+                }
+            } catch (e) { console.error(e); }
         }
         const hifzClean = Math.max(0, hDone - (parseInt(hifzErrors) || 0) - (parseInt(hifzAlerts) || 0));
-        setHifzCleanPages(hifzClean);
+        setHifzCleanPages(parseFloat(hifzClean.toFixed(1)));
 
-    }, [pagesCount, errorsCount, alertsCount, minorPagesCount, minorErrors, minorAlerts, hifzToPage, hifzFromPage, hifzErrors, hifzAlerts, isSessionActive, editingSessionId]);
+        // Update Murajaah Derived Stats manually now that they are states
+        if (mFromSurah && mToSurah) {
+            let mDone = 0;
+            const startPos = getExactPosition(mFromSurah, mFromAyah || 1, false);
+            const endPos = getExactPosition(mToSurah, mToAyah || 1, true);
+            mDone = Math.abs(endPos - startPos);
+            setPagesCount(parseFloat(mDone.toFixed(1)));
+            const mClean = Math.max(0, mDone - (parseInt(errorsCount) || 0) - (parseInt(alertsCount) || 0));
+            setCleanPagesCount(parseFloat(mClean.toFixed(1)));
+        }
+
+        if (minorMFromSurah && minorMToSurah) {
+            let minDone = 0;
+            const startPos = getExactPosition(minorMFromSurah, minorMFromAyah || 1, false);
+            const endPos = getExactPosition(minorMToSurah, minorMToAyah || 1, true);
+            minDone = Math.abs(endPos - startPos);
+            setMinorPagesCount(parseFloat(minDone.toFixed(1)));
+            const minClean = Math.max(0, minDone - (parseInt(minorErrors) || 0) - (parseInt(minorAlerts) || 0));
+            setMinorCleanPages(parseFloat(minClean.toFixed(1)));
+        }
+
+    }, [errorsCount, alertsCount, minorErrors, minorAlerts, hifzToPage, hifzFromPage, hifzFromAyah, hifzToAyah, hifzFromSurahId, hifzToSurahId, hifzErrors, hifzAlerts, isSessionActive, editingSessionId, student, mFromSurah, mFromAyah, mToSurah, mToAyah, minorMFromSurah, minorMFromAyah, minorMToSurah, minorMToAyah, sessionType]);
 
     const findSurahId = (name) => {
         if (!name) return 1;
@@ -766,7 +892,9 @@ export default function StudentDetailsPage() {
 
         const currentSurah = quranData.find(s => s.id === (student?.currentHifzSurahId || 114));
         const nextSurahPages = getSurahPages(currentSurah?.id);
-        const isFinishedSurah = !isKhatim && parseInt(hifzToPage) === nextSurahPages[nextSurahPages.length - 1];
+        const isFinishedSurah = !isKhatim && 
+            parseInt(hifzToPage) === nextSurahPages[nextSurahPages.length - 1] && 
+            parseInt(hifzToAyah) >= (currentSurah?.ayahs || 0);
 
         try {
             const fromSurahName = quranData.find(s => s.id === parseInt(mFromSurah))?.name;
@@ -817,10 +945,8 @@ export default function StudentDetailsPage() {
             }
 
             // 3. Calculate Actuals
-            let hifzDone = 0;
-            if (!isKhatim && hifzToPage && hifzFromPage) {
-                hifzDone = (parseInt(hifzToPage) - parseInt(hifzFromPage)) + 1;
-            }
+            let hifzDone = parseFloat(hifzCleanPages) || 0;
+            let hifzLines = hifzDone * 15;
 
             // Review Done (pagesCount is strict, but sometimes it's calculated from Ayahs. 
             // In Murajaah, pagesCount is usually (toPage - fromPage + 1). 
@@ -872,7 +998,7 @@ export default function StudentDetailsPage() {
             const isGoalAchieved = hifzMet && reviewMet;
 
             const method = editingSessionId ? 'PUT' : 'POST';
-            const endpoint = editingSessionId ? `/api/sessions/${editingSessionId}` : '/api/sessions';
+            const endpoint = '/api/sessions';
 
             const response = await fetch(endpoint, {
                 method: method,
@@ -902,8 +1028,8 @@ export default function StudentDetailsPage() {
                     minorCleanPagesCount: (includesReview && (murajaahType === 'MINOR' || murajaahType === 'BOTH')) ? (parseFloat(minorCleanPages) || 0) : 0,
 
                     // Summary Stats (Total of Hifz + Murajaah)
-                    pagesCount: (includesReview ? parseFloat(pagesCount) : 0) + (includesHifz ? hifzDone : 0),
-                    resultString,
+                    pagesCount: (includesReview ? (parseFloat(pagesCount) || 0) + (parseFloat(minorPagesCount) || 0) : 0) + (includesHifz ? hifzDone : 0),
+                    resultString: includesReview ? resultString : (includesHifz ? `${hifzDone} صفحة حفظ` : ''),
                     notes,
                     errorsCount: (includesReview && (murajaahType === 'MAJOR' || murajaahType === 'BOTH')) ? (parseInt(errorsCount) || 0) : 0,
                     alertsCount: (includesReview && (murajaahType === 'MAJOR' || murajaahType === 'BOTH')) ? (parseInt(alertsCount) || 0) : 0,
@@ -1024,7 +1150,7 @@ export default function StudentDetailsPage() {
         if (!sessionToDelete) return;
 
         try {
-            const res = await fetch(`/api/sessions/${sessionToDelete}`, { method: 'DELETE' });
+            const res = await fetch(`/api/sessions?id=${sessionToDelete}`, { method: 'DELETE' });
             if (res.ok) {
                 toast.success('تم حذف الجلسة بنجاح');
                 fetchHistory();
@@ -1044,8 +1170,7 @@ export default function StudentDetailsPage() {
     const allowedPages = getSurahPages(currentSurah?.id || 114);
 
     // Check if student is Khatim (completed the Quran)
-    // Khatim = completed 30 Juz + Fatiha (marked as 31)
-    const isKhatim = student?.juzCount === 31;
+    const isKhatim = student?.juzCount >= 30 || student?.hifzProgress === "خاتم للقرآن الكريم";
 
     // Active Exam Logic
     const activeExam = null; // exams.find(e => e.status === 'PENDING' || e.status === 'SCHEDULED');
@@ -1324,11 +1449,20 @@ export default function StudentDetailsPage() {
 
                                         // If student is Khatim, show congrats
                                         if (isKhatim) return (
-                                            <div className="p-8 bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 rounded-[2.5rem] border-2 border-amber-200 dark:border-amber-800 shadow-inner animate-in zoom-in duration-500">
-                                                <div className="text-center">
-                                                    <div className="text-6xl mb-4">🎉</div>
-                                                    <h3 className="text-2xl font-black text-amber-800 dark:text-amber-200 mb-2">مبارك! الطالب خاتم للقرآن الكريم</h3>
-                                                    <p className="text-amber-600 dark:text-amber-400 font-bold">اتم الطالب حفظ كتاب الله كاملاً - ينتقل الآن لمرحلة التثبيت والمراجعة المكثفة</p>
+                                            <div className="p-12 bg-gradient-to-br from-amber-400 via-yellow-500 to-amber-600 text-white rounded-[3.5rem] border-4 border-yellow-200/50 shadow-2xl shadow-yellow-500/30 animate-in zoom-in duration-700 relative overflow-hidden group">
+                                                {/* Animated Sparkles Background */}
+                                                <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')]"></div>
+                                                <div className="absolute -top-24 -right-24 w-64 h-64 bg-white/20 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000"></div>
+                                                
+                                                <div className="text-center relative z-10">
+                                                    <div className="text-8xl mb-6 transform hover:scale-110 transition-transform cursor-default drop-shadow-2xl">🏆</div>
+                                                    <h3 className="text-4xl font-black text-white mb-4 drop-shadow-md">ألف مبروك! الطالب خاتم لكتاب الله</h3>
+                                                    <div className="w-24 h-1 bg-white/30 mx-auto mb-6 rounded-full"></div>
+                                                    <p className="text-xl font-bold text-amber-50 leading-relaxed max-w-md mx-auto">
+                                                        "يُقَالُ لِصَاحِبِ الْقُرْآنِ اقْرَأْ وَارْتَقِ وَرَتِّلْ كَمَا كُنْتَ تُرَتِّلُ فِي الدُّنْيَا"
+                                                        <br />
+                                                        <span className="text-sm opacity-90 mt-2 block">اتم الطالب حفظ القرآن كاملاً - ننتقل الآن لمرحلة التثبيت والمراجعة</span>
+                                                    </p>
                                                 </div>
                                             </div>
                                         );
@@ -1383,14 +1517,14 @@ export default function StudentDetailsPage() {
                                                         <div>
                                                             <label className="block text-xs font-bold text-emerald-600 mb-2 mr-2">من الصفحة</label>
                                                             <div className="flex gap-2">
-                                                                <select value={hifzFromPage} onChange={e => { const p = parseInt(e.target.value); setHifzFromPage(p); if (pageAyahMap && pageAyahMap[p] && currentSurah) { const pageData = pageAyahMap[p][currentSurah.id]; if (pageData && pageData.start) setHifzFromAyah(pageData.start); } }} className="w-2/3 px-4 py-4 premium-glass border-2 border-transparent focus:border-emerald-500 rounded-2xl outline-none transition-all font-bold text-lg dark:text-white" > {allowedPages.map(p => <option key={p} value={p} className="text-slate-900 dark:text-white dark:bg-slate-900">صفحة {p}</option>)} </select>
+                                                                <select value={hifzFromPage} onChange={e => { const p = parseInt(e.target.value); setHifzFromPage(p); const sId = hifzFromSurahId || currentSurah?.id; if (sId && pageAyahMap && pageAyahMap[p]) { const pData = pageAyahMap[p][String(sId)]; if (pData) { const sA = (typeof pData === 'object') ? pData.start : 1; setHifzFromAyah(sA); } } }} className="w-2/3 px-4 py-4 premium-glass border-2 border-transparent focus:border-emerald-500 rounded-2xl outline-none transition-all font-bold text-lg dark:text-white" > {allowedPages.map(p => <option key={p} value={p} className="text-slate-900 dark:text-white dark:bg-slate-900">صفحة {p}</option>)} </select>
                                                                 <div className="w-1/3 relative"><span className="absolute -top-6 right-0 text-[10px] text-emerald-400 font-bold">آية</span><input type="number" value={hifzFromAyah} min="1" max={currentSurah?.ayahs} onFocus={() => hifzFromAyah === 1 && setHifzFromAyah('')} onBlur={() => hifzFromAyah === '' && setHifzFromAyah(1)} onChange={e => { const val = e.target.value; if (val === '') setHifzFromAyah(''); else { const parsed = parseInt(val); const max = currentSurah?.ayahs || 286; if (parsed > max) setHifzFromAyah(max); else setHifzFromAyah(parsed); } }} className="w-full px-4 py-4 premium-glass border-2 border-transparent focus:border-emerald-500 rounded-2xl outline-none font-bold text-center dark:text-white" placeholder="آية" /></div>
                                                             </div>
                                                         </div>
                                                         <div>
                                                             <label className="block text-xs font-bold text-emerald-600 mb-2 mr-2">إلى الصفحة</label>
                                                             <div className="flex gap-2">
-                                                                <select value={hifzToPage} onChange={e => { const p = parseInt(e.target.value); setHifzToPage(p); if (pageAyahMap && pageAyahMap[p] && currentSurah) { const pageData = pageAyahMap[p][currentSurah.id]; if (pageData) { const endAyah = (typeof pageData === 'object') ? pageData.end : pageData; if (endAyah) setHifzToAyah(endAyah); } } }} className="w-2/3 px-4 py-4 premium-glass border-2 border-transparent focus:border-emerald-500 rounded-2xl outline-none transition-all font-bold text-lg dark:text-white" > {allowedPages.map(p => <option key={p} value={p} className="text-slate-900 dark:text-white dark:bg-slate-900">صفحة {p}</option>)} </select>
+                                                                <select value={hifzToPage} onChange={e => { const p = parseInt(e.target.value); setHifzToPage(p); if (pageAyahMap && pageAyahMap[p] && currentSurah) { const pageData = pageAyahMap[p][String(currentSurah.id)]; if (pageData) { const endAyah = (typeof pageData === 'object') ? pageData.end : pageData; if (endAyah !== undefined) setHifzToAyah(endAyah); } } }} className="w-2/3 px-4 py-4 premium-glass border-2 border-transparent focus:border-emerald-500 rounded-2xl outline-none transition-all font-bold text-lg dark:text-white" > {allowedPages.map(p => <option key={p} value={p} className="text-slate-900 dark:text-white dark:bg-slate-900">صفحة {p}</option>)} </select>
                                                                 <div className="w-1/3 relative"><span className="absolute -top-6 right-0 text-[10px] text-emerald-400 font-bold">آية</span><input type="number" value={hifzToAyah} min="1" max={currentSurah?.ayahs} onFocus={() => hifzToAyah === 1 && setHifzToAyah('')} onBlur={() => hifzToAyah === '' && setHifzToAyah(1)} onChange={e => { const val = e.target.value; if (val === '') setHifzToAyah(''); else { const parsed = parseInt(val); const max = currentSurah?.ayahs || 286; if (parsed > max) setHifzToAyah(max); else setHifzToAyah(parsed); } }} className="w-full px-4 py-4 premium-glass border-2 border-transparent focus:border-emerald-500 rounded-2xl outline-none font-bold text-center dark:text-white" placeholder="آية" /></div>
                                                             </div>
                                                         </div>
@@ -1435,7 +1569,7 @@ export default function StudentDetailsPage() {
                                                             <label className="block text-xs font-bold text-emerald-600 mb-2 mr-2">صفحات نقية</label>
                                                             <input
                                                                 type="number"
-                                                                step="0.5"
+                                                                step="0.1"
                                                                 value={hifzCleanPages}
                                                                 onFocus={() => hifzCleanPages === 0 && setHifzCleanPages('')}
                                                                 onBlur={() => hifzCleanPages === '' && setHifzCleanPages(0)}
@@ -1608,7 +1742,7 @@ export default function StudentDetailsPage() {
                                                                     </div>
                                                                     <div>
                                                                         <label className="block text-xs font-bold text-emerald-600 mb-2">نقية</label>
-                                                                        <input type="number" step="0.5" value={cleanPagesCount} onFocus={() => cleanPagesCount === 0 && setCleanPagesCount('')} onBlur={() => cleanPagesCount === '' && setCleanPagesCount(0)} onChange={e => { const v = e.target.value; if (v === '') setCleanPagesCount(''); else setCleanPagesCount(Math.max(0, parseFloat(v) || 0)); }} min="0" className="w-full px-4 py-3 bg-indigo-50/50 dark:bg-slate-800 border-2 border-transparent focus:border-emerald-400 rounded-2xl outline-none font-bold dark:text-white" placeholder="0" />
+                                                                        <input type="number" step="0.1" value={cleanPagesCount} onFocus={() => cleanPagesCount === 0 && setCleanPagesCount('')} onBlur={() => cleanPagesCount === '' && setCleanPagesCount(0)} onChange={e => { const v = e.target.value; if (v === '') setCleanPagesCount(''); else setCleanPagesCount(Math.max(0, parseFloat(v) || 0)); }} min="0" className="w-full px-4 py-3 bg-indigo-50/50 dark:bg-slate-800 border-2 border-transparent focus:border-emerald-400 rounded-2xl outline-none font-bold dark:text-white" placeholder="0" />
                                                                     </div>
                                                                 </div>
 
@@ -1739,7 +1873,7 @@ export default function StudentDetailsPage() {
                                                                         <label className="block text-xs font-bold text-emerald-500 mb-2 mr-2">نقية الصغرى</label>
                                                                         <input
                                                                             type="number"
-                                                                            step="0.5"
+                                                                            step="0.1"
                                                                             value={minorCleanPages}
                                                                             onFocus={() => minorCleanPages === 0 && setMinorCleanPages('')}
                                                                             onBlur={() => minorCleanPages === '' && setMinorCleanPages(0)}

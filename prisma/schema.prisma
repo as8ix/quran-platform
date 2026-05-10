@@ -43,6 +43,7 @@ model Student {
   password           String
   hifzProgress       String?
   currentHifzSurahId Int?              @default(114)
+  currentHifzAyah    Int?              @default(1)
   juzCount           Float             @default(0)
   reviewPlan         String?
   dailyTargetPages   Float?            @default(1.0)
@@ -67,6 +68,7 @@ model Student {
   points             Point[]
   sessions           Session[]
   halaqa             Halaqa?           @relation(fields: [halaqaId], references: [id])
+  StudyPlanEntry     StudyPlanEntry[]
 }
 
 model Point {
@@ -111,6 +113,7 @@ model Session {
   hifzAlerts             Int           @default(0)
   hifzErrors             Int           @default(0)
   hifzCleanPages         Float         @default(0)
+  isFinishedSurah        Boolean       @default(false)
   minorMurajaahFromAyah  Int?
   minorMurajaahFromSurah String?
   minorMurajaahToAyah    Int?
@@ -118,6 +121,8 @@ model Session {
   minorAlertsCount       Int           @default(0)
   minorCleanPagesCount   Float         @default(0)
   minorErrorsCount       Int           @default(0)
+  hifzToSurah            String?
+  hifzSurahEvaluations   Json?
   quranicEvent           QuranicEvent? @relation(fields: [quranicEventId], references: [id])
   student                Student       @relation(fields: [studentId], references: [id])
 }
@@ -187,4 +192,19 @@ model Holiday {
   createdAt DateTime @default(now())
   halaqaId  Int?
   halaqa    Halaqa?  @relation(fields: [halaqaId], references: [id])
+}
+
+model StudyPlanEntry {
+  id          Int       @id @default(autoincrement())
+  studentId   Int
+  date        DateTime
+  type        String
+  surahId     Int
+  fromAyah    Int
+  toAyah      Int
+  isCompleted Boolean   @default(false)
+  actualDate  DateTime?
+  sessionId   Int?
+  toSurahId   Int?
+  Student     Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
 }
