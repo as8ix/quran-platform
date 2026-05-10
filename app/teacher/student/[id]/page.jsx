@@ -1493,6 +1493,9 @@ export default function StudentDetailsPage() {
                                                 return quranData.filter(s => s.id >= minId && s.id <= maxId).sort((a, b) => hifzDirection === 'FORWARD' ? a.id - b.id : b.id - a.id);
                                             })();
 
+                                            const { startSId } = computedHifzRange;
+                                            const allowedPages = getSurahPages(startSId);
+
                                             return (
                                                 <div className="p-8 bg-emerald-50/50 dark:bg-emerald-900/20 rounded-[2.5rem] border border-emerald-100 dark:border-emerald-800 shadow-inner">
                                                     <div className="flex justify-between items-center mb-6">
