@@ -230,6 +230,12 @@ export default function StudentReportPage() {
                 </div>
                 <div className="flex gap-3">
                     <button
+                        onClick={() => router.push(`/teacher/student/${id}/plan`)}
+                        className="px-6 py-2.5 bg-indigo-50 text-indigo-600 border border-indigo-100 rounded-xl font-bold hover:bg-indigo-100 transition-colors shadow-sm"
+                    >
+                        📅 الجدول الدراسي
+                    </button>
+                    <button
                         onClick={() => router.push(`/teacher/student/${id}`)}
                         className="px-6 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold hover:bg-slate-50 transition-colors shadow-sm"
                     >
@@ -315,10 +321,26 @@ export default function StudentReportPage() {
                                         <td className="p-4 text-center border-r border-slate-50 print:border-slate-200">
                                             {session.hifzSurah ? (
                                                 <div className="text-emerald-700 font-black">
-                                                    سورة {session.hifzSurah}
-                                                    <div className="text-xs text-emerald-600/70 font-normal mt-0.5">
+                                                    سورة {session.hifzSurah} {session.hifzToSurah && session.hifzToSurah !== session.hifzSurah ? `إلى سورة ${session.hifzToSurah}` : ''}
+                                                    <div className="text-xs text-emerald-600/70 font-normal mt-0.5 mb-2">
                                                         {session.hifzFromPage === session.hifzToPage ? `(ص ${session.hifzFromPage})` : `(ص ${session.hifzFromPage} - ${session.hifzToPage})`}
                                                     </div>
+                                                    {session.hifzSurahEvaluations && Object.keys(session.hifzSurahEvaluations).length > 0 && (
+                                                        <div className="flex flex-col gap-1 mt-2 border-t border-emerald-100 print:border-emerald-200 pt-2 text-[10px]">
+                                                            {Object.entries(session.hifzSurahEvaluations).map(([surahName, evals]) => {
+                                                                if (!evals.errors && !evals.alerts) return null;
+                                                                return (
+                                                                    <div key={surahName} className="flex flex-col bg-emerald-50 print:bg-transparent print:border print:border-emerald-100 rounded p-1">
+                                                                        <span className="font-bold text-emerald-800">{surahName}</span>
+                                                                        <div className="flex justify-center gap-2 mt-0.5">
+                                                                            {evals.errors > 0 && <span className="text-red-600">أخطاء: {evals.errors}</span>}
+                                                                            {evals.alerts > 0 && <span className="text-amber-600">تنبيهات: {evals.alerts}</span>}
+                                                                        </div>
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    )}
                                                 </div>
                                             ) : (
                                                 <span className="text-slate-300">—</span>

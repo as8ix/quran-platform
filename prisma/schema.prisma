@@ -1,6 +1,6 @@
 generator client {
   provider   = "prisma-client-js"
-  engineType = "library"
+  engineType = "binary"
 }
 
 datasource db {
@@ -67,8 +67,8 @@ model Student {
   notifications      Notification[]
   points             Point[]
   sessions           Session[]
+  studyPlanEntries   StudyPlanEntry[]
   halaqa             Halaqa?           @relation(fields: [halaqaId], references: [id])
-  StudyPlanEntry     StudyPlanEntry[]
 }
 
 model Point {
@@ -94,6 +94,7 @@ model Session {
   studentId              Int
   date                   DateTime      @default(now())
   hifzSurah              String?
+  hifzToSurah            String?
   hifzFromPage           Int?
   hifzToPage             Int?
   hifzFromAyah           Int?
@@ -114,6 +115,7 @@ model Session {
   hifzErrors             Int           @default(0)
   hifzCleanPages         Float         @default(0)
   isFinishedSurah        Boolean       @default(false)
+  hifzSurahEvaluations   Json?
   minorMurajaahFromAyah  Int?
   minorMurajaahFromSurah String?
   minorMurajaahToAyah    Int?
@@ -121,8 +123,6 @@ model Session {
   minorAlertsCount       Int           @default(0)
   minorCleanPagesCount   Float         @default(0)
   minorErrorsCount       Int           @default(0)
-  hifzToSurah            String?
-  hifzSurahEvaluations   Json?
   quranicEvent           QuranicEvent? @relation(fields: [quranicEventId], references: [id])
   student                Student       @relation(fields: [studentId], references: [id])
 }
@@ -195,16 +195,16 @@ model Holiday {
 }
 
 model StudyPlanEntry {
-  id          Int       @id @default(autoincrement())
-  studentId   Int
-  date        DateTime
-  type        String
-  surahId     Int
-  fromAyah    Int
-  toAyah      Int
-  isCompleted Boolean   @default(false)
-  actualDate  DateTime?
-  sessionId   Int?
-  toSurahId   Int?
-  Student     Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  id           Int      @id @default(autoincrement())
+  studentId    Int
+  date         DateTime
+  type         String   // 'HIFZ' or 'MURAJAAH'
+  surahId      Int
+  fromAyah     Int
+  toAyah       Int
+  toSurahId    Int?
+  isCompleted  Boolean  @default(false)
+  actualDate   DateTime?
+  sessionId    Int?
+  student      Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
 }

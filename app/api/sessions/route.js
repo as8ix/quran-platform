@@ -32,13 +32,13 @@ export async function POST(request) {
         const body = await request.json();
         const {
             studentId,
-            hifzSurah, hifzFromPage, hifzToPage, hifzFromAyah, hifzToAyah,
+            hifzSurah, hifzToSurah, hifzFromPage, hifzToPage, hifzFromAyah, hifzToAyah,
             murajaahFromSurah, murajaahFromAyah, murajaahToSurah, murajaahToAyah,
             minorMurajaahFromSurah, minorMurajaahFromAyah, minorMurajaahToSurah, minorMurajaahToAyah,
             pagesCount, resultString, notes, isFinishedSurah,
             errorsCount, alertsCount, cleanPagesCount,
             minorErrorsCount, minorAlertsCount, minorCleanPagesCount,
-            hifzErrors, hifzAlerts, hifzCleanPages,
+            hifzErrors, hifzAlerts, hifzCleanPages, hifzSurahEvaluations,
             quranicEventId
         } = body;
 
@@ -46,6 +46,8 @@ export async function POST(request) {
             data: {
                 studentId: parseInt(studentId),
                 hifzSurah,
+                hifzToSurah,
+                hifzSurahEvaluations,
                 hifzFromPage: hifzFromPage ? parseInt(hifzFromPage) : null,
                 hifzToPage: hifzToPage ? parseInt(hifzToPage) : null,
                 hifzFromAyah: hifzFromAyah ? parseInt(hifzFromAyah) : null,
@@ -114,8 +116,13 @@ export async function POST(request) {
                         }
                     });
                 } else {
-                    // Move to previous surah in reverse order
-                    nextSurahId = (currentSurahId || 114) - 1;
+                    // Normal upward progression (descending order 114 -> 3)
+                    let lastFinishedSId = currentSurahId;
+                    if (hifzToSurah) {
+                        const toS = quranData.find(s => s.name === hifzToSurah);
+                        if (toS) lastFinishedSId = toS.id;
+                    }
+                    nextSurahId = (lastFinishedSId || 114) - 1;
                 }
 
                 if (nextSurahId) {
@@ -150,6 +157,7 @@ export async function PUT(request) {
 
         const updateData = {};
         if (fields.hifzSurah !== undefined)                updateData.hifzSurah = fields.hifzSurah;
+        if (fields.hifzToSurah !== undefined)              updateData.hifzToSurah = fields.hifzToSurah;
         if (fields.hifzFromPage !== undefined)             updateData.hifzFromPage = fields.hifzFromPage ? parseInt(fields.hifzFromPage) : null;
         if (fields.hifzToPage !== undefined)               updateData.hifzToPage = fields.hifzToPage ? parseInt(fields.hifzToPage) : null;
         if (fields.hifzFromAyah !== undefined)             updateData.hifzFromAyah = fields.hifzFromAyah ? parseInt(fields.hifzFromAyah) : null;
@@ -171,6 +179,7 @@ export async function PUT(request) {
         if (fields.hifzErrors !== undefined)               updateData.hifzErrors = parseInt(fields.hifzErrors) || 0;
         if (fields.hifzAlerts !== undefined)               updateData.hifzAlerts = parseInt(fields.hifzAlerts) || 0;
         if (fields.hifzCleanPages !== undefined)           updateData.hifzCleanPages = parseFloat(fields.hifzCleanPages) || 0;
+        if (fields.hifzSurahEvaluations !== undefined)     updateData.hifzSurahEvaluations = fields.hifzSurahEvaluations;
         if (fields.minorErrorsCount !== undefined)         updateData.minorErrorsCount = parseInt(fields.minorErrorsCount) || 0;
         if (fields.minorAlertsCount !== undefined)         updateData.minorAlertsCount = parseInt(fields.minorAlertsCount) || 0;
         if (fields.minorCleanPagesCount !== undefined)     updateData.minorCleanPagesCount = parseFloat(fields.minorCleanPagesCount) || 0;
