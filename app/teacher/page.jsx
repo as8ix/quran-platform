@@ -73,6 +73,25 @@ const StudentCard = ({ student, router }) => (
     </div>
 );
 
+const StudentSkeleton = () => (
+    <div className="premium-glass rounded-[2rem] sm:rounded-[2.5rem] p-5 sm:p-7 animate-pulse border border-white/20 dark:border-slate-800/50">
+        <div className="flex items-start justify-between mb-4 sm:mb-6">
+            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-slate-200 dark:bg-slate-800 rounded-2xl sm:rounded-3xl"></div>
+            <div className="flex flex-col items-end gap-2">
+                <div className="w-16 h-5 bg-slate-200 dark:bg-slate-800 rounded-xl"></div>
+                <div className="w-20 h-5 bg-slate-100 dark:bg-slate-800/50 rounded-xl"></div>
+            </div>
+        </div>
+        <div className="h-8 bg-slate-200 dark:bg-slate-800 rounded-xl w-3/4 mb-4"></div>
+        <div className="h-4 bg-slate-100 dark:bg-slate-800/50 rounded-lg w-1/2 mb-6"></div>
+        <div className="space-y-4 mb-8 bg-white/30 dark:bg-slate-950/40 p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-white/10 dark:border-slate-800/50">
+            <div className="h-3 bg-slate-200 dark:bg-slate-800 rounded-lg w-full"></div>
+            <div className="h-2.5 bg-slate-100 dark:bg-slate-800/50 rounded-full w-full"></div>
+        </div>
+        <div className="h-10 bg-slate-100 dark:bg-slate-800/50 rounded-xl w-full"></div>
+    </div>
+);
+
 export default function TeacherDashboard() {
     const router = useRouter();
     const [showAddModal, setShowAddModal] = useState(false);
@@ -80,6 +99,7 @@ export default function TeacherDashboard() {
     const [searchTerm, setSearchTerm] = useState('');
     const [juzFilter, setJuzFilter] = useState('all');
     const [loading, setLoading] = useState(true);
+    const [isInitialLoading, setIsInitialLoading] = useState(true);
     const [students, setStudents] = useState([]);
 
     const [user, setUser] = useState(null);
@@ -143,6 +163,7 @@ export default function TeacherDashboard() {
             console.error("Error fetching students:", error);
         } finally {
             setLoading(false);
+            setIsInitialLoading(false);
         }
     };
 
@@ -168,7 +189,7 @@ export default function TeacherDashboard() {
 
     const { isDarkMode, mounted } = useTheme();
 
-    if (!mounted || loading) return <LoadingScreen />;
+    if (!mounted || isInitialLoading) return <LoadingScreen />;
     
     return (
         <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-main)] font-noto rtl transition-colors duration-300 relative overflow-hidden" dir="rtl">
@@ -289,7 +310,13 @@ export default function TeacherDashboard() {
                     </div>
                 </div>
 
-                {filteredStudents.length > 0 ? (
+                {loading ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                        {[1, 2, 3, 4, 5, 6].map((i) => (
+                            <StudentSkeleton key={i} />
+                        ))}
+                    </div>
+                ) : filteredStudents.length > 0 ? (
                     <div className="space-y-6 sm:space-y-12">
                         {/* Quranic Active Students Section */}
                         {filteredStudents.some(s => s.isInActiveEvent) && (
