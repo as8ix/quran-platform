@@ -120,7 +120,8 @@ export default function StudentDetailsPage() {
         Promise.all([
             fetchStudent(),
             fetchHistory(),
-            fetchActiveEvent()
+            fetchActiveEvent(),
+            fetchExams()
         ]);
     }, [studentId]);
 
@@ -131,14 +132,18 @@ export default function StudentDetailsPage() {
     const [examDate, setExamDate] = useState('');
     const [examTime, setExamTime] = useState('');
 
-    // const fetchExams = async () => {
-    //     try {
-    //         const res = await fetch(`/api/exams?studentId=${studentId}`);
-    //         if (res.ok) {
-    //             setExams(await res.json());
-    //         }
-    //     } catch (e) { console.error(e); }
-    // };
+    const activeExam = useMemo(() => {
+        return exams.find(ex => ex.status !== 'COMPLETED');
+    }, [exams]);
+
+    const fetchExams = async () => {
+        try {
+            const res = await fetch(`/api/exams?studentId=${studentId}`);
+            if (res.ok) {
+                setExams(await res.json());
+            }
+        } catch (e) { console.error(e); }
+    };
 
     const handleScheduleExam = async () => {
         if (!selectedExam) return;
