@@ -848,7 +848,7 @@ export default function StudentDetailsPage() {
             // 3. Calculate Actuals
             let hifzDone = 0;
             if (!isKhatim && hifzToPage && hifzFromPage) {
-                hifzDone = (parseInt(hifzToPage) - parseInt(hifzFromPage)) + 1;
+                hifzDone = Math.abs(parseInt(hifzToPage) - parseInt(hifzFromPage)) + 1;
             }
 
             // Review Done (pagesCount is strict, but sometimes it's calculated from Ayahs. 
@@ -953,7 +953,12 @@ export default function StudentDetailsPage() {
 
                     // Summary Stats (Total of Hifz + Murajaah)
                     pagesCount: (includesReview ? parseFloat(pagesCount) : 0) + (includesHifz ? hifzDone : 0),
-                    resultString,
+                    resultString: (() => {
+                        const hifzPart = includesHifz ? `${hifzDone} صفحة حفظ` : '';
+                        const reviewPart = includesReview ? (murajaahType === 'BOTH' ? `${parseFloat(pagesCount) + parseFloat(minorPagesCount)} صفحة مراجعة` : `${parseFloat(pagesCount)} صفحة مراجعة`) : '';
+                        if (hifzPart && reviewPart) return `${hifzPart} و ${reviewPart}`;
+                        return hifzPart || reviewPart || '0 صفحة';
+                    })(),
                     notes,
                     errorsCount: (includesReview && (murajaahType === 'MAJOR' || murajaahType === 'BOTH')) ? (parseInt(errorsCount) || 0) : 0,
                     alertsCount: (includesReview && (murajaahType === 'MAJOR' || murajaahType === 'BOTH')) ? (parseInt(alertsCount) || 0) : 0,
@@ -2159,7 +2164,12 @@ export default function StudentDetailsPage() {
                                                 {(session.murajaahFromSurah || session.minorMurajaahFromSurah || session.hifzSurah) && (
                                                     <div className="mb-4 flex items-center justify-between">
                                                         <div className="text-xs text-slate-400 font-bold">
-                                                            {session.resultString}
+                                                            {(() => {
+                                                                if (session.hifzSurah && !session.murajaahFromSurah && !session.minorMurajaahFromSurah) {
+                                                                    return `${session.pagesCount} صفحة حفظ`;
+                                                                }
+                                                                return session.resultString || `${session.pagesCount} صفحة إنجاز`;
+                                                            })()}
                                                         </div>
                                                         {((session.cleanPagesCount || 0) + (session.hifzCleanPages || 0) + (session.minorCleanPagesCount || 0)) > 0 && (
                                                             <div className="bg-emerald-500/10 text-emerald-600 px-2 py-1 rounded-lg text-[10px] font-black flex items-center gap-1">
