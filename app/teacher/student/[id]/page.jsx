@@ -16,6 +16,20 @@ const normalizeSurahName = (name) => {
     return name.replace('سورة ', '').trim();
 };
 
+const parseTarget = (t) => {
+    if (!t) return 1;
+    if (typeof t === 'number') return t;
+    const s = String(t).toLowerCase();
+    if (s.includes('نصف') || s.includes('0.5')) return 0.5;
+    if (s.includes('ربع') || s.includes('0.25')) return 0.25;
+    if (s.includes('صفحة')) {
+        const num = parseFloat(s);
+        return isNaN(num) ? 1 : num;
+    }
+    const p = parseFloat(s);
+    return isNaN(p) ? 1 : p;
+};
+
 export default function StudentDetailsPage() {
     const params = useParams();
     const router = useRouter();
@@ -212,22 +226,6 @@ export default function StudentDetailsPage() {
     const applySmartDefaults = () => {
         if (loading || !student || !history || isSessionActive) return;
         console.log('Applying Smart Defaults for Student:', student);
-
-        // Helper to parse target from string or number
-        const parseTarget = (t) => {
-            if (!t) return 1;
-            if (typeof t === 'number') return t;
-            const s = String(t).toLowerCase();
-            if (s.includes('نصف') || s.includes('0.5')) return 0.5;
-            if (s.includes('ربع') || s.includes('0.25')) return 0.25;
-            if (s.includes('صفحة')) {
-                const num = parseFloat(s);
-                return isNaN(num) ? 1 : num;
-            }
-            const p = parseFloat(s);
-            return isNaN(p) ? 1 : p;
-        };
-
 
         // Sort history by date desc, then by ID desc for stability
         const sortedHistory = [...history].sort((a, b) => {
