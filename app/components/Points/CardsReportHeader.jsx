@@ -10,7 +10,12 @@ export default function CardsReportHeader({ halaqaName, teacherName, studentsCou
         <div className="report-header flex justify-between items-start mb-16 pb-10 border-b border-slate-50 print:border-slate-100">
             <div className="text-right">
                 <h1 className="text-3xl font-black text-slate-900 mb-1">بطاقات التعريف الذكية {halaqaName ? `(${halaqaName})` : ''}</h1>
-                <p className="text-slate-500 font-medium text-lg">تاريخ الإصدار: {todayHijri} هـ</p>
+                <div className="flex flex-col gap-1">
+                    <p className="text-slate-500 font-medium text-lg">تاريخ الإصدار: {todayHijri} هـ</p>
+                    {studentsCount > 0 && (
+                        <p className="text-slate-400 font-bold text-sm">عدد الطلاب: {studentsCount} طالب</p>
+                    )}
+                </div>
             </div>
             
             <div className="flex flex-col items-center gap-2">

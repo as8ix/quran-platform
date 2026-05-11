@@ -15,6 +15,7 @@ import PointsSettings from '@/app/components/Points/PointsSettings';
 import PointsScanner from '@/app/components/Points/PointsScanner';
 import PointsHistoryList from '@/app/components/Points/PointsHistoryList';
 import PointsStatusBanner from '@/app/components/Points/PointsStatusBanner';
+import PrintSelectionModal from '@/app/components/Points/PrintSelectionModal';
 
 export default function TeacherPointsPage() {
     const { isDarkMode, mounted } = useTheme();
@@ -24,8 +25,10 @@ export default function TeacherPointsPage() {
     const [pointsLog, setPointsLog] = useState([]);
     const [pointsData, setPointsData] = useState({ amount: 10, reason: 'حضور مبكر', category: 'ATTENDANCE' });
     const [isScanning, setIsScanning] = useState(false);
+    const [showPrintModal, setShowPrintModal] = useState(false);
     const [mode, setMode] = useState('add'); // 'add' or 'deduct'
     const [user, setUser] = useState(null);
+    const [teacherHalaqas, setTeacherHalaqas] = useState([]);
     const html5QrCodeRef = useRef(null);
     const isProcessingRef = useRef(false);
     const successAudioRef = useRef(null);
@@ -64,6 +67,7 @@ export default function TeacherPointsPage() {
                     h.teacherId === user.id || 
                     (h.assistants && h.assistants.some(a => a.id === user.id))
                 );
+                setTeacherHalaqas(myHalaqas);
                 // If any of the teacher's halaqas have points enabled, allow recording
                 const enabled = myHalaqas.some(h => h.pointsEnabled);
                 setIsPointsEnabled(enabled);
@@ -248,11 +252,20 @@ export default function TeacherPointsPage() {
                     students={students}
                     user={user}
                     onLeaderboard={() => router.push(`/teacher/points/leaderboard${hId ? `?halaqaId=${hId}` : ''}`)}
-                    onPrint={() => {
+                    onPrint={() => setShowPrintModal(true)}
+                />
+
+                <PrintSelectionModal 
+                    isOpen={showPrintModal}
+                    onClose={() => setShowPrintModal(false)}
+                    halaqas={teacherHalaqas}
+                    onSelect={(type, id) => {
+                        setShowPrintModal(false);
+                        const hId = id || (teacherHalaqas.length > 0 ? teacherHalaqas[0].id : user?.halaqaId);
                         if (hId) {
-                            router.push(`/teacher/points/print?halaqaId=${hId}`);
+                            router.push(`/teacher/points/print?halaqaId=${hId}&type=${type}`);
                         } else {
-                            toast.error('لم يتم العثور على حلقة لطباعة بطاقاتها');
+                            toast.error('لم يتم العثور على حلقة');
                         }
                     }}
                 />
