@@ -90,7 +90,7 @@ export default function PrintCardsPage() {
                 @media print {
                     @page { 
                         size: A4 portrait;
-                        margin: 1.5cm;
+                        margin: 2cm 1cm;
                     }
                     .no-print { display: none !important; }
                     body { background: white !important; margin: 0; padding: 0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -103,18 +103,17 @@ export default function PrintCardsPage() {
                         width: 100% !important;
                         display: grid !important;
                         grid-template-columns: repeat(3, 1fr) !important;
-                        gap: 15px !important;
+                        gap: 20px !important;
                         justify-items: center !important;
                     }
                     .card-container { 
                         break-inside: avoid;
                         page-break-inside: avoid;
-                        border: 1px solid #eee !important;
-                        background: white !important;
-                        width: 100% !important;
-                        max-width: 6cm !important;
-                        print-color-adjust: exact !important;
+                        border: none !important;
+                        background: #0f172a !important; /* Force dark background in print */
+                        color-adjust: exact !important;
                         -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
                     }
                 }
             `}</style>

@@ -405,7 +405,7 @@ export default function CustomStudentList({ userRole, initialTeacherId, initialH
                         </thead>
                         <tbody className="divide-y divide-slate-50 print:divide-slate-200">
                             {filteredStudents.length > 0 ? filteredStudents.map((student, idx) => (
-                                <tr key={student.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/40'}>
+                                <tr key={student.id} className={`${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/40'} hover:bg-emerald-50/50 transition-colors cursor-default`}>
                                     <td className="p-4 font-bold text-center text-slate-800 border-r border-slate-50 print:border-slate-200">
                                         {idx + 1}
                                     </td>
