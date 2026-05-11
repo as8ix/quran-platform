@@ -6,7 +6,7 @@ export default function SmartCardItem({ student }) {
     return (
         <div className="card-container relative overflow-hidden bg-white border border-slate-200 rounded-2xl shadow-sm flex flex-col h-[400px] w-full max-w-[280px] mx-auto transition-all hover:shadow-md" style={{ printColorAdjust: 'exact', WebkitPrintColorAdjust: 'exact' }}>
             {/* Card Header */}
-            <div className="bg-slate-900 p-2.5 flex items-center justify-between" style={{ printColorAdjust: 'exact', WebkitPrintColorAdjust: 'exact' }}>
+            <div className="card-header-print bg-slate-900 p-2.5 flex items-center justify-between" style={{ printColorAdjust: 'exact', WebkitPrintColorAdjust: 'exact' }}>
                 <div className="flex items-center gap-1.5">
                     <img src="/mosque-logo-white.png" className="w-5 h-5 object-contain" alt="logo" />
                     <div className="text-[7px] text-white font-bold leading-tight">

@@ -65,7 +65,7 @@ export default function PrintCardsPage() {
             />
 
             <main className="max-w-6xl mx-auto px-4 pb-20 print:p-0 print:max-w-none">
-                <div className="bg-white rounded-[3rem] p-10 shadow-xl shadow-slate-200/50 border border-slate-100 print:bg-transparent print:border-none print:p-0">
+                <div className="bg-white rounded-[3rem] p-10 shadow-xl shadow-slate-200/50 border border-slate-100 print:bg-white print:border-none print:p-[2cm] print:rounded-none">
                     <div className="no-print">
                         <CardsReportHeader 
                             halaqaName={halaqaName}
@@ -100,6 +100,7 @@ export default function PrintCardsPage() {
                         width: 100% !important; 
                         margin: 0 !important; 
                         padding: 0 !important;
+                        background: white !important;
                     }
                     .grid-container {
                         width: 100% !important;
@@ -113,9 +114,15 @@ export default function PrintCardsPage() {
                         page-break-inside: avoid;
                         border: 1px solid #eee !important;
                         background: white !important;
-                        color-adjust: exact !important;
                         -webkit-print-color-adjust: exact !important;
                         print-color-adjust: exact !important;
+                        color-adjust: exact !important;
+                    }
+                    .card-header-print {
+                        background-color: #0f172a !important;
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
+                        color-adjust: exact !important;
                     }
                 }
             `}</style>
