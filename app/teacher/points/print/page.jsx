@@ -64,8 +64,8 @@ export default function PrintCardsPage() {
                 studentsCount={students.length}
             />
 
-            <main className="max-w-6xl mx-auto px-4 pb-20 print:p-0 print:max-w-none">
-                <div className="bg-white rounded-[3rem] p-10 shadow-xl shadow-slate-200/50 border border-slate-100 print:bg-white print:border-none print:p-[2cm] print:rounded-none">
+            <main className="max-w-7xl mx-auto px-4 pb-20 print:p-0 print:max-w-none">
+                <div className="bg-white rounded-[3rem] p-10 shadow-xl shadow-slate-200/50 border border-slate-100 print:bg-white print:border-none print:p-[1cm] print:rounded-none">
                     <CardsReportHeader 
                         halaqaName={halaqaName}
                         teacherName={user?.name}

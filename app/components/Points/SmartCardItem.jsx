@@ -4,7 +4,7 @@ import { QRCodeSVG } from 'qrcode.react';
 
 export default function SmartCardItem({ student }) {
     return (
-        <div className="card-container relative overflow-hidden bg-white border border-slate-200 rounded-2xl shadow-sm flex flex-col h-[380px] w-full max-w-[270px] mx-auto transition-all hover:shadow-md print:shadow-none" style={{ printColorAdjust: 'exact', WebkitPrintColorAdjust: 'exact' }}>
+        <div className="card-container relative overflow-hidden bg-white border border-slate-200 rounded-2xl shadow-sm flex flex-col h-[440px] w-full mx-auto transition-all hover:shadow-md print:shadow-none" style={{ printColorAdjust: 'exact', WebkitPrintColorAdjust: 'exact' }}>
             {/* Card Header */}
             <div className="card-header-print bg-slate-900 p-2 flex items-center justify-between" style={{ printColorAdjust: 'exact', WebkitPrintColorAdjust: 'exact' }}>
                 <div className="flex items-center gap-1.5">
