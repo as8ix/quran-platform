@@ -66,13 +66,11 @@ export default function PrintCardsPage() {
 
             <main className="max-w-6xl mx-auto px-4 pb-20 print:p-0 print:max-w-none">
                 <div className="bg-white rounded-[3rem] p-10 shadow-xl shadow-slate-200/50 border border-slate-100 print:bg-white print:border-none print:p-[2cm] print:rounded-none">
-                    <div className="no-print">
-                        <CardsReportHeader 
-                            halaqaName={halaqaName}
-                            teacherName={user?.name}
-                            studentsCount={students.length}
-                        />
-                    </div>
+                    <CardsReportHeader 
+                        halaqaName={halaqaName}
+                        teacherName={user?.name}
+                        studentsCount={students.length}
+                    />
 
                     <div className="grid-container grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 print:gap-10 mt-16">
                         {students.map(student => (
