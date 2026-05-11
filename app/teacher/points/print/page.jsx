@@ -56,7 +56,7 @@ export default function PrintCardsPage() {
     const halaqaName = students.length > 0 ? students[0].halaqa?.name : '---';
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 rtl font-noto print:bg-white pt-10" dir="rtl">
+        <div className="min-h-screen bg-slate-50 rtl font-noto pt-10" dir="rtl">
 
             <CardsControlPanel 
                 onPrint={() => window.print()} 
@@ -64,13 +64,15 @@ export default function PrintCardsPage() {
                 studentsCount={students.length}
             />
 
-            <main className="max-w-6xl mx-auto px-4 pb-20 print:p-10 print:max-w-none">
-                <div className="bg-white dark:bg-slate-900 rounded-[3rem] p-10 shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-800 print:shadow-none print:border-none print:p-0 print:rounded-none">
-                    <CardsReportHeader 
-                        halaqaName={halaqaName}
-                        teacherName={user?.name}
-                        studentsCount={students.length}
-                    />
+            <main className="max-w-6xl mx-auto px-4 pb-20 print:p-0 print:max-w-none">
+                <div className="bg-white rounded-[3rem] p-10 shadow-xl shadow-slate-200/50 border border-slate-100 print:bg-transparent print:border-none print:p-0">
+                    <div className="no-print">
+                        <CardsReportHeader 
+                            halaqaName={halaqaName}
+                            teacherName={user?.name}
+                            studentsCount={students.length}
+                        />
+                    </div>
 
                     <div className="grid-container grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 print:gap-10 mt-16">
                         {students.map(student => (
@@ -79,7 +81,7 @@ export default function PrintCardsPage() {
                     </div>
 
                     {/* Footer Info for Report */}
-                    <div className="mt-20 pt-8 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center text-[10px] text-slate-400 font-bold print:text-black">
+                    <div className="mt-20 pt-8 border-t border-slate-100 flex justify-between items-center text-[10px] text-slate-400 font-bold print:text-black">
                         <span>تم استخراج هذا التقرير آلياً عبر منصة تحفيظ القرآن الكريم</span>
                         <span>{new Date().toLocaleDateString('ar-SA')} م</span>
                     </div>
@@ -109,8 +111,8 @@ export default function PrintCardsPage() {
                     .card-container { 
                         break-inside: avoid;
                         page-break-inside: avoid;
-                        border: none !important;
-                        background: #0f172a !important; /* Force dark background in print */
+                        border: 1px solid #eee !important;
+                        background: white !important;
                         color-adjust: exact !important;
                         -webkit-print-color-adjust: exact !important;
                         print-color-adjust: exact !important;
