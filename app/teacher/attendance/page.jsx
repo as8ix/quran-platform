@@ -3,10 +3,14 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
-import Navbar from '../../components/Navbar';
-import { formatHijri } from '../../utils/dateUtils';
-import LoadingScreen from '../../components/LoadingScreen';
-import BackButton from '../../components/BackButton';
+import Navbar from '@/app/components/Navbar';
+import LoadingScreen from '@/app/components/LoadingScreen';
+
+// Modular Components
+import AttendanceHeader from '@/app/components/Attendance/AttendanceHeader';
+import HolidayAlert from '@/app/components/Attendance/HolidayAlert';
+import AttendanceTable from '@/app/components/Attendance/AttendanceTable';
+import AttendanceFooter from '@/app/components/Attendance/AttendanceFooter';
 
 export default function AttendancePage() {
     const router = useRouter();
@@ -170,7 +174,7 @@ export default function AttendancePage() {
 
             if (response.ok) {
                 toast.success('تم تسجيل الحضور بنجاح');
-                setTimeout(() => router.push('/teacher'), 1000); // Wait a bit for toast
+                setTimeout(() => router.push('/teacher'), 1000);
             } else {
                 throw new Error('Failed to save');
             }
@@ -184,133 +188,48 @@ export default function AttendancePage() {
     if (loading) return <LoadingScreen message="جاري تحميل كشف الحضور..." />;
 
     return (
-        <div className="min-h-screen bg-[#f8fafc] dark:bg-slate-950 font-noto transition-colors duration-300">
-            <Navbar userType="teacher" userName={teacherName} onLogout={() => router.push('/login')} />
+        <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-main)] font-noto transition-colors duration-300 relative overflow-hidden" dir="rtl">
+            {/* Premium Edge Glows */}
+            <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden opacity-60 dark:opacity-80">
+                <div className="premium-glow-emerald"></div>
+                <div className="premium-glow-purple"></div>
+            </div>
 
-            <main className="max-w-4xl mx-auto px-4 pt-28 pb-12">
-                {/* Back Button */}
-                <BackButton 
-                    href="/teacher" 
-                    text="عودة للقائمة الرئيسية" 
-                    className="mb-6" 
+            <Navbar 
+                userType="teacher" 
+                userName={teacherName} 
+                onLogout={() => router.push('/login')} 
+                displayId={user?.displayId} 
+            />
+
+            <main className="max-w-4xl mx-auto px-4 pt-28 pb-12 relative z-10">
+                {/* 1. Header Component */}
+                <AttendanceHeader 
+                    date={date} 
+                    setDate={setDate} 
+                    openReport={openReport} 
                 />
 
-                <div className="mb-10 space-y-6">
-                    <div>
-                        <h1 className="text-3xl md:text-4xl font-black text-slate-800 dark:text-white tracking-tight">كشف الحضور والغياب</h1>
-                        <p className="text-slate-500 dark:text-slate-400 mt-2 text-sm md:text-base">قم بتحديد حالة حضور الطلاب لهذا اليوم</p>
-                    </div>
+                {/* 2. Holiday Alert Component */}
+                <HolidayAlert 
+                    isHoliday={isHoliday} 
+                    holidayName={currentHoliday?.name} 
+                />
 
-                    <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
-                        <div className="w-full md:w-auto premium-glass p-3 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 flex flex-wrap md:flex-nowrap items-center justify-center gap-3 px-4">
-                            <span className="text-slate-400 font-bold text-sm">التاريخ:</span>
+                {/* 3. Table Component */}
+                <AttendanceTable 
+                    students={students} 
+                    attendance={attendance} 
+                    handleStatusChange={handleStatusChange} 
+                    isHoliday={isHoliday}
+                />
 
-                            {/* Hijri Primary */}
-                            <div className="font-black text-emerald-600 dark:text-emerald-400 text-base md:text-lg whitespace-nowrap">
-                                {formatHijri(date, 'long')}
-                            </div>
-
-                            {/* Divider */}
-                            <div className="hidden md:block h-8 w-[2px] bg-slate-100 dark:bg-slate-700 mx-1"></div>
-
-                            {/* Gregorian Secondary */}
-                            <input
-                                type="date"
-                                value={date}
-                                onChange={(e) => setDate(e.target.value)}
-                                className="bg-transparent font-bold text-slate-400 dark:text-slate-500 text-sm outline-none cursor-pointer"
-                            />
-                        </div>
-
-                        <div className="flex flex-wrap gap-2 w-full md:w-auto">
-                            <button
-                                onClick={() => openReport('week')}
-                                className="flex-1 md:flex-none px-4 md:px-6 py-2.5 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-xl font-bold hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-all flex items-center justify-center gap-2 whitespace-nowrap text-xs md:text-sm"
-                            >
-                                <span>📄</span>
-                                تقرير أسبوعي
-                            </button>
-                            <button
-                                onClick={() => openReport('month')}
-                                className="flex-1 md:flex-none px-4 md:px-6 py-2.5 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 rounded-xl font-bold hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-all flex items-center justify-center gap-2 whitespace-nowrap text-xs md:text-sm"
-                            >
-                                <span>📊</span>
-                                تقرير شهري
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                {isHoliday && (
-                    <div className="mb-8 p-6 bg-amber-50 dark:bg-amber-900/20 border-2 border-amber-200 dark:border-amber-800 rounded-[2rem] flex items-center gap-4 animate-pulse">
-                        <span className="p-3 bg-amber-100 dark:bg-amber-900/40 rounded-2xl">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-8 h-8 text-amber-600 dark:text-amber-400">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
-                            </svg>
-                        </span>
-                        <div>
-                            <h3 className="text-xl font-black text-amber-800 dark:text-amber-400">إجازة رسمية: {currentHoliday.name}</h3>
-                            <p className="text-amber-600 dark:text-amber-500 font-bold">تم إيقاف التحضير لهذا اليوم لوجود إجازة مجدولة.</p>
-                        </div>
-                    </div>
-                )}
-
-                <div className={`premium-glass rounded-[2.5rem] shadow-2xl shadow-slate-200/50 dark:shadow-none overflow-hidden border border-white/20 dark:border-slate-800/50 ${isHoliday ? 'opacity-50 pointer-events-none grayscale' : ''}`}>
-                    <div className="overflow-x-auto custom-scrollbar p-1 md:p-2">
-                        <table className="w-full text-right border-collapse min-w-[350px] md:min-w-[600px]">
-                            <thead>
-                                <tr className="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-700">
-                                    <th className="px-4 py-4 md:px-6 md:py-6 font-black text-slate-400 text-xs md:text-sm uppercase tracking-wider whitespace-nowrap w-[40%] md:w-auto">اسم الطالب</th>
-                                    <th className="px-4 py-4 md:px-6 md:py-6 font-black text-slate-400 text-xs md:text-sm uppercase tracking-wider text-center whitespace-nowrap">حالة الحضور</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-50 dark:divide-slate-700/50">
-                                {students.map((student) => (
-                                    <tr key={student.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
-                                        <td className="px-4 py-3 md:px-6 md:py-6">
-                                            <div className="font-bold text-slate-700 dark:text-slate-200 text-base md:text-lg">{student.name}</div>
-                                            <div className="text-slate-400 text-xs md:text-sm whitespace-nowrap">محفوظات: {student.juzCount} جزء</div>
-                                        </td>
-                                        <td className="px-2 py-3 md:px-6 md:py-6">
-                                            <div className="flex flex-wrap md:flex-nowrap items-center justify-center gap-1.5 md:gap-2">
-                                                {[
-                                                    { id: 'PRESENT', label: 'حاضر', color: 'bg-emerald-500', shadow: 'shadow-emerald-200' },
-                                                    { id: 'LATE', label: 'متأخر', color: 'bg-amber-400', shadow: 'shadow-amber-200' },
-                                                    { id: 'ABSENT_EXCUSED', label: 'بعذر', color: 'bg-orange-500', shadow: 'shadow-orange-200' },
-                                                    { id: 'ABSENT_UNEXCUSED', label: 'غياب', color: 'bg-rose-500', shadow: 'shadow-rose-200' }
-                                                ].map((status) => (
-                                                    <button
-                                                        key={status.id}
-                                                        onClick={() => handleStatusChange(student.id, status.id)}
-                                                        className={`
-                                                            px-2 py-1.5 md:px-3 md:py-2 rounded-lg md:rounded-xl font-bold text-xs md:text-sm transition-all whitespace-nowrap flex-1 md:flex-none
-                                                            ${attendance[student.id] === status.id
-                                                                ? `${status.color} text-white shadow-md md:shadow-lg ${status.shadow}`
-                                                                : 'bg-slate-100 dark:bg-slate-700 text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600'
-                                                            }
-                                                        `}
-                                                    >
-                                                        {status.label}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div className="mt-8 flex justify-end">
-                    <button
-                        onClick={saveAttendance}
-                        disabled={saving || isHoliday}
-                        className="px-8 py-3 md:px-12 md:py-4 bg-emerald-600 text-white rounded-2xl font-black text-sm md:text-lg shadow-xl shadow-emerald-200 hover:bg-emerald-700 hover:-translate-y-1 transition-all active:scale-95 disabled:opacity-50"
-                    >
-                        {saving ? 'جاري الحفظ...' : (isHoliday ? 'التحضير مغلق' : 'حفظ الكشف النهائي')}
-                    </button>
-                </div>
+                {/* 4. Footer Component */}
+                <AttendanceFooter 
+                    saveAttendance={saveAttendance} 
+                    saving={saving} 
+                    isHoliday={isHoliday} 
+                />
             </main>
         </div>
     );

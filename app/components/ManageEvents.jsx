@@ -474,6 +474,17 @@ export default function ManageEvents({ teachers, students }) {
                                     <div>
                                         <label className="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">2. اختر الطلاب للإسناد</label>
                                         <div className="h-[300px] overflow-y-auto bg-slate-50 dark:bg-slate-900/50 border-2 border-slate-100 dark:border-slate-700 rounded-xl p-2 custom-scrollbar">
+                                            <div className="px-3 py-2 mb-2 border-b border-slate-200 dark:border-slate-700">
+                                                <label className="flex items-center gap-3 cursor-pointer">
+                                                    <input 
+                                                        type="checkbox"
+                                                        checked={selectAll}
+                                                        onChange={(e) => handleSelectAll(e.target.checked)}
+                                                        className="custom-checkbox checked:bg-indigo-600 checked:border-indigo-600"
+                                                    />
+                                                    <span className="font-bold text-slate-700 dark:text-slate-300 text-sm">تحديد الكل</span>
+                                                </label>
+                                            </div>
                                             {students.map(s => {
                                                 const isAssigned = assignments.some(a => a.studentId === s.id);
                                                 const assignedTeacher = assignments.find(a => a.studentId === s.id)?.teacher.name;

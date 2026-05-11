@@ -2,19 +2,28 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { QRCodeSVG } from 'qrcode.react';
-import Navbar from '../../../components/Navbar';
-import { useTheme } from '../../../components/ThemeProvider';
-import LoadingScreen from '../../../components/LoadingScreen';
-import BackButton from '../../../components/BackButton';
+import Navbar from '@/app/components/Navbar';
+import { useTheme } from '@/app/components/ThemeProvider';
+import LoadingScreen from '@/app/components/LoadingScreen';
+
+// Components
+import CardsReportHeader from '@/app/components/Points/CardsReportHeader';
+import CardsControlPanel from '@/app/components/Points/CardsControlPanel';
+import SmartCardItem from '@/app/components/Points/SmartCardItem';
 
 export default function PrintCardsPage() {
     const router = useRouter();
     const { mounted } = useTheme();
     const [students, setStudents] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [user, setUser] = useState(null);
 
     useEffect(() => {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+            setUser(JSON.parse(storedUser));
+        }
+        
         const params = new URLSearchParams(window.location.search);
         const halaqaId = params.get('halaqaId');
         fetchStudents(halaqaId);
@@ -29,9 +38,8 @@ export default function PrintCardsPage() {
                 
                 if (halaqaId) {
                     filtered = allStudents.filter(s => s.halaqaId === parseInt(halaqaId));
-                } else {
-                    // Fallback to the old name if no ID provided (for safety)
-                    filtered = allStudents.filter(s => s.halaqa?.name === 'حلقة التجربة الصيفية');
+                } else if (user?.halaqaId) {
+                    filtered = allStudents.filter(s => s.halaqaId === user.halaqaId);
                 }
                 
                 setStudents(filtered);
@@ -43,116 +51,70 @@ export default function PrintCardsPage() {
         }
     };
 
-    if (!mounted || loading) return <LoadingScreen message="جاري تجهيز البطاقات..." />;
+    if (!mounted || loading) return <LoadingScreen message="جاري تجهيز تقرير البطاقات..." />;
 
-    const user = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || '{}') : {};
+    const halaqaName = students.length > 0 ? students[0].halaqa?.name : '---';
 
     return (
-        <div className="min-h-screen bg-white dark:bg-slate-900 rtl font-noto" dir="rtl">
-            <div className="no-print">
-                <Navbar userType={user.role?.toLowerCase() || 'teacher'} userName="طباعة البطاقات" />
-                <div className="max-w-4xl mx-auto pt-28 px-4 mb-6">
-                    <BackButton text="رجوع" className="mb-4" />
-                    <div className="bg-emerald-600 text-white p-8 rounded-[2rem] shadow-xl flex justify-between items-center">
-                        <div>
-                            <h1 className="text-3xl font-black mb-2">بطاقات الطلاب الذكية 💳</h1>
-                            <p className="font-bold opacity-90">جاهزة للطباعة والقص واستخدامها في نظام النقاط</p>
-                        </div>
-                        <div className="flex gap-4">
-                            <button 
-                                onClick={() => window.print()}
-                                className="bg-white text-emerald-600 px-6 py-3 rounded-xl font-black shadow-lg hover:scale-105 transition-all flex items-center gap-2"
-                            >
-                                <span>🖨️</span> ابدأ الطباعة
-                            </button>
-                        </div>
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 rtl font-noto print:bg-white pt-10" dir="rtl">
+
+            <CardsControlPanel 
+                onPrint={() => window.print()} 
+                onBack={() => router.back()} 
+                studentsCount={students.length}
+            />
+
+            <main className="max-w-6xl mx-auto px-4 pb-20 print:p-10 print:max-w-none">
+                <div className="bg-white dark:bg-slate-900 rounded-[3rem] p-10 shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-800 print:shadow-none print:border-none print:p-0 print:rounded-none">
+                    <CardsReportHeader 
+                        halaqaName={halaqaName}
+                        teacherName={user?.name}
+                        studentsCount={students.length}
+                    />
+
+                    <div className="grid-container grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 print:gap-10 mt-16">
+                        {students.map(student => (
+                            <SmartCardItem key={student.id} student={student} />
+                        ))}
                     </div>
-                </div>
-            </div>
 
-            <main className="max-w-6xl mx-auto px-4 pb-20">
-                <div className="grid-container grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 print:gap-0">
-                    {students.map(student => (
-                        <div key={student.id} className="card-container relative overflow-hidden bg-white border border-slate-200 rounded-2xl shadow-sm print:shadow-none">
-                            {/* Card Header */}
-                            <div className="bg-slate-900 p-2 flex items-center justify-between">
-                                <div className="flex items-center gap-1.5">
-                                    <div className="w-7 h-7 flex items-center justify-center flex-shrink-0">
-                                        <img src="/mosque-logo-white.png" className="max-w-full max-h-full object-contain" alt="logo" />
-                                    </div>
-                                    <div className="text-[7px] text-white font-bold leading-tight">
-                                        جامع الحديقة<br/>
-                                        <span className="text-slate-400">حي السلامة</span>
-                                    </div>
-                                </div>
-                                <div className="text-emerald-400 font-black text-[9px] uppercase tracking-tighter">
-                                    بطاقة الطالب
-                                </div>
-                            </div>
-
-                            {/* Card Body */}
-                            <div className="p-3 flex-1 flex flex-col items-center justify-center text-center">
-                                {student.halaqa?.logo ? (
-                                    <div className="w-16 h-16 flex items-center justify-center mb-1">
-                                        <img 
-                                            src={student.halaqa.logo} 
-                                            decoding="async"
-                                            className="max-w-full max-h-full object-contain rounded-xl transform scale-110" 
-                                            alt="halaqa-logo" 
-                                        />
-                                    </div>
-                                ) : (
-                                    <div className="w-16 h-16 mb-1"></div>
-                                )}
-                                <h3 className="text-sm font-black text-slate-800 mb-0.5">{student.name}</h3>
-                                <p className="text-[8px] font-bold text-slate-400 mb-0.5">الحلقة: {student.halaqa?.name}</p>
-
-                                <div className="p-2 bg-white rounded-2xl shadow-inner border border-slate-50 mb-2">
-                                    <QRCodeSVG value={student.id.toString()} size={85} level="H" includeMargin={true} />
-                                </div>
-
-                                <div className="flex items-center justify-between w-full mt-1 px-1">
-                                    <div className="text-[6px] font-black text-slate-300">#STU-{student.id}</div>
-                                    <div className="text-[6px] font-black text-slate-300">QURAN 2026</div>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
+                    {/* Footer Info for Report */}
+                    <div className="mt-20 pt-8 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center text-[10px] text-slate-400 font-bold print:text-black">
+                        <span>تم استخراج هذا التقرير آلياً عبر منصة تحفيظ القرآن الكريم</span>
+                        <span>{new Date().toLocaleDateString('ar-SA')} م</span>
+                    </div>
                 </div>
             </main>
 
-            <style jsx>{`
+            <style jsx global>{`
                 @media print {
                     @page { 
                         size: A4 portrait;
-                        margin: 1cm;
+                        margin: 1.5cm;
                     }
                     .no-print { display: none !important; }
-                    body { background: white !important; margin: 0; padding: 0 !important; }
+                    body { background: white !important; margin: 0; padding: 0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
                     main { 
                         width: 100% !important; 
                         margin: 0 !important; 
                         padding: 0 !important;
-                        display: flex !important;
-                        justify-content: center !important;
                     }
                     .grid-container {
-                        width: 19cm !important;
+                        width: 100% !important;
                         display: grid !important;
-                        grid-template-columns: 6cm 6cm 6cm !important;
-                        gap: 0.5cm !important;
-                        justify-content: center !important;
+                        grid-template-columns: repeat(3, 1fr) !important;
+                        gap: 15px !important;
+                        justify-items: center !important;
                     }
                     .card-container { 
                         break-inside: avoid;
                         page-break-inside: avoid;
-                        width: 6cm !important;
-                        height: 300px;
-                        display: flex;
-                        flex-direction: column;
-                        border: 1px solid #ddd !important;
+                        border: 1px solid #eee !important;
                         background: white !important;
-                        margin: 0 !important;
+                        width: 100% !important;
+                        max-width: 6cm !important;
+                        print-color-adjust: exact !important;
+                        -webkit-print-color-adjust: exact !important;
                     }
                 }
             `}</style>
