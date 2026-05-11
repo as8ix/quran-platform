@@ -79,6 +79,7 @@ export default function RootLayout({ children }) {
           </main>
           <Footer />
         </ThemeProvider>
+        {/* 
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -90,6 +91,7 @@ export default function RootLayout({ children }) {
             `,
           }}
         />
+        */}
       </body>
     </html>
   );

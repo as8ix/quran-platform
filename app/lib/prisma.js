@@ -11,3 +11,4 @@ export const prisma =
 console.log("Prisma Client Initialized:", !!prisma);
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
+ 

@@ -1,6 +1,6 @@
 generator client {
   provider   = "prisma-client-js"
-  engineType = "library"
+  engineType = "binary"
 }
 
 datasource db {
@@ -43,6 +43,7 @@ model Student {
   password           String
   hifzProgress       String?
   currentHifzSurahId Int?              @default(114)
+  currentHifzAyah    Int?              @default(1)
   juzCount           Float             @default(0)
   reviewPlan         String?
   dailyTargetPages   Float?            @default(1.0)
@@ -66,6 +67,7 @@ model Student {
   notifications      Notification[]
   points             Point[]
   sessions           Session[]
+  studyPlanEntries   StudyPlanEntry[]
   halaqa             Halaqa?           @relation(fields: [halaqaId], references: [id])
 }
 
@@ -92,6 +94,7 @@ model Session {
   studentId              Int
   date                   DateTime      @default(now())
   hifzSurah              String?
+  hifzToSurah            String?
   hifzFromPage           Int?
   hifzToPage             Int?
   hifzFromAyah           Int?
@@ -111,6 +114,8 @@ model Session {
   hifzAlerts             Int           @default(0)
   hifzErrors             Int           @default(0)
   hifzCleanPages         Float         @default(0)
+  isFinishedSurah        Boolean       @default(false)
+  hifzSurahEvaluations   Json?
   minorMurajaahFromAyah  Int?
   minorMurajaahFromSurah String?
   minorMurajaahToAyah    Int?
@@ -187,4 +192,19 @@ model Holiday {
   createdAt DateTime @default(now())
   halaqaId  Int?
   halaqa    Halaqa?  @relation(fields: [halaqaId], references: [id])
+}
+
+model StudyPlanEntry {
+  id           Int      @id @default(autoincrement())
+  studentId    Int
+  date         DateTime
+  type         String   // 'HIFZ' or 'MURAJAAH'
+  surahId      Int
+  fromAyah     Int
+  toAyah       Int
+  toSurahId    Int?
+  isCompleted  Boolean  @default(false)
+  actualDate   DateTime?
+  sessionId    Int?
+  student      Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
 }
