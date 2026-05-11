@@ -3,7 +3,7 @@
 export default function CardsControlPanel({ onPrint, onBack, studentsCount }) {
     return (
         <div className="no-print max-w-6xl mx-auto px-4 mb-8">
-            <div className="bg-slate-50 dark:bg-slate-900/50 rounded-[2.5rem] p-6 border border-slate-100 dark:border-slate-800 shadow-sm flex flex-wrap justify-between items-center gap-4">
+            <div className="bg-white rounded-[2.5rem] p-6 border border-slate-100 shadow-sm flex flex-wrap justify-between items-center gap-4">
                 <div className="flex gap-3">
                     <button 
                         onClick={onPrint}

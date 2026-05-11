@@ -56,7 +56,7 @@ export default function PrintCardsPage() {
     const halaqaName = students.length > 0 ? students[0].halaqa?.name : '---';
 
     return (
-        <div className="min-h-screen bg-slate-50 rtl font-noto pt-10" dir="rtl">
+        <div className="min-h-screen bg-white rtl font-noto pt-10" dir="rtl">
 
             <CardsControlPanel 
                 onPrint={() => window.print()} 
