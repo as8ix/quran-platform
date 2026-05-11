@@ -265,14 +265,11 @@ export default function StudentDetailsPage() {
                 const isFinished = latestH.isFinishedSurah || (Number(latestH.hifzToAyah) >= Number(endSurah.ayahs));
                 
                 if (isFinished) {
-                    // Move to PREVIOUS surah in reverse hifz (114 -> 1)
-                    if (endSurah.id <= 1) {
-                        hStartSId = 114;
-                    } else {
-                        hStartSId = endSurah.id - 1;
-                    }
-                    const nextSurah = quranData.find(s => s.id === hStartSId);
-                    hStartPage = nextSurah?.startPage || 1;
+                    // Do NOT automatically jump to the next surah if the user wants it like main
+                    // We stay in the same surah or move only if explicitly intended.
+                    // For now, let's keep it in the same surah but reset to its start page
+                    hStartSId = endSurah.id;
+                    hStartPage = endSurah.startPage || 1;
                     hStartAyah = 1;
                 } else {
                     // Stay in same endSurah, continue from where we left off
@@ -850,10 +847,15 @@ export default function StudentDetailsPage() {
                 }
             }
 
-            // 3. Calculate Actuals
+            // 3. Calculate Actuals (Precise Decimals)
             let hifzDone = 0;
             if (!isKhatim && hifzToPage && hifzFromPage) {
-                hifzDone = Math.abs(parseInt(hifzToPage) - parseInt(hifzFromPage)) + 1;
+                const sPos = getExactPosition(hifzFromSId || student?.currentHifzSurahId || 114, hifzFromAyah || 1, false);
+                const ePos = getExactPosition(hifzToSId || hifzFromSId || student?.currentHifzSurahId || 114, hifzToAyah || 1, true);
+                hifzDone = Math.abs(ePos - sPos);
+                // Ensure minimal value if some progress exists
+                if (hifzDone < 0.05 && hifzDone > 0) hifzDone = 0.1;
+                hifzDone = Math.round(hifzDone * 100) / 100;
             }
 
             // Review Done (pagesCount is strict, but sometimes it's calculated from Ayahs. 
@@ -960,7 +962,7 @@ export default function StudentDetailsPage() {
                     pagesCount: (includesReview ? parseFloat(pagesCount) : 0) + (includesHifz ? hifzDone : 0),
                     resultString: (() => {
                         const hifzPart = includesHifz ? `${hifzDone} صفحة حفظ` : '';
-                        const reviewPart = includesReview ? (murajaahType === 'BOTH' ? `${parseFloat(pagesCount) + parseFloat(minorPagesCount)} صفحة مراجعة` : `${parseFloat(pagesCount)} صفحة مراجعة`) : '';
+                        const reviewPart = includesReview ? (murajaahType === 'BOTH' ? `${(parseFloat(pagesCount) + parseFloat(minorPagesCount)).toFixed(1)} صفحة مراجعة` : `${parseFloat(pagesCount).toFixed(1)} صفحة مراجعة`) : '';
                         if (hifzPart && reviewPart) return `${hifzPart} و ${reviewPart}`;
                         return hifzPart || reviewPart || '0 صفحة';
                     })(),
