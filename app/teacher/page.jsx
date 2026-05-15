@@ -73,6 +73,22 @@ const StudentCard = ({ student, router }) => (
     </div>
 );
 
+const StudentSkeleton = () => (
+    <div className="premium-glass rounded-[2rem] sm:rounded-[2.5rem] p-5 sm:p-7 relative overflow-hidden border border-white/20 dark:border-slate-800/50 animate-pulse">
+        <div className="flex items-start justify-between mb-4 sm:mb-6">
+            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-slate-200 dark:bg-slate-800 rounded-2xl sm:rounded-3xl"></div>
+            <div className="w-16 h-6 bg-slate-100 dark:bg-slate-900 rounded-xl"></div>
+        </div>
+        <div className="h-7 w-3/4 bg-slate-200 dark:bg-slate-800 rounded-lg mb-3"></div>
+        <div className="h-4 w-1/2 bg-slate-100 dark:bg-slate-900 rounded-lg mb-4"></div>
+        <div className="space-y-3 mb-8 bg-white/30 dark:bg-slate-950/40 p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-white/20 dark:border-slate-800/50">
+            <div className="h-3 w-full bg-slate-200 dark:bg-slate-800 rounded-full"></div>
+            <div className="h-2.5 w-full bg-slate-100 dark:bg-slate-900 rounded-full"></div>
+        </div>
+        <div className="h-8 w-full bg-slate-200 dark:bg-slate-800 rounded-xl"></div>
+    </div>
+);
+
 export default function TeacherDashboard() {
     const router = useRouter();
     const [showAddModal, setShowAddModal] = useState(false);
@@ -168,7 +184,8 @@ export default function TeacherDashboard() {
 
     const { isDarkMode, mounted } = useTheme();
 
-    if (!mounted || loading) return <LoadingScreen />;
+    if (!mounted) return <LoadingScreen />;
+    if (loading && students.length === 0) return <LoadingScreen />;
     
     return (
         <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-main)] font-noto rtl transition-colors duration-300 relative overflow-hidden" dir="rtl">
@@ -289,7 +306,13 @@ export default function TeacherDashboard() {
                     </div>
                 </div>
 
-                {filteredStudents.length > 0 ? (
+                {loading ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                        {[1, 2, 3, 4, 5, 6].map((i) => (
+                            <StudentSkeleton key={i} />
+                        ))}
+                    </div>
+                ) : filteredStudents.length > 0 ? (
                     <div className="space-y-6 sm:space-y-12">
                         {/* Quranic Active Students Section */}
                         {filteredStudents.some(s => s.isInActiveEvent) && (
@@ -305,7 +328,7 @@ export default function TeacherDashboard() {
                                 </div>
                             </div>
                         )}
-
+ 
                         {/* Separator if both exist */}
                         {filteredStudents.some(s => s.isInActiveEvent) && filteredStudents.some(s => !s.isInActiveEvent) && (
                             <div className="py-8 flex items-center gap-6">
@@ -316,7 +339,7 @@ export default function TeacherDashboard() {
                                 <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-800 to-transparent"></div>
                             </div>
                         )}
-
+ 
                         {/* Regular Halaqa Students Section */}
                         {filteredStudents.some(s => !s.isInActiveEvent) && (
                             <div className="space-y-4 sm:space-y-6">

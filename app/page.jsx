@@ -8,8 +8,10 @@ export default function LandingPage() {
   const router = useRouter();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     // Fetch public stats
     fetch('/api/stats')
       .then(res => res.json())
@@ -60,7 +62,7 @@ export default function LandingPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-white transition-colors duration-300">
+    <div id="landing-page-root" className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-white transition-colors duration-300" suppressHydrationWarning>
       {/* Navbar */}
       <nav className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg border-b border-slate-200 dark:border-slate-800 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
@@ -275,23 +277,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-slate-100 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-12">
-        <div className="max-w-7xl mx-auto px-6 text-center">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <img src="/mosque-logo.png" alt="شعار الجامع" className="w-10 h-10 object-contain inline-block dark:hidden" /><img src="/mosque-logo-white.png" alt="شعار الجامع" className="w-10 h-10 object-contain hidden dark:inline-block" />
-            <span className="font-amiri text-2xl font-bold text-slate-800 dark:text-white">
-              منصة تحفيظ القرآن الكريم
-            </span>
-          </div>
-          <p className="text-slate-500 dark:text-slate-400">
-            نحو حفظ متقن وإنجاز مستمر
-          </p>
-          <div className="mt-6 text-sm text-slate-400 dark:text-slate-600">
-            © {new Date().getFullYear()} جميع الحقوق محفوظة
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
