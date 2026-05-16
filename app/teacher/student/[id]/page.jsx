@@ -169,6 +169,7 @@ export default function StudentDetailsPage() {
     const [student, setStudent] = useState(null);
     const [loading, setLoading] = useState(true);
     const [history, setHistory] = useState([]);
+    const [manualHifzSurahId, setManualHifzSurahId] = useState(null);
     const [hifzFromPage, setHifzFromPage] = useState('');
     const [hifzToPage, setHifzToPage] = useState('');
     const [hifzFromAyah, setHifzFromAyah] = useState(1);
@@ -218,11 +219,14 @@ export default function StudentDetailsPage() {
     const lastSmartUpdateRef = useRef(null);
 
     const currentHifzSurah = useMemo(() => {
-        if (editingSessionId && editingSessionData?.hifzSurah) {
-            return quranData.find(s => normalizeSurahName(s.name) === normalizeSurahName(editingSessionData.hifzSurah));
+        if (editingSessionData?.hifzSurah) {
+            return quranData.find(s => s.name === editingSessionData.hifzSurah);
+        }
+        if (manualHifzSurahId) {
+            return quranData.find(s => s.id === manualHifzSurahId);
         }
         return quranData.find(s => s.id === (student?.currentHifzSurahId || 114));
-    }, [student?.currentHifzSurahId, editingSessionId, editingSessionData]);
+    }, [student?.currentHifzSurahId, editingSessionId, editingSessionData, manualHifzSurahId]);
 
     const allowedPages = getSurahPages(currentHifzSurah?.id || 114);
     const isKhatim = student?.juzCount === 31;
@@ -700,7 +704,7 @@ export default function StudentDetailsPage() {
         const fPage = parseInt(hifzFromPage);
         const fAyah = parseInt(hifzFromAyah) || 1;
         const target = parseTarget(student.dailyTargetPages);
-        const currentSId = student.currentHifzSurahId || 114;
+        const currentSId = currentHifzSurah?.id || 114;
         
         if (isNaN(fPage)) return;
 
@@ -728,7 +732,7 @@ export default function StudentDetailsPage() {
             setHifzToPage(tPage);
             setHifzToAyah(tAyah);
         }
-    }, [hifzFromPage, hifzFromAyah, student, isSessionActive, sessionType, editingSessionId]);
+    }, [hifzFromPage, hifzFromAyah, student, isSessionActive, sessionType, editingSessionId, currentHifzSurah]);
 
     // Auto-calculate Clean Pages
     useEffect(() => {
@@ -848,10 +852,7 @@ export default function StudentDetailsPage() {
             // Review Done (pagesCount is strict, but sometimes it's calculated from Ayahs. 
             // In Murajaah, pagesCount is usually (toPage - fromPage + 1). 
             // We use the `pagesCount` variable which comes from state (auto calculated or manual override needed?)
-            // Actually, `pagesCount` state is set by `calculatePages`. Check if that covers Murajaah only or total?
-            // In this component, `pagesCount` seems to be Total Pages? No.
-            // Let's re-verify `calculatePages`.
-            // Wait, `pagesCount` in state effectively stores the calculated result. 
+            // Actually, `pagesCount` in state effectively stores the calculated result. 
             // Is it Hifz + Review? 
             // Looking at `handleSaveSession`, we pass `pagesCount`.
             // Usually `pagesCount` is the Total Recitation. 
@@ -959,6 +960,7 @@ export default function StudentDetailsPage() {
                 setSessionType(null);
                 setEditingSessionId(null);
                 setEditingSessionData(null);
+                setManualHifzSurahId(null);
                 fetchStudent();
                 fetchHistory();
             }
@@ -1378,7 +1380,10 @@ export default function StudentDetailsPage() {
                                                             <div className="mt-4">
                                                                 <p className="text-indigo-700 font-bold mb-2">تم تحديد موعد الاختبار:</p>
                                                                 <div className="inline-block bg-white px-6 py-3 rounded-xl shadow-sm mb-4"><div className="font-black text-indigo-900">{new Date(activeExam.examDate).toLocaleDateString('ar-SA')}</div><div className="text-indigo-500 font-bold text-sm">{activeExam.examTime}</div></div>
-                                                                <div className="flex justify-center gap-3"><button type="button" onClick={() => handleCompleteExam(activeExam.id)} className="px-6 py-3 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 shadow-lg shadow-emerald-200 transition-all">✅ تم اجتياز الاختبار</button><button type="button" onClick={() => { setSelectedExam(activeExam); setExamDate(activeExam.examDate ? new Date(activeExam.examDate).toISOString().split('T')[0] : ''); setExamTime(activeExam.examTime || ''); setShowExamModal(true); }} className="px-6 py-3 bg-white text-indigo-600 border border-indigo-100 rounded-xl font-bold hover:bg-indigo-50 transition-all">✏️ تعديل الموعد</button></div>
+                                                                <div className="flex justify-center gap-3">
+                                                                    <button type="button" onClick={() => handleCompleteExam(activeExam.id)} className="px-6 py-3 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 shadow-lg shadow-emerald-200 transition-all">✅ تم اجتياز الاختبار</button>
+                                                                    <button type="button" onClick={() => { setSelectedExam(activeExam); setExamDate(activeExam.examDate ? new Date(activeExam.examDate).toISOString().split('T')[0] : ''); setExamTime(activeExam.examTime || ''); setShowExamModal(true); }} className="px-6 py-3 bg-white text-indigo-600 border border-indigo-100 rounded-xl font-bold hover:bg-indigo-50 transition-all">✏️ تعديل الموعد</button>
+                                                                </div>
                                                             </div>
                                                         )}
                                                     </div>
@@ -1388,10 +1393,21 @@ export default function StudentDetailsPage() {
                                             return (
                                                 <div className="p-8 bg-emerald-50/50 dark:bg-emerald-900/20 rounded-[2.5rem] border border-emerald-100 dark:border-emerald-800 shadow-inner">
                                                     <div className="flex justify-between items-center mb-6">
-                                                        <h3 className="text-emerald-800 dark:text-emerald-400 font-black text-xl flex items-center gap-3">
+                                                        <div className="flex items-center gap-3">
                                                             <span className="w-3 h-3 bg-emerald-500 rounded-full shadow-lg shadow-emerald-200 dark:shadow-none"></span>
-                                                            الحفظ الجديد (سورة {editingSessionData?.hifzSurah || currentHifzSurah?.name})
-                                                        </h3>
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="text-emerald-800 dark:text-emerald-400 font-black text-xl">الحفظ الجديد:</span>
+                                                                <select 
+                                                                    value={currentHifzSurah?.id} 
+                                                                    onChange={(e) => setManualHifzSurahId(parseInt(e.target.value))}
+                                                                    className="bg-transparent border-b-2 border-emerald-400/30 hover:border-emerald-400 focus:border-emerald-500 outline-none text-emerald-700 dark:text-emerald-300 font-black text-xl cursor-pointer transition-all px-2"
+                                                                >
+                                                                    {quranData.map(s => (
+                                                                        <option key={s.id} value={s.id} className="text-slate-900 dark:text-white dark:bg-slate-900">سورة {s.name}</option>
+                                                                    ))}
+                                                                </select>
+                                                            </div>
+                                                        </div>
                                                         <span className="text-xs font-bold text-emerald-600 bg-emerald-100 px-3 py-1 rounded-full">
                                                             صفحات السورة: {allowedPages[0]} - {allowedPages[allowedPages.length - 1]}
                                                         </span>
