@@ -787,7 +787,11 @@ export default function StudentDetailsPage() {
 
         const currentSurah = currentHifzSurah;
         const nextSurahPages = getSurahPages(currentSurah?.id);
-        const isFinishedSurah = !isKhatim && parseInt(hifzToPage) === nextSurahPages[nextSurahPages.length - 1];
+        
+        // Improved Finish Logic: Check if it's the last page AND the last ayah of the surah
+        const isLastPage = parseInt(hifzToPage) === nextSurahPages[nextSurahPages.length - 1];
+        const isLastAyah = parseInt(hifzToAyah) === currentSurah?.ayahs;
+        const isFinishedSurah = !isKhatim && isLastPage && isLastAyah;
 
         try {
             const fromSurahName = quranData.find(s => s.id === parseInt(mFromSurah))?.name;
