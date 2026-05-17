@@ -168,6 +168,8 @@ export default function StudentDetailsPage() {
     const [manualHifzSurahId, setManualHifzSurahId] = useState(null);
     const [isSurahDropdownOpen, setIsSurahDropdownOpen] = useState(false);
     const [surahSearchQuery, setSurahSearchQuery] = useState('');
+    const [isHifzFromPageDropdownOpen, setIsHifzFromPageDropdownOpen] = useState(false);
+    const [isHifzToPageDropdownOpen, setIsHifzToPageDropdownOpen] = useState(false);
     const [autoAdvancedSurahId, setAutoAdvancedSurahId] = useState(null);
     const [hifzFromPage, setHifzFromPage] = useState('');
     const [hifzToPage, setHifzToPage] = useState('');
@@ -1627,14 +1629,93 @@ export default function StudentDetailsPage() {
                                                         <div>
                                                             <label className="block text-xs font-bold text-emerald-600 mb-2 mr-2">من الصفحة</label>
                                                             <div className="flex gap-2">
-                                                                <select value={hifzFromPage || ''} onChange={e => { const p = parseInt(e.target.value); if (!isNaN(p)) { setHifzFromPage(p); if (pageAyahMap && pageAyahMap[p] && currentHifzSurah) { const pageData = pageAyahMap[p][currentHifzSurah.id]; if (pageData && pageData.start) setHifzFromAyah(pageData.start); } } }} className="w-2/3 px-4 py-4 premium-glass border-2 border-transparent focus:border-emerald-500 rounded-2xl outline-none transition-all font-bold dark:text-white" > {allowedPages.map(p => <option key={p} value={p} className="text-slate-900 dark:text-white dark:bg-slate-900">صفحة {p}</option>)} </select>
+                                                                <div className="relative w-2/3" dir="rtl">
+                                                                    <button 
+                                                                        type="button"
+                                                                        onClick={() => setIsHifzFromPageDropdownOpen(!isHifzFromPageDropdownOpen)}
+                                                                        className="w-full flex justify-between items-center px-4 py-4 premium-glass border-2 border-transparent focus:border-emerald-500 rounded-2xl outline-none transition-all font-bold dark:text-white text-right shadow-sm hover:bg-white/10 dark:hover:bg-slate-800/10"
+                                                                    >
+                                                                        <span>صفحة {hifzFromPage || '---'}</span>
+                                                                        <span className="text-emerald-600 dark:text-emerald-400 text-xs">▼</span>
+                                                                    </button>
+
+                                                                    {isHifzFromPageDropdownOpen && (
+                                                                        <>
+                                                                            <div className="fixed inset-0 z-40" onClick={() => setIsHifzFromPageDropdownOpen(false)} />
+                                                                            <div className="absolute z-50 right-0 left-0 mt-2 max-h-60 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-emerald-100/50 dark:border-emerald-900/50 rounded-2xl shadow-2xl overflow-y-auto py-1 scrollbar-thin scrollbar-thumb-emerald-200 scrollbar-track-transparent">
+                                                                                {allowedPages.map(p => (
+                                                                                    <button
+                                                                                        key={p}
+                                                                                        type="button"
+                                                                                        onClick={() => {
+                                                                                            setHifzFromPage(p);
+                                                                                            setIsHifzFromPageDropdownOpen(false);
+                                                                                            if (pageAyahMap && pageAyahMap[p] && currentHifzSurah) {
+                                                                                                const pageData = pageAyahMap[p][currentHifzSurah.id];
+                                                                                                if (pageData && pageData.start) setHifzFromAyah(pageData.start);
+                                                                                            }
+                                                                                        }}
+                                                                                        className={`w-full text-right px-4 py-3 text-sm font-bold transition-all ${
+                                                                                            hifzFromPage === p 
+                                                                                                ? 'bg-emerald-500 text-white' 
+                                                                                                : 'text-slate-700 dark:text-slate-300 hover:bg-emerald-50/50 dark:hover:bg-emerald-900/20'
+                                                                                        }`}
+                                                                                    >
+                                                                                        صفحة {p}
+                                                                                    </button>
+                                                                                ))}
+                                                                            </div>
+                                                                        </>
+                                                                    )}
+                                                                </div>
                                                                 <div className="w-1/3 relative"><span className="absolute -top-6 right-0 text-[10px] text-emerald-400 font-bold">آية</span><input type="number" value={hifzFromAyah || ''} min="1" max={currentHifzSurah?.ayahs} onFocus={() => hifzFromAyah === 1 && setHifzFromAyah('')} onBlur={() => hifzFromAyah === '' && setHifzFromAyah(1)} onChange={e => { const val = e.target.value; if (val === '') setHifzFromAyah(''); else { const parsed = parseInt(val); const max = currentHifzSurah?.ayahs || 286; if (parsed > max) setHifzFromAyah(max); else setHifzFromAyah(parsed); } }} className="w-full px-4 py-4 premium-glass border-2 border-transparent focus:border-emerald-500 rounded-2xl outline-none font-bold text-center dark:text-white" placeholder="آية" /></div>
                                                             </div>
                                                         </div>
                                                         <div>
                                                             <label className="block text-xs font-bold text-emerald-600 mb-2 mr-2">إلى الصفحة</label>
                                                             <div className="flex gap-2">
-                                                                <select value={hifzToPage || ''} onChange={e => { const p = parseInt(e.target.value); if (!isNaN(p)) { setHifzToPage(p); if (pageAyahMap && pageAyahMap[p] && currentHifzSurah) { const pageData = pageAyahMap[p][currentHifzSurah.id]; if (pageData) { const endAyah = (typeof pageData === 'object') ? pageData.end : pageData; if (endAyah) setHifzToAyah(endAyah); } } } }} className="w-2/3 px-4 py-4 premium-glass border-2 border-transparent focus:border-emerald-500 rounded-2xl outline-none transition-all font-bold dark:text-white" > {allowedPages.map(p => <option key={p} value={p} className="text-slate-900 dark:text-white dark:bg-slate-900">صفحة {p}</option>)} </select>
+                                                                <div className="relative w-2/3" dir="rtl">
+                                                                    <button 
+                                                                        type="button"
+                                                                        onClick={() => setIsHifzToPageDropdownOpen(!isHifzToPageDropdownOpen)}
+                                                                        className="w-full flex justify-between items-center px-4 py-4 premium-glass border-2 border-transparent focus:border-emerald-500 rounded-2xl outline-none transition-all font-bold dark:text-white text-right shadow-sm hover:bg-white/10 dark:hover:bg-slate-800/10"
+                                                                    >
+                                                                        <span>صفحة {hifzToPage || '---'}</span>
+                                                                        <span className="text-emerald-600 dark:text-emerald-400 text-xs">▼</span>
+                                                                    </button>
+
+                                                                    {isHifzToPageDropdownOpen && (
+                                                                        <>
+                                                                            <div className="fixed inset-0 z-40" onClick={() => setIsHifzToPageDropdownOpen(false)} />
+                                                                            <div className="absolute z-50 right-0 left-0 mt-2 max-h-60 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-emerald-100/50 dark:border-emerald-900/50 rounded-2xl shadow-2xl overflow-y-auto py-1 scrollbar-thin scrollbar-thumb-emerald-200 scrollbar-track-transparent">
+                                                                                {allowedPages.map(p => (
+                                                                                    <button
+                                                                                        key={p}
+                                                                                        type="button"
+                                                                                        onClick={() => {
+                                                                                            setHifzToPage(p);
+                                                                                            setIsHifzToPageDropdownOpen(false);
+                                                                                            if (pageAyahMap && pageAyahMap[p] && currentHifzSurah) {
+                                                                                                const pageData = pageAyahMap[p][currentHifzSurah.id];
+                                                                                                if (pageData) {
+                                                                                                    const endAyah = (typeof pageData === 'object') ? pageData.end : pageData;
+                                                                                                    if (endAyah) setHifzToAyah(endAyah);
+                                                                                                }
+                                                                                            }
+                                                                                        }}
+                                                                                        className={`w-full text-right px-4 py-3 text-sm font-bold transition-all ${
+                                                                                            hifzToPage === p 
+                                                                                                ? 'bg-emerald-500 text-white' 
+                                                                                                : 'text-slate-700 dark:text-slate-300 hover:bg-emerald-50/50 dark:hover:bg-emerald-900/20'
+                                                                                        }`}
+                                                                                    >
+                                                                                        صفحة {p}
+                                                                                    </button>
+                                                                                ))}
+                                                                            </div>
+                                                                        </>
+                                                                    )}
+                                                                </div>
                                                                 <div className="w-1/3 relative"><span className="absolute -top-6 right-0 text-[10px] text-emerald-400 font-bold">آية</span><input type="number" value={hifzToAyah || ''} min="1" max={currentHifzSurah?.ayahs} onFocus={() => hifzToAyah === 1 && setHifzToAyah('')} onBlur={() => hifzToAyah === '' && setHifzToAyah(1)} onChange={e => { const val = e.target.value; if (val === '') setHifzToAyah(''); else { const parsed = parseInt(val); const max = currentHifzSurah?.ayahs || 286; if (parsed > max) setHifzToAyah(max); else setHifzToAyah(parsed); } }} className="w-full px-4 py-4 premium-glass border-2 border-transparent focus:border-emerald-500 rounded-2xl outline-none font-bold text-center dark:text-white" placeholder="آية" /></div>
                                                             </div>
                                                         </div>
