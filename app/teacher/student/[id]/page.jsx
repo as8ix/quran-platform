@@ -166,6 +166,8 @@ export default function StudentDetailsPage() {
     const [loading, setLoading] = useState(true);
     const [history, setHistory] = useState([]);
     const [manualHifzSurahId, setManualHifzSurahId] = useState(null);
+    const [isSurahDropdownOpen, setIsSurahDropdownOpen] = useState(false);
+    const [surahSearchQuery, setSurahSearchQuery] = useState('');
     const [autoAdvancedSurahId, setAutoAdvancedSurahId] = useState(null);
     const [hifzFromPage, setHifzFromPage] = useState('');
     const [hifzToPage, setHifzToPage] = useState('');
@@ -1542,17 +1544,70 @@ export default function StudentDetailsPage() {
                                                             <span className="w-3 h-3 bg-emerald-500 rounded-full shadow-lg shadow-emerald-200 dark:shadow-none"></span>
                                                             <div className="flex items-center gap-2">
                                                                 <span className="text-emerald-800 dark:text-emerald-400 font-black text-xl">الحفظ الجديد:</span>
-                                                                <div className="relative flex items-center">
-                                                                    <select 
-                                                                        value={currentHifzSurah?.id || 114} 
-                                                                        onChange={(e) => setManualHifzSurahId(parseInt(e.target.value))}
-                                                                        className="appearance-none pl-9 pr-4 py-1.5 bg-emerald-100/60 dark:bg-emerald-950/60 hover:bg-emerald-200/60 dark:hover:bg-emerald-900/60 border border-emerald-300/30 dark:border-emerald-800/30 rounded-2xl outline-none text-emerald-800 dark:text-emerald-300 font-black text-lg cursor-pointer transition-all ml-2 shadow-sm"
+                                                                <div className="relative inline-block text-right ml-2" dir="rtl">
+                                                                    {/* Trigger Button */}
+                                                                    <button 
+                                                                        type="button"
+                                                                        onClick={() => setIsSurahDropdownOpen(!isSurahDropdownOpen)}
+                                                                        className="flex items-center gap-2 pl-9 pr-4 py-1.5 bg-emerald-100/60 dark:bg-emerald-950/60 hover:bg-emerald-200/60 dark:hover:bg-emerald-900/60 border border-emerald-300/30 dark:border-emerald-800/30 rounded-2xl outline-none text-emerald-800 dark:text-emerald-300 font-black text-lg cursor-pointer transition-all shadow-sm"
                                                                     >
-                                                                        {quranData.map(s => (
-                                                                            <option key={s.id} value={s.id} className="text-slate-900 dark:text-white dark:bg-slate-900">سورة {s.name}</option>
-                                                                        ))}
-                                                                    </select>
-                                                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-600 dark:text-emerald-400 pointer-events-none text-[10px]">▼</span>
+                                                                        <span>سورة {currentHifzSurah?.name || 'الفاتحة'}</span>
+                                                                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-600 dark:text-emerald-400 pointer-events-none text-[10px]">▼</span>
+                                                                    </button>
+
+                                                                    {/* Dropdown Menu */}
+                                                                    {isSurahDropdownOpen && (
+                                                                        <>
+                                                                            {/* Backdrop */}
+                                                                            <div className="fixed inset-0 z-40" onClick={() => setIsSurahDropdownOpen(false)} />
+                                                                            
+                                                                            {/* Options Box */}
+                                                                            <div className="absolute z-50 right-0 mt-2 w-64 max-h-80 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-emerald-100/50 dark:border-emerald-900/50 rounded-2xl shadow-2xl overflow-hidden flex flex-col transition-all duration-200 origin-top-right">
+                                                                                {/* Search Input */}
+                                                                                <div className="p-2 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50">
+                                                                                    <input 
+                                                                                        type="text"
+                                                                                        placeholder="🔍 ابحث عن سورة..."
+                                                                                        value={surahSearchQuery}
+                                                                                        onChange={(e) => setSurahSearchQuery(e.target.value)}
+                                                                                        className="w-full px-3 py-2 text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:border-emerald-500 font-bold dark:text-white"
+                                                                                        autoFocus
+                                                                                    />
+                                                                                </div>
+                                                                                
+                                                                                {/* Surah List */}
+                                                                                <div className="overflow-y-auto flex-1 py-1 max-h-60 scrollbar-thin scrollbar-thumb-emerald-200 scrollbar-track-transparent">
+                                                                                    {quranData
+                                                                                        .filter(s => s.name.includes(surahSearchQuery))
+                                                                                        .map(s => (
+                                                                                            <button
+                                                                                                key={s.id}
+                                                                                                type="button"
+                                                                                                onClick={() => {
+                                                                                                    setManualHifzSurahId(s.id);
+                                                                                                    setIsSurahDropdownOpen(false);
+                                                                                                    setSurahSearchQuery('');
+                                                                                                }}
+                                                                                                className={`w-full text-right px-4 py-2 text-sm font-bold transition-all flex justify-between items-center ${
+                                                                                                    currentHifzSurah?.id === s.id 
+                                                                                                        ? 'bg-emerald-500 text-white' 
+                                                                                                        : 'text-slate-700 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-900/30'
+                                                                                                }`}
+                                                                                            >
+                                                                                                <span>سورة {s.name}</span>
+                                                                                                <span className={`text-[10px] ${currentHifzSurah?.id === s.id ? 'text-white' : 'text-slate-400'}`}>
+                                                                                                    {s.id}
+                                                                                                </span>
+                                                                                            </button>
+                                                                                        ))
+                                                                                    }
+                                                                                    {quranData.filter(s => s.name.includes(surahSearchQuery)).length === 0 && (
+                                                                                        <div className="text-center py-4 text-xs font-bold text-slate-400">لا توجد نتائج</div>
+                                                                                    )}
+                                                                                </div>
+                                                                            </div>
+                                                                        </>
+                                                                    )}
                                                                 </div>
 
                                                                 <div className="group relative inline-block">
