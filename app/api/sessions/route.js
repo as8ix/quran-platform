@@ -75,6 +75,54 @@ export async function POST(request) {
             }
         });
 
+        // Auto-match Session with StudyPlanEntries for this date
+        try {
+            const sessionDateObj = body.sessionDate ? new Date(body.sessionDate) : new Date();
+            const startOfDay = new Date(sessionDateObj);
+            startOfDay.setHours(0, 0, 0, 0);
+            const endOfDay = new Date(sessionDateObj);
+            endOfDay.setHours(23, 59, 59, 999);
+
+            const todayPlanEntries = await prisma.studyPlanEntry.findMany({
+                where: {
+                    studentId: parseInt(studentId),
+                    date: {
+                        gte: startOfDay,
+                        lte: endOfDay
+                    }
+                }
+            });
+
+            for (const entry of todayPlanEntries) {
+                let isMatch = false;
+
+                if (entry.type === 'HIFZ' && hifzSurah) {
+                    const planSurah = quranData.find(s => s.id === entry.surahId);
+                    if (planSurah && (
+                        hifzSurah.trim() === planSurah.name.trim() ||
+                        hifzSurah.replace('سورة ', '').trim() === planSurah.name.trim()
+                    )) {
+                        isMatch = true;
+                    }
+                } else if (entry.type === 'MURAJAAH' && (murajaahFromSurah || minorMurajaahFromSurah)) {
+                    isMatch = true;
+                }
+
+                if (isMatch) {
+                    await prisma.studyPlanEntry.update({
+                        where: { id: entry.id },
+                        data: {
+                            isCompleted: true,
+                            actualDate: new Date(),
+                            sessionId: session.id
+                        }
+                    });
+                }
+            }
+        } catch (planError) {
+            console.error("Auto-matching plan entry error:", planError);
+        }
+
         /* EXAMS FEATURE DISABLED
         if (isFinishedSurah) {
              const student = await prisma.student.findUnique({ where: { id: parseInt(studentId) } });
