@@ -293,7 +293,7 @@ export async function POST(request) {
                                 },
                                 date: entry.date,
                                 type: entry.type,
-                                surahId: parseInt(entry.surahId),
+                                surahId: parseInt(entry.surahId) || 114,
                                 fromAyah: parseInt(entry.fromAyah) || 1,
                                 toAyah: parseInt(entry.toAyah) || 1,
                                 isCompleted: entry.isCompleted
