@@ -1545,12 +1545,20 @@ export default function StudentDetailsPage() {
                                                                 <select 
                                                                     value={currentHifzSurah?.id || 114} 
                                                                     onChange={(e) => setManualHifzSurahId(parseInt(e.target.value))}
-                                                                    className="bg-transparent border-b-2 border-emerald-400/30 hover:border-emerald-400 focus:border-emerald-500 outline-none text-emerald-700 dark:text-emerald-300 font-black text-xl cursor-pointer transition-all px-2"
+                                                                    className="bg-transparent border-b-2 border-emerald-400/30 hover:border-emerald-400 focus:border-emerald-500 outline-none text-emerald-700 dark:text-emerald-300 font-black text-xl cursor-pointer transition-all px-2 ml-1"
                                                                 >
                                                                     {quranData.map(s => (
                                                                         <option key={s.id} value={s.id} className="text-slate-900 dark:text-white dark:bg-slate-900">سورة {s.name}</option>
                                                                     ))}
                                                                 </select>
+
+                                                                <div className="group relative inline-block">
+                                                                    <span className="inline-flex justify-center items-center w-5 h-5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 text-xs font-bold cursor-help transition-all hover:bg-emerald-200 dark:hover:bg-emerald-900">ℹ</span>
+                                                                    <div className="absolute z-50 bottom-full right-1/2 translate-x-1/2 mb-2 w-72 p-3 bg-slate-900 text-white text-xs rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 font-medium leading-relaxed pointer-events-none">
+                                                                        <div className="font-bold mb-1 text-emerald-400">💡 تنبيه للمعلم:</div>
+                                                                        قد يضطر المعلم أحياناً إلى تعديل السورة يدوياً إذا كان الطالب قد أتم تسميع السورة المقترحة مسبقاً (مثل عرض سورة مريم بينما أتم الطالب تسميعها). يمكنك دائماً تغيير السورة من القائمة المنسدلة لإعادة محاذاة مسار الحفظ بشكل تلقائي.
+                                                                    </div>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                         <span className="text-xs font-bold text-emerald-600 bg-emerald-100 px-3 py-1 rounded-full">
