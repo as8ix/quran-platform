@@ -182,7 +182,7 @@ export async function POST(request) {
                                 studentId: parseInt(studentId),
                                 date: scheduledDate1,
                                 type: 'HIFZ',
-                                surahId: parseInt(surahKey),
+                                surahId: parseInt(surahKey) || 114,
                                 fromAyah: start,
                                 toAyah: mid,
                                 isCompleted: false
@@ -217,7 +217,7 @@ export async function POST(request) {
                                 studentId: parseInt(studentId),
                                 date: scheduledDate2,
                                 type: 'HIFZ',
-                                surahId: parseInt(surahKey),
+                                surahId: parseInt(surahKey) || 114,
                                 fromAyah: Math.min(mid + 1, end) || 1,
                                 toAyah: end,
                                 isCompleted: false
@@ -257,7 +257,7 @@ export async function POST(request) {
                                 studentId: parseInt(studentId),
                                 date: scheduledDate,
                                 type: 'HIFZ',
-                                surahId: parseInt(surahKey),
+                                surahId: parseInt(surahKey) || 114,
                                 fromAyah: parseInt(mapping[surahKey].start) || 1,
                                 toAyah: parseInt(mapping[surahKey].end) || 1,
                                 isCompleted: false
