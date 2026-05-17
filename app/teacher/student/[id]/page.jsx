@@ -1578,7 +1578,7 @@ export default function StudentDetailsPage() {
                                                                                 </div>
                                                                                 
                                                                                 {/* Surah List */}
-                                                                                <div className="overflow-y-auto flex-1 py-1 max-h-60 scrollbar-thin scrollbar-thumb-emerald-200 scrollbar-track-transparent">
+                                                                                <div className="overflow-y-auto flex-1 py-1 max-h-60 custom-scrollbar">
                                                                                     {quranData
                                                                                         .filter(s => s.name.includes(surahSearchQuery))
                                                                                         .map(s => (
@@ -1642,7 +1642,7 @@ export default function StudentDetailsPage() {
                                                                     {isHifzFromPageDropdownOpen && (
                                                                         <>
                                                                             <div className="fixed inset-0 z-40" onClick={() => setIsHifzFromPageDropdownOpen(false)} />
-                                                                            <div className="absolute z-50 right-0 left-0 mt-2 max-h-60 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-emerald-100/50 dark:border-emerald-900/50 rounded-2xl shadow-2xl overflow-y-auto py-1 scrollbar-thin scrollbar-thumb-emerald-200 scrollbar-track-transparent">
+                                                                            <div className="absolute z-50 right-0 left-0 mt-2 max-h-60 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-emerald-100/50 dark:border-emerald-900/50 rounded-2xl shadow-2xl overflow-y-auto py-1 custom-scrollbar">
                                                                                 {allowedPages.map(p => (
                                                                                     <button
                                                                                         key={p}
@@ -1687,7 +1687,7 @@ export default function StudentDetailsPage() {
                                                                     {isHifzToPageDropdownOpen && (
                                                                         <>
                                                                             <div className="fixed inset-0 z-40" onClick={() => setIsHifzToPageDropdownOpen(false)} />
-                                                                            <div className="absolute z-50 right-0 left-0 mt-2 max-h-60 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-emerald-100/50 dark:border-emerald-900/50 rounded-2xl shadow-2xl overflow-y-auto py-1 scrollbar-thin scrollbar-thumb-emerald-200 scrollbar-track-transparent">
+                                                                            <div className="absolute z-50 right-0 left-0 mt-2 max-h-60 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-emerald-100/50 dark:border-emerald-900/50 rounded-2xl shadow-2xl overflow-y-auto py-1 custom-scrollbar">
                                                                                 {allowedPages.map(p => (
                                                                                     <button
                                                                                         key={p}
