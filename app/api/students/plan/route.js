@@ -72,7 +72,9 @@ export async function POST(request) {
             const { date, type, surahId, fromAyah, toAyah } = body;
             const newEntry = await prisma.studyPlanEntry.create({
                 data: {
-                    studentId: parseInt(studentId),
+                    Student: {
+                        connect: { id: parseInt(studentId) }
+                    },
                     date: new Date(date),
                     type,
                     surahId: parseInt(surahId),
@@ -286,7 +288,9 @@ export async function POST(request) {
                     entriesToCreate.map(entry => 
                         prisma.studyPlanEntry.create({
                             data: {
-                                studentId: parseInt(entry.studentId),
+                                Student: {
+                                    connect: { id: parseInt(entry.studentId) }
+                                },
                                 date: entry.date,
                                 type: entry.type,
                                 surahId: parseInt(entry.surahId),
