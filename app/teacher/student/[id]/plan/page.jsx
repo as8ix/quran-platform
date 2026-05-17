@@ -28,7 +28,7 @@ export default function StudentQuranPlanPage() {
     const [startSurahId, setStartSurahId] = useState(114); // Default to An-Nas for backward
     const [endSurahId, setEndSurahId] = useState(78); // Default to An-Naba for backward
     const [dailyPages, setDailyPages] = useState('1.0');
-    const [dailyReview, setDailyReview] = useState('2.0');
+    const [dailyReview, setDailyReview] = useState('20');
 
     const [startDate, setStartDate] = useState(() => {
         const tomorrow = new Date();
@@ -72,6 +72,9 @@ export default function StudentQuranPlanPage() {
                 setStudent(found);
                 if (found && found.currentHifzSurahId) {
                     setStartSurahId(found.currentHifzSurahId);
+                }
+                if (found && found.reviewPlan) {
+                    setDailyReview(found.reviewPlan);
                 }
             } else {
                 toast.error('حدث خطأ في جلب بيانات الطالب');
@@ -366,17 +369,33 @@ export default function StudentQuranPlanPage() {
                                 <div>
                                     <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-2 mr-1">المراجعة اليومية</label>
                                     <select
-                                        value={dailyReview}
-                                        onChange={(e) => setDailyReview(e.target.value)}
+                                        value={['0', '10', '20', '40', '60'].includes(dailyReview) ? dailyReview : (dailyReview ? 'custom' : '0')}
+                                        onChange={(e) => {
+                                            if (e.target.value === 'custom') setDailyReview('1');
+                                            else setDailyReview(e.target.value);
+                                        }}
                                         className="w-full px-3 py-3 bg-white/70 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-750 rounded-xl outline-none font-bold text-slate-700 dark:text-slate-200 text-sm shadow-sm"
                                     >
-                                        <option value="0.0">بدون مراجعة</option>
-                                        <option value="1.0">صفحة واحدة</option>
-                                        <option value="2.0">صفحتين</option>
-                                        <option value="3.0">3 صفحات</option>
-                                        <option value="5.0">5 صفحات</option>
-                                        <option value="10.0">10 صفحات</option>
+                                        <option value="0">بدون مراجعة</option>
+                                        <option value="10">10 صفحات (نصف جزء)</option>
+                                        <option value="20">20 صفحة (جزء كامل)</option>
+                                        <option value="40">40 صفحة (جزئين)</option>
+                                        <option value="60">60 صفحة (ثلاثة أجزاء)</option>
+                                        <option value="custom">تحديد مخصص (عدد الصفحات)...</option>
                                     </select>
+                                    
+                                    {/* Custom Review Amount */}
+                                    {dailyReview && !['0', '10', '20', '40', '60'].includes(dailyReview) && (
+                                        <div className="mt-2 animate-fadeIn">
+                                            <input
+                                                type="number"
+                                                className="w-full px-3 py-2 bg-white/70 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-750 rounded-xl outline-none font-bold text-slate-700 dark:text-slate-200 text-xs text-center shadow-sm"
+                                                placeholder="أدخل عدد صفحات المراجعة..."
+                                                value={dailyReview}
+                                                onChange={(e) => setDailyReview(e.target.value)}
+                                            />
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
