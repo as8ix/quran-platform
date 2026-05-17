@@ -173,8 +173,8 @@ export async function POST(request) {
                     const mapping = pageAyahMap[page.toString()];
                     if (mapping) {
                         Object.keys(mapping).forEach(surahKey => {
-                            const start = mapping[surahKey].start;
-                            const end = mapping[surahKey].end;
+                            const start = parseInt(mapping[surahKey].start) || 1;
+                            const end = parseInt(mapping[surahKey].end) || 1;
                             const mid = Math.round((start + end) / 2);
                             entriesToCreate.push({
                                 studentId: parseInt(studentId),
@@ -196,7 +196,7 @@ export async function POST(request) {
                             type: 'MURAJAAH',
                             surahId: 1, // Fallback/Placeholder
                             fromAyah: 1,
-                            toAyah: Math.round(numDailyReview),
+                            toAyah: Math.round(numDailyReview) || 1,
                             isCompleted: false
                         });
                     }
@@ -208,15 +208,15 @@ export async function POST(request) {
 
                     if (mapping) {
                         Object.keys(mapping).forEach(surahKey => {
-                            const start = mapping[surahKey].start;
-                            const end = mapping[surahKey].end;
+                            const start = parseInt(mapping[surahKey].start) || 1;
+                            const end = parseInt(mapping[surahKey].end) || 1;
                             const mid = Math.round((start + end) / 2);
                             entriesToCreate.push({
                                 studentId: parseInt(studentId),
                                 date: scheduledDate2,
                                 type: 'HIFZ',
                                 surahId: parseInt(surahKey),
-                                fromAyah: Math.min(mid + 1, end),
+                                fromAyah: Math.min(mid + 1, end) || 1,
                                 toAyah: end,
                                 isCompleted: false
                             });
@@ -231,7 +231,7 @@ export async function POST(request) {
                             type: 'MURAJAAH',
                             surahId: 1,
                             fromAyah: 1,
-                            toAyah: Math.round(numDailyReview),
+                            toAyah: Math.round(numDailyReview) || 1,
                             isCompleted: false
                         });
                     }
@@ -256,8 +256,8 @@ export async function POST(request) {
                                 date: scheduledDate,
                                 type: 'HIFZ',
                                 surahId: parseInt(surahKey),
-                                fromAyah: mapping[surahKey].start,
-                                toAyah: mapping[surahKey].end,
+                                fromAyah: parseInt(mapping[surahKey].start) || 1,
+                                toAyah: parseInt(mapping[surahKey].end) || 1,
                                 isCompleted: false
                             });
                         });
@@ -272,7 +272,7 @@ export async function POST(request) {
                         type: 'MURAJAAH',
                         surahId: 1,
                         fromAyah: 1,
-                        toAyah: Math.round(numDailyReview),
+                        toAyah: Math.round(numDailyReview) || 1,
                         isCompleted: false
                     });
                 }
@@ -286,12 +286,12 @@ export async function POST(request) {
                     entriesToCreate.map(entry => 
                         prisma.studyPlanEntry.create({
                             data: {
-                                studentId: entry.studentId,
+                                studentId: parseInt(entry.studentId),
                                 date: entry.date,
                                 type: entry.type,
-                                surahId: entry.surahId,
-                                fromAyah: entry.fromAyah,
-                                toAyah: entry.toAyah,
+                                surahId: parseInt(entry.surahId),
+                                fromAyah: parseInt(entry.fromAyah) || 1,
+                                toAyah: parseInt(entry.toAyah) || 1,
                                 isCompleted: entry.isCompleted
                             }
                         })
