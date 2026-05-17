@@ -29,7 +29,7 @@ export default function StudentQuranPlanPage() {
     const [endSurahId, setEndSurahId] = useState(78); // Default to An-Naba for backward
     const [dailyPages, setDailyPages] = useState('1.0');
     const [dailyReview, setDailyReview] = useState('2.0');
-    const [direction, setDirection] = useState('backward'); // 'backward' or 'forward'
+
     const [startDate, setStartDate] = useState(() => {
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
@@ -70,6 +70,9 @@ export default function StudentQuranPlanPage() {
                 const students = await res.json();
                 const found = Array.isArray(students) ? students[0] : students;
                 setStudent(found);
+                if (found && found.currentHifzSurahId) {
+                    setStartSurahId(found.currentHifzSurahId);
+                }
             } else {
                 toast.error('حدث خطأ في جلب بيانات الطالب');
             }
@@ -103,7 +106,7 @@ export default function StudentQuranPlanPage() {
                     dailyPages,
                     dailyReview,
                     startDate,
-                    direction
+                    direction: 'backward'
                 })
             });
 
@@ -243,35 +246,6 @@ export default function StudentQuranPlanPage() {
                         </h2>
 
                         <form onSubmit={handleGeneratePlan} className="space-y-4">
-                            {/* Direction Picker */}
-                            <div>
-                                <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-2 mr-1">إتجاه التوليد</label>
-                                <div className="grid grid-cols-2 bg-slate-100 dark:bg-slate-900 p-1 rounded-xl border border-slate-200/50 dark:border-slate-800">
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setDirection('backward');
-                                            setStartSurahId(114);
-                                            setEndSurahId(78);
-                                        }}
-                                        className={`py-2 rounded-lg text-xs font-black transition-all ${direction === 'backward' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-500'}`}
-                                    >
-                                        تنازلي (الناس ← الفاتحة)
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setDirection('forward');
-                                            setStartSurahId(1);
-                                            setEndSurahId(114);
-                                        }}
-                                        className={`py-2 rounded-lg text-xs font-black transition-all ${direction === 'forward' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-500'}`}
-                                    >
-                                        تصاعدي (الفاتحة ← الناس)
-                                    </button>
-                                </div>
-                            </div>
-
                             {/* Start Surah Dropdown */}
                             <div className="relative">
                                 <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-2 mr-1">سورة البداية</label>
@@ -443,7 +417,7 @@ export default function StudentQuranPlanPage() {
                                 </li>
                                 <li className="flex items-start gap-2.5">
                                     <span className="text-emerald-500 mt-1">✓</span>
-                                    <span>**تخطي التكرار وتوليد متناغم:** يمنحك خيار الحفظ التنازلي دقة عالية جداً لترتيب السور من سورة الناس تدريجياً إلى السور الكبرى.</span>
+                                    <span>**التناغم والتوافق:** الخطة مدمجة تماماً مع الاتجاه التنازلي للحفظ المعتمد للطالب في المنصة لمتابعة دقيقة.</span>
                                 </li>
                             </ul>
                         </div>
