@@ -1542,15 +1542,18 @@ export default function StudentDetailsPage() {
                                                             <span className="w-3 h-3 bg-emerald-500 rounded-full shadow-lg shadow-emerald-200 dark:shadow-none"></span>
                                                             <div className="flex items-center gap-2">
                                                                 <span className="text-emerald-800 dark:text-emerald-400 font-black text-xl">الحفظ الجديد:</span>
-                                                                <select 
-                                                                    value={currentHifzSurah?.id || 114} 
-                                                                    onChange={(e) => setManualHifzSurahId(parseInt(e.target.value))}
-                                                                    className="bg-transparent border-b-2 border-emerald-400/30 hover:border-emerald-400 focus:border-emerald-500 outline-none text-emerald-700 dark:text-emerald-300 font-black text-xl cursor-pointer transition-all px-2 ml-1"
-                                                                >
-                                                                    {quranData.map(s => (
-                                                                        <option key={s.id} value={s.id} className="text-slate-900 dark:text-white dark:bg-slate-900">سورة {s.name}</option>
-                                                                    ))}
-                                                                </select>
+                                                                <div className="relative flex items-center">
+                                                                    <select 
+                                                                        value={currentHifzSurah?.id || 114} 
+                                                                        onChange={(e) => setManualHifzSurahId(parseInt(e.target.value))}
+                                                                        className="appearance-none pl-9 pr-4 py-1.5 bg-emerald-100/60 dark:bg-emerald-950/60 hover:bg-emerald-200/60 dark:hover:bg-emerald-900/60 border border-emerald-300/30 dark:border-emerald-800/30 rounded-2xl outline-none text-emerald-800 dark:text-emerald-300 font-black text-lg cursor-pointer transition-all ml-2 shadow-sm"
+                                                                    >
+                                                                        {quranData.map(s => (
+                                                                            <option key={s.id} value={s.id} className="text-slate-900 dark:text-white dark:bg-slate-900">سورة {s.name}</option>
+                                                                        ))}
+                                                                    </select>
+                                                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-600 dark:text-emerald-400 pointer-events-none text-[10px]">▼</span>
+                                                                </div>
 
                                                                 <div className="group relative inline-block">
                                                                     <span className="inline-flex justify-center items-center w-5 h-5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 text-xs font-bold cursor-help transition-all hover:bg-emerald-200 dark:hover:bg-emerald-900">ℹ</span>
