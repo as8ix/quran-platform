@@ -630,13 +630,16 @@ export const pageAyahMap = {
         }
     },
     "106": {
+        "totalWeight": 13,
         "4": {
             "start": 176,
-            "end": 176
+            "end": 176,
+            "weight": 5
         },
         "5": {
             "start": 1,
-            "end": 2
+            "end": 2,
+            "weight": 8
         }
     },
     "107": {
@@ -1412,13 +1415,16 @@ export const pageAyahMap = {
         }
     },
     "235": {
+        "totalWeight": 13,
         "11": {
             "start": 118,
-            "end": 123
+            "end": 123,
+            "weight": 8
         },
         "12": {
             "start": 1,
-            "end": 4
+            "end": 4,
+            "weight": 5
         }
     },
     "236": {
@@ -1538,12 +1544,15 @@ export const pageAyahMap = {
     "255": {
         "13": {
             "start": 43,
-            "end": 43
+            "end": 43,
+            "weight": 2
         },
         "14": {
             "start": 1,
-            "end": 5
-        }
+            "end": 5,
+            "weight": 11
+        },
+        "totalWeight": 13
     },
     "256": {
         "14": {
@@ -1614,12 +1623,15 @@ export const pageAyahMap = {
     "267": {
         "15": {
             "start": 91,
-            "end": 99
+            "end": 99,
+            "weight": 6
         },
         "16": {
             "start": 1,
-            "end": 6
-        }
+            "end": 6,
+            "weight": 7
+        },
+        "totalWeight": 13
     },
     "268": {
         "16": {
@@ -1774,12 +1786,15 @@ export const pageAyahMap = {
     "293": {
         "17": {
             "start": 105,
-            "end": 111
+            "end": 111,
+            "weight": 9
         },
         "18": {
             "start": 1,
-            "end": 4
-        }
+            "end": 4,
+            "weight": 4
+        },
+        "totalWeight": 13
     },
     "294": {
         "18": {
@@ -1892,12 +1907,15 @@ export const pageAyahMap = {
     "312": {
         "19": {
             "start": 96,
-            "end": 98
+            "end": 98,
+            "weight": 4
         },
         "20": {
             "start": 1,
-            "end": 12
-        }
+            "end": 12,
+            "weight": 9
+        },
+        "totalWeight": 13
     },
     "313": {
         "20": {
@@ -2178,12 +2196,15 @@ export const pageAyahMap = {
     "359": {
         "24": {
             "start": 62,
-            "end": 64
+            "end": 64,
+            "weight": 10
         },
         "25": {
             "start": 1,
-            "end": 2
-        }
+            "end": 2,
+            "weight": 3
+        },
+        "totalWeight": 13
     },
     "360": {
         "25": {
@@ -2338,12 +2359,15 @@ export const pageAyahMap = {
     "385": {
         "27": {
             "start": 89,
-            "end": 93
+            "end": 93,
+            "weight": 7
         },
         "28": {
             "start": 1,
-            "end": 5
-        }
+            "end": 5,
+            "weight": 6
+        },
+        "totalWeight": 13
     },
     "386": {
         "28": {
@@ -2408,12 +2432,15 @@ export const pageAyahMap = {
     "396": {
         "28": {
             "start": 85,
-            "end": 88
+            "end": 88,
+            "weight": 7
         },
         "29": {
             "start": 1,
-            "end": 6
-        }
+            "end": 6,
+            "weight": 6
+        },
+        "totalWeight": 13
     },
     "397": {
         "29": {
@@ -2460,12 +2487,15 @@ export const pageAyahMap = {
     "404": {
         "29": {
             "start": 64,
-            "end": 69
+            "end": 69,
+            "weight": 9
         },
         "30": {
             "start": 1,
-            "end": 5
-        }
+            "end": 5,
+            "weight": 4
+        },
+        "totalWeight": 13
     },
     "405": {
         "30": {
@@ -2644,12 +2674,15 @@ export const pageAyahMap = {
     "434": {
         "34": {
             "start": 49,
-            "end": 54
+            "end": 54,
+            "weight": 7
         },
         "35": {
             "start": 1,
-            "end": 3
-        }
+            "end": 3,
+            "weight": 6
+        },
+        "totalWeight": 13
     },
     "435": {
         "35": {
@@ -2684,12 +2717,15 @@ export const pageAyahMap = {
     "440": {
         "35": {
             "start": 45,
-            "end": 45
+            "end": 45,
+            "weight": 3
         },
         "36": {
             "start": 1,
-            "end": 12
-        }
+            "end": 12,
+            "weight": 10
+        },
+        "totalWeight": 13
     },
     "441": {
         "36": {
@@ -2796,12 +2832,15 @@ export const pageAyahMap = {
     "458": {
         "38": {
             "start": 84,
-            "end": 88
+            "end": 88,
+            "weight": 3
         },
         "39": {
             "start": 1,
-            "end": 5
-        }
+            "end": 5,
+            "weight": 10
+        },
+        "totalWeight": 13
     },
     "459": {
         "39": {
@@ -2990,12 +3029,15 @@ export const pageAyahMap = {
     "489": {
         "42": {
             "start": 52,
-            "end": 53
+            "end": 53,
+            "weight": 4
         },
         "43": {
             "start": 1,
-            "end": 10
-        }
+            "end": 10,
+            "weight": 9
+        },
+        "totalWeight": 13
     },
     "490": {
         "43": {
@@ -3072,12 +3114,15 @@ export const pageAyahMap = {
     "502": {
         "45": {
             "start": 33,
-            "end": 37
+            "end": 37,
+            "weight": 6
         },
         "46": {
             "start": 1,
-            "end": 5
-        }
+            "end": 5,
+            "weight": 7
+        },
+        "totalWeight": 13
     },
     "503": {
         "46": {
@@ -3154,12 +3199,15 @@ export const pageAyahMap = {
     "515": {
         "48": {
             "start": 29,
-            "end": 29
+            "end": 29,
+            "weight": 6
         },
         "49": {
             "start": 1,
-            "end": 4
-        }
+            "end": 4,
+            "weight": 7
+        },
+        "totalWeight": 13
     },
     "516": {
         "49": {
@@ -3188,12 +3236,15 @@ export const pageAyahMap = {
     "520": {
         "50": {
             "start": 36,
-            "end": 45
+            "end": 45,
+            "weight": 11
         },
         "51": {
             "start": 1,
-            "end": 6
-        }
+            "end": 6,
+            "weight": 2
+        },
+        "totalWeight": 13
     },
     "521": {
         "51": {
@@ -3210,12 +3261,15 @@ export const pageAyahMap = {
     "523": {
         "51": {
             "start": 52,
-            "end": 60
+            "end": 60,
+            "weight": 7
         },
         "52": {
             "start": 1,
-            "end": 14
-        }
+            "end": 14,
+            "weight": 6
+        },
+        "totalWeight": 13
     },
     "524": {
         "52": {
@@ -3244,12 +3298,15 @@ export const pageAyahMap = {
     "528": {
         "53": {
             "start": 45,
-            "end": 62
+            "end": 62,
+            "weight": 9
         },
         "54": {
             "start": 1,
-            "end": 6
-        }
+            "end": 6,
+            "weight": 4
+        },
+        "totalWeight": 13
     },
     "529": {
         "54": {
@@ -3310,12 +3367,15 @@ export const pageAyahMap = {
     "537": {
         "56": {
             "start": 77,
-            "end": 96
+            "end": 96,
+            "weight": 12
         },
         "57": {
             "start": 1,
-            "end": 3
-        }
+            "end": 3,
+            "weight": 3
+        },
+        "totalWeight": 15
     },
     "538": {
         "57": {
@@ -3362,12 +3422,15 @@ export const pageAyahMap = {
     "545": {
         "58": {
             "start": 22,
-            "end": 22
+            "end": 22,
+            "weight": 6
         },
         "59": {
             "start": 1,
-            "end": 3
-        }
+            "end": 3,
+            "weight": 7
+        },
+        "totalWeight": 13
     },
     "546": {
         "59": {
@@ -3402,12 +3465,15 @@ export const pageAyahMap = {
     "551": {
         "60": {
             "start": 12,
-            "end": 13
+            "end": 13,
+            "weight": 6
         },
         "61": {
             "start": 1,
-            "end": 5
-        }
+            "end": 5,
+            "weight": 7
+        },
+        "totalWeight": 13
     },
     "552": {
         "61": {
@@ -3488,16 +3554,19 @@ export const pageAyahMap = {
     "564": {
         "67": {
             "start": 27,
-            "end": 30
+            "end": 30,
+            "weight": 5
         },
         "68": {
             "start": 1,
-            "end": 15
-        }
+            "end": 16,
+            "weight": 8
+        },
+        "totalWeight": 13
     },
     "565": {
         "68": {
-            "start": 16,
+            "start": 17,
             "end": 42
         }
     },
@@ -3520,12 +3589,15 @@ export const pageAyahMap = {
     "568": {
         "69": {
             "start": 35,
-            "end": 52
+            "end": 52,
+            "weight": 8
         },
         "70": {
             "start": 1,
-            "end": 10
-        }
+            "end": 10,
+            "weight": 5
+        },
+        "totalWeight": 13
     },
     "569": {
         "70": {
@@ -3536,12 +3608,15 @@ export const pageAyahMap = {
     "570": {
         "70": {
             "start": 40,
-            "end": 44
+            "end": 44,
+            "weight": 4
         },
         "71": {
             "start": 1,
-            "end": 10
-        }
+            "end": 10,
+            "weight": 9
+        },
+        "totalWeight": 13
     },
     "571": {
         "71": {
@@ -3570,16 +3645,19 @@ export const pageAyahMap = {
     "575": {
         "73": {
             "start": 20,
-            "end": 20
+            "end": 20,
+            "weight": 7
         },
         "74": {
             "start": 1,
-            "end": 17
-        }
+            "end": 18,
+            "weight": 6
+        },
+        "totalWeight": 13
     },
     "576": {
         "74": {
-            "start": 18,
+            "start": 19,
             "end": 47
         }
     },
@@ -3612,12 +3690,15 @@ export const pageAyahMap = {
     "580": {
         "76": {
             "start": 26,
-            "end": 31
+            "end": 31,
+            "weight": 6
         },
         "77": {
             "start": 1,
-            "end": 19
-        }
+            "end": 19,
+            "weight": 7
+        },
+        "totalWeight": 13
     },
     "581": {
         "77": {
@@ -3628,18 +3709,25 @@ export const pageAyahMap = {
     "582": {
         "78": {
             "start": 1,
-            "end": 40
+            "end": 30
         }
     },
     "583": {
+        "78": {
+            "start": 31,
+            "end": 40,
+            "weight": 7
+        },
         "79": {
             "start": 1,
-            "end": 15
-        }
+            "end": 16,
+            "weight": 6
+        },
+        "totalWeight": 13
     },
     "584": {
         "79": {
-            "start": 16,
+            "start": 17,
             "end": 46
         }
     },
