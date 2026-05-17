@@ -280,11 +280,23 @@ export async function POST(request) {
                 currentDate.setDate(currentDate.getDate() + 1);
             }
 
-            // Create all entries in a batch
+            // Create all entries in a transaction to ensure SQLite/Postgres compatibility
             if (entriesToCreate.length > 0) {
-                await prisma.studyPlanEntry.createMany({
-                    data: entriesToCreate
-                });
+                await prisma.$transaction(
+                    entriesToCreate.map(entry => 
+                        prisma.studyPlanEntry.create({
+                            data: {
+                                studentId: entry.studentId,
+                                date: entry.date,
+                                type: entry.type,
+                                surahId: entry.surahId,
+                                fromAyah: entry.fromAyah,
+                                toAyah: entry.toAyah,
+                                isCompleted: entry.isCompleted
+                            }
+                        })
+                    )
+                );
             }
 
             return NextResponse.json({
