@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import { formatHijri } from '../../../../utils/dateUtils';
 import { quranData } from '../../../../data/quranData';
+import { pageAyahMap } from '../../../../data/pageAyahMap';
 import Navbar from '../../../../components/Navbar';
 import BackButton from '../../../../components/BackButton';
 
@@ -23,6 +24,7 @@ export default function StudentQuranPlanPage() {
     const [loading, setLoading] = useState(true);
     const [student, setStudent] = useState(null);
     const [planEntries, setPlanEntries] = useState([]);
+    const [loadingStep, setLoadingStep] = useState('');
     
     // Generator parameters
     const [startSurahId, setStartSurahId] = useState(114); // Default to An-Nas for backward
@@ -97,6 +99,26 @@ export default function StudentQuranPlanPage() {
     const handleGeneratePlan = async (e) => {
         e.preventDefault();
         setGenerating(true);
+        setLoadingStep('جاري البدء وتصفية خطة الطالب...');
+
+        const steps = [
+            'جاري مسح وحذف سجلات الخطة القرآنية القديمة من قاعدة البيانات...',
+            'جاري تهيئة خادم التوليد وتدقيق المدخلات...',
+            'جاري فحص رصيد الحفظ التراكمي وتعيين اتجاه الجدولة...',
+            'جاري حساب وتوزيع مقرر الحفظ والآيات على الأيام النشطة...',
+            'جاري ضبط مراجعة الصفحات الدورية المتوافقة مع الحفظ الفعلي...',
+            'جاري إنشاء السجلات وحفظ المعاملات بقاعدة البيانات...',
+            'جاري ترتيب وعرض تفاصيل الخطة القرآنية الجديدة الآن...'
+        ];
+        
+        let currentStepIdx = 0;
+        const intervalId = setInterval(() => {
+            if (currentStepIdx < steps.length) {
+                setLoadingStep(steps[currentStepIdx]);
+                currentStepIdx++;
+            }
+        }, 1200);
+
         try {
             const res = await fetch('/api/students/plan', {
                 method: 'POST',
@@ -114,18 +136,22 @@ export default function StudentQuranPlanPage() {
             });
 
             const data = await res.json();
+            clearInterval(intervalId);
+
             if (res.ok) {
+                setLoadingStep('تم التوليد بنجاح! جاري تحديث الجدول...');
                 toast.success('تم توليد الخطة القرآنية بنجاح! 🎉');
-                // Refresh plan entries
-                fetchData();
+                await fetchData();
             } else {
                 toast.error(data.error || 'حدث خطأ أثناء توليد الخطة');
             }
         } catch (error) {
+            clearInterval(intervalId);
             console.error(error);
             toast.error('حدث خطأ في الاتصال بالخادم');
         } finally {
             setGenerating(false);
+            setLoadingStep('');
         }
     };
 
@@ -135,20 +161,21 @@ export default function StudentQuranPlanPage() {
         }
 
         setClearing(true);
+        const toastId = toast.loading('جاري مسح وحذف الخطة القرآنية...');
         try {
             const res = await fetch(`/api/students/plan?studentId=${id}&clearAll=true`, {
                 method: 'DELETE'
             });
 
             if (res.ok) {
-                toast.success('تم مسح الخطة القرآنية بنجاح');
+                toast.success('تم مسح الخطة القرآنية بنجاح 🎉', { id: toastId });
                 setPlanEntries([]);
             } else {
-                toast.error('حدث خطأ أثناء مسح الخطة');
+                toast.error('حدث خطأ أثناء مسح الخطة ❌', { id: toastId });
             }
         } catch (error) {
             console.error(error);
-            toast.error('خطأ في الاتصال بالخادم');
+            toast.error('خطأ في الاتصال بالخادم ❌', { id: toastId });
         } finally {
             setClearing(false);
         }
@@ -169,6 +196,23 @@ export default function StudentQuranPlanPage() {
         } catch (error) {
             console.error(error);
             toast.error('خطأ في الاتصال');
+        }
+    };
+
+    const handleDeleteDay = async (entryIds) => {
+        if (!window.confirm('هل أنت متأكد من رغبتك في حذف جدول هذا اليوم بالكامل؟')) {
+            return;
+        }
+        try {
+            const deletePromises = entryIds.map(entryId => 
+                fetch(`/api/students/plan?id=${entryId}`, { method: 'DELETE' })
+            );
+            await Promise.all(deletePromises);
+            toast.success('تم حذف جدول اليوم بنجاح');
+            setPlanEntries(planEntries.filter(entry => !entryIds.includes(entry.id)));
+        } catch (error) {
+            console.error(error);
+            toast.error('حدث خطأ في الاتصال بالخادم');
         }
     };
 
@@ -194,6 +238,39 @@ export default function StudentQuranPlanPage() {
 
     const selectedStartSurahName = quranData.find(s => s.id === startSurahId)?.name || 'غير محدد';
     const selectedEndSurahName = quranData.find(s => s.id === endSurahId)?.name || 'غير محدد';
+
+    // Group plan entries by date to simplify UI display
+    const groupedEntries = [];
+    const dateGroups = {};
+
+    planEntries.forEach(entry => {
+        try {
+            const dateKey = new Date(entry.date).toISOString().split('T')[0];
+            if (!dateGroups[dateKey]) {
+                dateGroups[dateKey] = {
+                    date: entry.date,
+                    hifzEntries: [],
+                    reviewEntries: [],
+                    isCompleted: true,
+                    ids: []
+                };
+                groupedEntries.push(dateGroups[dateKey]);
+            }
+            
+            dateGroups[dateKey].ids.push(entry.id);
+            if (entry.isCompleted === false) {
+                dateGroups[dateKey].isCompleted = false;
+            }
+
+            if (entry.type === 'HIFZ') {
+                dateGroups[dateKey].hifzEntries.push(entry);
+            } else if (entry.type === 'MURAJAAH') {
+                dateGroups[dateKey].reviewEntries.push(entry);
+            }
+        } catch (e) {
+            console.error("Error grouping entry:", e);
+        }
+    });
 
     return (
         <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-main)] font-noto rtl transition-colors duration-300" dir="rtl">
@@ -237,6 +314,20 @@ export default function StudentQuranPlanPage() {
                             <span className="px-4 py-2 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 rounded-xl text-xs font-black border border-emerald-100/50 dark:border-emerald-900/30">
                                 🎯 الخطة المعتمدة: الأحد إلى الأربعاء
                             </span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Work In Progress Banner */}
+                <div className="mb-8 p-6 rounded-[2rem] bg-gradient-to-r from-amber-500/10 to-orange-500/10 border-2 border-amber-500/30 shadow-lg relative overflow-hidden group">
+                    <div className="absolute -right-10 -top-10 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl group-hover:scale-150 transition-all duration-1000"></div>
+                    <div className="flex items-center gap-4 relative z-10">
+                        <span className="w-12 h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center text-2xl shadow-[0_0_15px_rgba(245,158,11,0.4)] animate-bounce-subtle shrink-0">
+                            🛠️
+                        </span>
+                        <div className="text-right">
+                            <h3 className="text-base font-black text-amber-800 dark:text-amber-400 leading-tight">هذه الصفحة قيد التطوير والتحسين المستمر</h3>
+                            <p className="text-xs text-amber-600 dark:text-amber-500/80 font-bold mt-1">يجري العمل حالياً على ترقية خوارزميات التوليد التلقائي لجدولة الحفظ والمراجعة بشكل أكثر دقة وتفاعلية.</p>
                         </div>
                     </div>
                 </div>
@@ -459,64 +550,114 @@ export default function StudentQuranPlanPage() {
                 <div className="bg-white dark:bg-slate-900/60 rounded-[2.5rem] p-8 border border-slate-100 dark:border-slate-800/80 shadow-xl shadow-slate-200/50 dark:shadow-none print:shadow-none print:border-none print:bg-transparent print:p-0">
                     <h2 className="text-xl font-black text-slate-800 dark:text-white mb-6 flex items-center gap-2">
                         <span>📅</span> جدول تفاصيل الخطة
-                        <span className="text-xs font-bold text-slate-400">({planEntries.length} بند مدرج)</span>
+                        <span className="text-xs font-bold text-slate-400">({groupedEntries.length} يومًا مجدولًا)</span>
                     </h2>
 
-                    {planEntries.length > 0 ? (
+                    {generating ? (
+                        <div className="p-16 text-center bg-slate-50/50 dark:bg-slate-900/30 rounded-3xl border-2 border-emerald-500/30 border-dashed animate-pulse flex flex-col justify-center items-center">
+                            <span className="text-5xl mb-6 animate-spin block">⚡</span>
+                            <h3 className="text-lg font-black text-slate-800 dark:text-white mb-2">جاري التوليد التلقائي للخطة القرآنية...</h3>
+                            <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400 mt-2 px-6 py-2.5 bg-emerald-50 dark:bg-emerald-950/30 rounded-2xl shadow-sm border border-emerald-100 dark:border-emerald-900/50 max-w-md">
+                                ⏳ {loadingStep || 'جاري معالجة البيانات وبناء الجدول...'}
+                            </p>
+                            <span className="text-[10px] text-slate-400 dark:text-slate-500 mt-4 font-semibold block">يتم الآن تهيئة الخوارزميات وتدوير المراجعة بشكل آمن. برجاء عدم إغلاق الصفحة.</span>
+                        </div>
+                    ) : planEntries.length > 0 ? (
                         <div className="overflow-x-auto rounded-2xl border border-slate-100 dark:border-slate-800 print:border-slate-300">
                             <table className="w-full border-collapse text-sm text-right">
                                 <thead>
                                     <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 print:bg-slate-100 print:border-slate-300">
                                         <th className="p-4 font-black text-slate-600 dark:text-slate-400">اليوم والتاريخ</th>
-                                        <th className="p-4 font-black text-slate-600 dark:text-slate-400 text-center border-r border-slate-100/50 dark:border-slate-800">نوع البند</th>
-                                        <th className="p-4 font-black text-slate-600 dark:text-slate-400 text-center border-r border-slate-100/50 dark:border-slate-800">السورة والآيات المطلوبة</th>
-                                        <th className="p-4 font-black text-slate-600 dark:text-slate-400 text-center border-r border-slate-100/50 dark:border-slate-800">حالة الإنجاز</th>
-                                        <th className="p-4 font-black text-slate-600 dark:text-slate-400 text-center border-r border-slate-100/50 dark:border-slate-800 no-print">إجراءات</th>
+                                        <th className="p-4 font-black text-slate-600 dark:text-slate-400 text-center border-r border-slate-100/50 dark:border-slate-800">الحفظ اليومي</th>
+                                        <th className="p-4 font-black text-slate-600 dark:text-slate-400 text-center border-r border-slate-100/50 dark:border-slate-800">المراجعة اليومية</th>
+                                        <th className="p-4 font-black text-slate-600 dark:text-slate-400 text-center border-r border-slate-100/50 dark:border-slate-800">حالة اليوم</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800 print:divide-slate-200">
-                                    {planEntries.map((entry, idx) => {
-                                        const entryDate = new Date(entry.date);
-                                        const surah = quranData.find(s => s.id === entry.surahId);
+                                    {groupedEntries.map((group, idx) => {
+                                        const entryDate = new Date(group.date);
+                                        const isBackward = startSurahId > endSurahId;
+
+                                        // Helper to get range text for Hifz surahs
+                                        let hifzDisplayText = '';
+                                        if (group.hifzEntries.length > 0) {
+                                            const sortedH = [...group.hifzEntries].sort((a, b) => isBackward ? b.surahId - a.surahId : a.surahId - b.surahId);
+                                            hifzDisplayText = sortedH.map(h => {
+                                                const surah = quranData.find(s => s.id === h.surahId);
+                                                return `سورة ${surah ? surah.name : h.surahId} (الآيات: ${h.fromAyah} - ${h.toAyah})`;
+                                            }).join(' و ');
+                                        }
+
+                                        // Helper to get range text for Review surahs using pageAyahMap
+                                        const getReviewRangeText = (r) => {
+                                            const fromPage = r.fromAyah;
+                                            const toPage = r.toAyah;
+                                            if (!fromPage || !toPage || fromPage <= 0 || toPage <= 0) {
+                                                return `مراجعة عامة (${r.toAyah}) صفحات`;
+                                            }
+                                            const surahIds = new Set();
+                                            for (let p = fromPage; p <= toPage; p++) {
+                                                const mapping = pageAyahMap[p.toString()];
+                                                if (mapping) {
+                                                    Object.keys(mapping).forEach(id => surahIds.add(parseInt(id)));
+                                                }
+                                            }
+                                            if (surahIds.size === 0) {
+                                                return `مراجعة صفحات (${fromPage} - ${toPage})`;
+                                            }
+                                            const sortedIds = Array.from(surahIds).sort((a, b) => isBackward ? b - a : a - b);
+                                            const firstSurah = quranData.find(s => s.id === sortedIds[0]);
+                                            const lastSurah = quranData.find(s => s.id === sortedIds[sortedIds.length - 1]);
+                                            if (sortedIds.length === 1 || firstSurah?.id === lastSurah?.id) {
+                                                return `سورة ${firstSurah ? firstSurah.name : sortedIds[0]} (صفحة ${fromPage} - ${toPage})`;
+                                            } else {
+                                                return `من ${firstSurah ? firstSurah.name : sortedIds[0]} إلى ${lastSurah ? lastSurah.name : sortedIds[sortedIds.length - 1]} (صفحة ${fromPage} - ${toPage})`;
+                                            }
+                                        };
 
                                         return (
-                                            <tr key={entry.id} className={idx % 2 === 0 ? 'bg-white dark:bg-slate-900/10' : 'bg-slate-50/30 dark:bg-slate-800/20'}>
+                                            <tr key={group.date} className={idx % 2 === 0 ? 'bg-white dark:bg-slate-900/10' : 'bg-slate-50/30 dark:bg-slate-800/20'}>
+                                                {/* Date & Day */}
                                                 <td className="p-4 font-bold text-slate-800 dark:text-slate-200">
-                                                    {formatHijri(entry.date, 'long')}
+                                                    {formatHijri(group.date, 'long')}
                                                     <span className="text-xs text-slate-400 dark:text-slate-500 font-normal mr-2">
                                                         ({entryDate.toLocaleDateString('ar-SA', { weekday: 'long' })})
                                                     </span>
                                                 </td>
+
+                                                {/* Hifz Column */}
                                                 <td className="p-4 text-center border-r border-slate-100/50 dark:border-slate-800">
-                                                    <span className={`inline-block px-3 py-1 rounded-xl text-xs font-black ${entry.type === 'HIFZ' ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300' : 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300'}`}>
-                                                        {entry.type === 'HIFZ' ? 'حفظ جديد' : 'مراجعة'}
-                                                    </span>
-                                                </td>
-                                                <td className="p-4 text-center border-r border-slate-100/50 dark:border-slate-800 font-black text-slate-700 dark:text-slate-300">
-                                                    {entry.type === 'HIFZ' ? (
-                                                        <span>
-                                                            سورة {surah ? surah.name : `مجهولة (${entry.surahId})`} 
-                                                            <span className="text-xs text-emerald-600 dark:text-emerald-400 font-bold mr-2">
-                                                                (الآيات: {entry.fromAyah} - {entry.toAyah})
+                                                    {group.hifzEntries.length > 0 ? (
+                                                        <div className="flex flex-col gap-1.5 justify-center items-center">
+                                                            <span className="inline-flex items-center px-3 py-1 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 rounded-xl text-xs font-black shadow-sm">
+                                                                📖 {hifzDisplayText}
                                                             </span>
-                                                        </span>
+                                                        </div>
                                                     ) : (
-                                                        <span>مراجعة مقررة بمعدل ({entry.toAyah}) صفحات</span>
+                                                        <span className="text-xs text-slate-400 dark:text-slate-500 font-bold italic">بدون حفظ جديد</span>
                                                     )}
                                                 </td>
+
+                                                {/* Review Column */}
                                                 <td className="p-4 text-center border-r border-slate-100/50 dark:border-slate-800">
-                                                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black ${entry.isCompleted ? 'bg-green-100 text-green-700 dark:bg-green-950/40 dark:text-green-300' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-450'}`}>
-                                                        {entry.isCompleted ? '✅ مكتمل' : '⏳ قيد الانتظار'}
-                                                    </span>
+                                                    {group.reviewEntries.length > 0 ? (
+                                                        <div className="flex flex-col gap-1.5 justify-center items-center">
+                                                            {group.reviewEntries.map(r => (
+                                                                <span key={r.id} className="inline-flex items-center px-3 py-1 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 rounded-xl text-xs font-black shadow-sm">
+                                                                    🔄 {getReviewRangeText(r)}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-xs text-slate-400 dark:text-slate-500 font-bold italic">بدون مراجعة</span>
+                                                    )}
                                                 </td>
-                                                <td className="p-4 text-center border-r border-slate-100/50 dark:border-slate-800 no-print">
-                                                    <button
-                                                        onClick={() => handleDeleteEntry(entry.id)}
-                                                        className="p-2 text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-colors"
-                                                        title="حذف البند"
-                                                    >
-                                                        🗑️
-                                                    </button>
+
+                                                {/* Status Column */}
+                                                <td className="p-4 text-center border-r border-slate-100/50 dark:border-slate-800">
+                                                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black ${group.isCompleted ? 'bg-green-100 text-green-700 dark:bg-green-950/40 dark:text-green-300' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-450'}`}>
+                                                        {group.isCompleted ? '✅ مكتمل' : '⏳ قيد الانتظار'}
+                                                    </span>
                                                 </td>
                                             </tr>
                                         );

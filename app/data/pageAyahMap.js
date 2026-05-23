@@ -3798,12 +3798,12 @@ export const pageAyahMap = {
     "593": {
         "89": {
             "start": 1,
-            "end": 23
+            "end": 22
         }
     },
     "594": {
         "89": {
-            "start": 24,
+            "start": 23,
             "end": 30
         },
         "90": {

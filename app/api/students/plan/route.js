@@ -110,202 +110,247 @@ export async function POST(request) {
             const startPage = startSurah.startPage;
             const endPage = getSurahEndPage(endSId);
 
-            // 2. Gather list of pages
-            let pagesToSchedule = [];
-            if (direction === 'backward') {
-                // From higher pages down to lower pages (e.g. 604 down to 582)
-                // When memorizing backwards, the surah sequence goes 114 down to 78, so pages decrease
-                const minPage = Math.min(startPage, endPage);
-                const maxPage = Math.max(startPage, endPage);
-                for (let p = maxPage; p >= minPage; p--) {
-                    pagesToSchedule.push(p);
+            // 2. Gather list of portions (surah-page portions) to schedule
+            const portionsToSchedule = [];
+            const isBackward = direction === 'backward';
+            
+            const minSurahId = Math.min(startSId, endSId);
+            const maxSurahId = Math.max(startSId, endSId);
+            const surahIds = [];
+            if (isBackward) {
+                for (let s = maxSurahId; s >= minSurahId; s--) {
+                    surahIds.push(s);
                 }
             } else {
-                // Forward: 1 to 604
-                const minPage = Math.min(startPage, endPage);
-                const maxPage = Math.max(startPage, endPage);
-                for (let p = minPage; p <= maxPage; p++) {
-                    pagesToSchedule.push(p);
+                for (let s = minSurahId; s <= maxSurahId; s++) {
+                    surahIds.push(s);
                 }
             }
 
-            // 3. Clear any existing plan entries first
+            surahIds.forEach(sId => {
+                const pages = [];
+                Object.keys(pageAyahMap).forEach(pageStr => {
+                    const pageMapping = pageAyahMap[pageStr];
+                    if (pageMapping && pageMapping[sId.toString()]) {
+                        pages.push(parseInt(pageStr));
+                    }
+                });
+                
+                // Sort pages ascending so we memorize this surah from start to end (beginning to end)
+                pages.sort((a, b) => a - b);
+                
+                pages.forEach(p => {
+                    const pageMapping = pageAyahMap[p.toString()];
+                    if (pageMapping && pageMapping[sId.toString()]) {
+                        const port = pageMapping[sId.toString()];
+                        portionsToSchedule.push({
+                            surahId: sId,
+                            page: p,
+                            start: parseInt(port.start) || 1,
+                            end: parseInt(port.end) || 1
+                        });
+                    }
+                });
+            });
+
+            // Group consecutive portions that share the same page to allow small surahs (like An-Nas, Al-Falaq, Al-Ikhlas) to be memorized together on a single page-day
+            const groupedDays = [];
+            let currentGroup = [];
+            
+            portionsToSchedule.forEach(portion => {
+                if (currentGroup.length === 0) {
+                    currentGroup.push(portion);
+                } else {
+                    if (portion.page === currentGroup[0].page) {
+                        currentGroup.push(portion);
+                    } else {
+                        groupedDays.push({
+                            page: currentGroup[0].page,
+                            portions: [...currentGroup]
+                        });
+                        currentGroup = [portion];
+                    }
+                }
+            });
+            
+            if (currentGroup.length > 0) {
+                groupedDays.push({
+                    page: currentGroup[0].page,
+                    portions: [...currentGroup]
+                });
+            }
+
             await prisma.studyPlanEntry.deleteMany({
                 where: { studentId: parseInt(studentId) }
             });
 
             // 4. Generate plan entries for active days (Sunday to Wednesday only)
-            // Sunday (0), Monday (1), Tuesday (2), Wednesday (3)
-            const activeDays = [0, 1, 2, 3];
-            let currentDate = new Date(startDate);
+            const allowedPlanDays = [0, 1, 2, 3];
+            let currentDate = new Date(startDate || new Date());
+            if (isNaN(currentDate.getTime())) {
+                currentDate = new Date();
+            }
             currentDate.setHours(0, 0, 0, 0);
 
             const getNextActiveDate = (date) => {
                 const d = new Date(date);
-                while (!activeDays.includes(d.getDay())) {
+                if (isNaN(d.getTime())) {
+                    return new Date();
+                }
+                let safety = 0;
+                while (!allowedPlanDays.includes(d.getDay()) && safety < 100) {
                     d.setDate(d.getDate() + 1);
+                    safety++;
                 }
                 return d;
             };
 
+            // Build cumulative memorized pool of pages before starting to simulate real review boundaries
+            const cumulativePool = [];
+            if (isBackward) {
+                for (let p = startPage + 1; p <= 604; p++) {
+                    cumulativePool.push(p);
+                }
+            } else {
+                for (let p = 1; p < startPage; p++) {
+                    cumulativePool.push(p);
+                }
+            }
+
+            const getSurahAtPage = (page) => {
+                const surahsOnPage = [...quranData]
+                    .filter(s => s.startPage <= page)
+                    .sort((a, b) => b.startPage - a.startPage);
+                return surahsOnPage[0]?.id || 114;
+            };
+
+            let reviewPointer = 0;
+
+            const getReviewEntryForDate = (dateToUse) => {
+                if (numDailyReview <= 0 || cumulativePool.length === 0) {
+                    return null;
+                }
+                const targetReviewCount = Math.min(Math.round(numDailyReview), cumulativePool.length);
+                const reviewPages = [];
+                for (let i = 0; i < targetReviewCount; i++) {
+                    const pIdx = (reviewPointer + i) % cumulativePool.length;
+                    reviewPages.push(cumulativePool[pIdx]);
+                }
+                reviewPointer = (reviewPointer + targetReviewCount) % cumulativePool.length;
+                
+                const minPage = Math.min(...reviewPages);
+                const maxPage = Math.max(...reviewPages);
+                const reviewSurahId = getSurahAtPage(minPage);
+
+                return {
+                    studentId: parseInt(studentId),
+                    date: dateToUse,
+                    type: 'MURAJAAH',
+                    surahId: reviewSurahId,
+                    fromAyah: minPage,
+                    toAyah: maxPage,
+                    isCompleted: false
+                };
+            };
+
             const entriesToCreate = [];
 
-            let pageIdx = 0;
-            while (pageIdx < pagesToSchedule.length) {
+            let dayIdx = 0;
+            while (dayIdx < groupedDays.length) {
                 currentDate = getNextActiveDate(currentDate);
 
-                // Determine pages for today based on dailyPages target
-                let pagesForToday = [];
                 if (numDailyPages >= 1) {
-                    const count = Math.min(Math.round(numDailyPages), pagesToSchedule.length - pageIdx);
-                    for (let i = 0; i < count; i++) {
-                        pagesForToday.push(pagesToSchedule[pageIdx + i]);
+                    const group = groupedDays[dayIdx];
+                    const rEntry = getReviewEntryForDate(currentDate);
+                    if (rEntry) {
+                        entriesToCreate.push(rEntry);
                     }
-                    pageIdx += count;
-                } else if (numDailyPages === 0.5) {
-                    // Half a page means we schedule 1 page over 2 consecutive active days
-                    const page = pagesToSchedule[pageIdx];
-                    
-                    // Day 1: first half
-                    pagesForToday.push({ page, part: 1 });
-                    
-                    // Advance index only after Day 2 is scheduled (we'll handle it sequentially)
-                    // Push Day 1 entries
-                    const scheduledDate1 = new Date(currentDate);
-                    const mapping = pageAyahMap[page.toString()];
-                    if (mapping) {
-                        Object.keys(mapping).forEach(surahKey => {
-                            const start = parseInt(mapping[surahKey].start) || 1;
-                            const end = parseInt(mapping[surahKey].end) || 1;
-                            const mid = Math.round((start + end) / 2);
-                            entriesToCreate.push({
-                                studentId: parseInt(studentId),
-                                date: scheduledDate1,
-                                type: 'HIFZ',
-                                surahId: parseInt(surahKey) || 114,
-                                fromAyah: start,
-                                toAyah: mid,
-                                isCompleted: false
-                            });
+                    group.portions.forEach(portion => {
+                        entriesToCreate.push({
+                            studentId: parseInt(studentId),
+                            date: new Date(currentDate),
+                            type: 'HIFZ',
+                            surahId: portion.surahId,
+                            fromAyah: portion.start,
+                            toAyah: portion.end,
+                            isCompleted: false
                         });
-                    }
+                    });
 
-                    // Add Murajaah if specified
-                    if (numDailyReview > 0) {
+                    if (!cumulativePool.includes(group.page)) {
+                        cumulativePool.push(group.page);
+                    }
+                    dayIdx++;
+                } else if (numDailyPages === 0.5) {
+                    const group = groupedDays[dayIdx];
+
+                    // Day 1: first half of all portions in the group
+                    const scheduledDate1 = new Date(currentDate);
+                    const rEntry1 = getReviewEntryForDate(scheduledDate1);
+                    if (rEntry1) {
+                        entriesToCreate.push(rEntry1);
+                    }
+                    group.portions.forEach(portion => {
+                        const mid = Math.round((portion.start + portion.end) / 2);
                         entriesToCreate.push({
                             studentId: parseInt(studentId),
                             date: scheduledDate1,
-                            type: 'MURAJAAH',
-                            surahId: 1, // Fallback/Placeholder
-                            fromAyah: 1,
-                            toAyah: Math.round(numDailyReview) || 1,
+                            type: 'HIFZ',
+                            surahId: portion.surahId,
+                            fromAyah: portion.start,
+                            toAyah: mid,
                             isCompleted: false
                         });
-                    }
+                    });
 
-                    // Move to next active day for Day 2 (second half)
+                    // Day 2: second half of all portions in the group
                     currentDate.setDate(currentDate.getDate() + 1);
                     currentDate = getNextActiveDate(currentDate);
                     const scheduledDate2 = new Date(currentDate);
-
-                    if (mapping) {
-                        Object.keys(mapping).forEach(surahKey => {
-                            const start = parseInt(mapping[surahKey].start) || 1;
-                            const end = parseInt(mapping[surahKey].end) || 1;
-                            const mid = Math.round((start + end) / 2);
-                            entriesToCreate.push({
-                                studentId: parseInt(studentId),
-                                date: scheduledDate2,
-                                type: 'HIFZ',
-                                surahId: parseInt(surahKey) || 114,
-                                fromAyah: Math.min(mid + 1, end) || 1,
-                                toAyah: end,
-                                isCompleted: false
-                            });
-                        });
+                    const rEntry2 = getReviewEntryForDate(scheduledDate2);
+                    if (rEntry2) {
+                        entriesToCreate.push(rEntry2);
                     }
-
-                    // Add Murajaah if specified
-                    if (numDailyReview > 0) {
+                    group.portions.forEach(portion => {
+                        const mid = Math.round((portion.start + portion.end) / 2);
                         entriesToCreate.push({
                             studentId: parseInt(studentId),
                             date: scheduledDate2,
-                            type: 'MURAJAAH',
-                            surahId: 1,
-                            fromAyah: 1,
-                            toAyah: Math.round(numDailyReview) || 1,
+                            type: 'HIFZ',
+                            surahId: portion.surahId,
+                            fromAyah: Math.min(mid + 1, portion.end),
+                            toAyah: portion.end,
                             isCompleted: false
                         });
-                    }
-
-                    pageIdx++;
-                    currentDate.setDate(currentDate.getDate() + 1);
-                    continue; // Skip the general full page scheduling block below
-                } else {
-                    // Fallback
-                    pagesForToday.push(pagesToSchedule[pageIdx]);
-                    pageIdx++;
-                }
-
-                // Create entries for the full/multiple pages assigned to today
-                const scheduledDate = new Date(currentDate);
-                pagesForToday.forEach(page => {
-                    const mapping = pageAyahMap[page.toString()];
-                    if (mapping) {
-                        Object.keys(mapping).forEach(surahKey => {
-                            entriesToCreate.push({
-                                studentId: parseInt(studentId),
-                                date: scheduledDate,
-                                type: 'HIFZ',
-                                surahId: parseInt(surahKey) || 114,
-                                fromAyah: parseInt(mapping[surahKey].start) || 1,
-                                toAyah: parseInt(mapping[surahKey].end) || 1,
-                                isCompleted: false
-                            });
-                        });
-                    }
-                });
-
-                // Add Murajaah entry for this date if specified
-                if (numDailyReview > 0) {
-                    entriesToCreate.push({
-                        studentId: parseInt(studentId),
-                        date: scheduledDate,
-                        type: 'MURAJAAH',
-                        surahId: 1,
-                        fromAyah: 1,
-                        toAyah: Math.round(numDailyReview) || 1,
-                        isCompleted: false
                     });
+
+                    if (!cumulativePool.includes(group.page)) {
+                        cumulativePool.push(group.page);
+                    }
+                    dayIdx++;
                 }
 
                 currentDate.setDate(currentDate.getDate() + 1);
             }
 
-            // Create all entries in a transaction to ensure SQLite/Postgres compatibility
+            // Create all entries in a single high-performance bulk insertion (takes milliseconds)
             if (entriesToCreate.length > 0) {
-                await prisma.$transaction(
-                    entriesToCreate.map(entry => 
-                        prisma.studyPlanEntry.create({
-                            data: {
-                                Student: {
-                                    connect: { id: parseInt(entry.studentId) }
-                                },
-                                date: entry.date,
-                                type: entry.type,
-                                surahId: parseInt(entry.surahId) || 114,
-                                fromAyah: parseInt(entry.fromAyah) || 1,
-                                toAyah: parseInt(entry.toAyah) || 1,
-                                isCompleted: entry.isCompleted
-                            }
-                        })
-                    )
-                );
+                await prisma.studyPlanEntry.createMany({
+                    data: entriesToCreate.map(entry => ({
+                        studentId: parseInt(entry.studentId),
+                        date: entry.date,
+                        type: entry.type,
+                        surahId: parseInt(entry.surahId) || 114,
+                        fromAyah: parseInt(entry.fromAyah) || 1,
+                        toAyah: parseInt(entry.toAyah) || 1,
+                        isCompleted: entry.isCompleted
+                    }))
+                });
             }
 
             return NextResponse.json({
                 success: true,
-                message: `تم توليد الخطة بنجاح لمجموع ${pagesToSchedule.length} صفحات موزعة على الأيام النشطة.`,
+                message: `تم توليد الخطة بنجاح لمجموع ${portionsToSchedule.length} أجزاء موزعة على الأيام النشطة.`,
                 count: entriesToCreate.length
             });
         }

@@ -185,7 +185,6 @@ export default function TeacherDashboard() {
     const { isDarkMode, mounted } = useTheme();
 
     if (!mounted) return <LoadingScreen />;
-    if (loading && students.length === 0) return <LoadingScreen />;
     
     return (
         <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-main)] font-noto rtl transition-colors duration-300 relative overflow-hidden" dir="rtl">

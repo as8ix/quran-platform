@@ -1,0 +1,12 @@
+172: const [hifzFromAyah, setHifzFromAyah] = useState(1);
+757: const fAyah = parseInt(hifzFromAyah) || 1;
+793: }, [hifzFromPage, hifzFromAyah, student, isSessionActive, sessionType, editingSessionId, currentHifzSurah]);
+811: const startA = parseInt(hifzFromAyah);
+847: }, [pagesCount, errorsCount, alertsCount, minorPagesCount, minorErrors, minorAlerts, hifzToPage, hifzFromPage, hifzFromAyah, hifzToAyah, hifzErrors, hifzAlerts, isSessionActive, editingSessionId, currentHifzSurah]);
+933: const startA = parseInt(hifzFromAyah);
+1030: hifzFromAyah: (includesHifz && !isKhatim && !isQuranicDay) ? parseInt(hifzFromAyah) : null,
+1129: setHifzFromAyah(session.hifzFromAyah || 1);
+1542: <div className="w-1/3 relative"><span className="absolute -top-6 right-0 text-[10px] text-emerald-400 font-bold">آية</span><input type="number" value={hifzFromAyah || ''} min="1" max={currentHifzSurah?.ayahs} onFocus={() => hifzFromAyah === 1 && setHifzFromAyah('')} onBlur={() => hifzFromAyah === '' && setHifzFromAyah(1)} onChange={e => { const val = e.target.value; if (val === '') setHifzFromAyah(''); else { const parsed = parseInt(val); const max = currentHifzSurah?.ayahs || 286; if (parsed > max) setHifzFromAyah(max); else setHifzFromAyah(parsed); } }} className="w-full px-4 py-4 premium-glass border-2 border-transparent focus:border-emerald-500 rounded-2xl outline-none font-bold text-center dark:text-white" placeholder="آية" /></div>
+2063: const isFullyDone = session.isFinishedSurah || (session.hifzFromAyah === 1 && surahObj && session.hifzToAyah === surahObj.ayahs);
+2067: {(session.hifzFromAyah || session.hifzToAyah) && (
+2069: الآيات: {session.hifzFromAyah || '?'} - {session.hifzToAyah || '?'}

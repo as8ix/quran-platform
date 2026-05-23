@@ -1,0 +1,34 @@
+26: const num = parseFloat(s);
+29: const p = parseFloat(s);
+271: if (match) return parseFloat(arabicToEn(match[0]));
+512: // Calculate review-only pages from total pagesCount
+521: const pagesDone = (latestM.pagesCount || 0) - hifzDoneInLast;
+631: const pagesCount = majorMurajaahData.pages;
+814: const majorClean = Math.max(0, (parseFloat(pagesCount) || 0) - (parseInt(errorsCount) || 0) - (parseInt(alertsCount) || 0));
+818: const minorClean = Math.max(0, (parseFloat(minorPagesCount) || 0) - (parseInt(minorErrors) || 0) - (parseInt(minorAlerts) || 0));
+861: }, [pagesCount, errorsCount, alertsCount, minorPagesCount, minorErrors, minorAlerts, hifzToPage, hifzFromPage, hifzFromAyah, hifzToAyah, hifzErrors, hifzAlerts, isSessionActive, editingSessionId, currentHifzSurah]);
+926: if (!isNaN(parseFloat(plan))) reviewTarget = parseFloat(plan);
+985: // Review Done (pagesCount is strict, but sometimes it's calculated from Ayahs.
+986: // In Murajaah, pagesCount is usually (toPage - fromPage + 1).
+987: // We use the `pagesCount` variable which comes from state (auto calculated or manual override needed?)
+988: // Actually, `pagesCount` in state effectively stores the calculated result.
+990: // Looking at `handleSaveSession`, we pass `pagesCount`.
+991: // Usually `pagesCount` is the Total Recitation.
+997: reviewDone = parseFloat(pagesCount);
+1014: const sessionReview = (s.pagesCount || 0) - (s.hifzFromPage && s.hifzToPage ? (s.hifzToPage - s.hifzFromPage + 1) : 0);
+1059: minorCleanPagesCount: (includesReview && (murajaahType === 'MINOR' || murajaahType === 'BOTH')) ? (parseFloat(minorCleanPages) || 0) : 0,
+1062: pagesCount: (includesReview ? parseFloat(pagesCount) : 0) + (includesHifz ? hifzDone : 0),
+1063: resultString: `${((includesReview ? parseFloat(pagesCount) : 0) + (includesHifz ? hifzDone : 0)).toFixed(1)} صفحة`,
+1067: cleanPagesCount: (includesReview && (murajaahType === 'MAJOR' || murajaahType === 'BOTH')) ? (parseFloat(cleanPagesCount) || 0) : 0,
+1072: hifzCleanPages: (includesHifz && !isKhatim && !isQuranicDay) ? (parseFloat(hifzCleanPages) || 0) : 0,
+1579: else setHifzErrors(Math.max(0, parseFloat(val) || 0));
+1596: else setHifzAlerts(Math.max(0, parseFloat(val) || 0));
+1614: else setHifzCleanPages(Math.max(0, parseFloat(val) || 0));
+1772: <input type="number" value={errorsCount || 0} onFocus={() => errorsCount === 0 && setErrorsCount('')} onBlur={() => errorsCount === '' && setErrorsCount(0)} onChange={e => { const v = e.target.value; if (v === '') setErrorsCount(''); else setErrorsCount(Math.max(0, parseFloat(v) || 0)); }} min="0" className="w-full px-4 py-3 bg-indigo-50/50 dark:bg-slate-800 border-2 border-transparent focus:border-red-400 rounded-2xl outline-none font-bold dark:text-white" placeholder="0" />
+1776: <input type="number" value={alertsCount || 0} onFocus={() => alertsCount === 0 && setAlertsCount('')} onBlur={() => alertsCount === '' && setAlertsCount(0)} onChange={e => { const v = e.target.value; if (v === '') setAlertsCount(''); else setAlertsCount(Math.max(0, parseFloat(v) || 0)); }} min="0" className="w-full px-4 py-3 bg-indigo-50/50 dark:bg-slate-800 border-2 border-transparent focus:border-orange-400 rounded-2xl outline-none font-bold dark:text-white" placeholder="0" />
+1780: <input type="number" step="0.1" value={cleanPagesCount || 0} onFocus={() => cleanPagesCount === 0 && setCleanPagesCount('')} onBlur={() => cleanPagesCount === '' && setCleanPagesCount(0)} onChange={e => { const v = e.target.value; if (v === '') setCleanPagesCount(''); else setCleanPagesCount(Math.max(0, parseFloat(v) || 0)); }} min="0" className="w-full px-4 py-3 bg-indigo-50/50 dark:bg-slate-800 border-2 border-transparent focus:border-emerald-400 rounded-2xl outline-none font-bold dark:text-white" placeholder="0" />
+1793: {pagesCount} صفحات فعلياً
+1888: onChange={e => { const v = e.target.value; if (v === '') setMinorErrors(''); else setMinorErrors(Math.max(0, parseFloat(v) || 0)); }}
+1901: onChange={e => { const v = e.target.value; if (v === '') setMinorAlerts(''); else setMinorAlerts(Math.max(0, parseFloat(v) || 0)); }}
+1915: onChange={e => { const v = e.target.value; if (v === '') setMinorCleanPages(''); else setMinorCleanPages(Math.max(0, parseFloat(v) || 0)); }}
+2067: {(session.pagesCount || 0).toFixed(1)} ص

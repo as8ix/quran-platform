@@ -198,7 +198,7 @@ export default function SupervisorDashboard() {
         .filter(h => normalizeText(h.name).includes(normalizeText(searchHalaqa)))
         .sort((a, b) => a.name.localeCompare(b.name, 'ar'));
 
-    if (!mounted || loading) return <LoadingScreen />;
+    if (!mounted) return <LoadingScreen />;
 
     const handleCreateTeacher = async (e) => {
         e.preventDefault();
@@ -609,10 +609,21 @@ export default function SupervisorDashboard() {
                 ) : (
                     <>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10 reveal reveal-delay-1">
-                            <StatsCard label="فئة المستخدم" value={user?.role === 'SUPERVISOR' ? 'مشرف عام' : 'معلم'} icon="🛡️" color="from-slate-700 to-slate-900" trend="صلاحيات كاملة" />
-                            <StatsCard label="إجمالي الطلاب" value={totalStudentsCount} icon="👥" color="from-orange-400 to-amber-600" trend={getArabicCount(students.length, 'طالب واحد مسجل', 'طالبان مسجلان', 'طلاب مسجلين', 'طالباً مسجلاً')} />
-                            <StatsCard label="عدد المعلمين" value={teachers.length} icon="👨‍🏫" color="from-emerald-400 to-teal-600" trend={getArabicCount(teachers.filter(t => (t._count?.teacherHalaqas || 0) > 0).length, 'معلم واحد لديه حلقة', 'معلمان لديهما حلقات', 'معلمين لديهم حلقات', 'معلماً لديهم حلقات')} />
-                            <StatsCard label="إجمالي الحلقات" value={halaqas.length} icon="🕌" color="from-blue-500 to-indigo-600" trend="نشطة" />
+                            {loading ? (
+                                <>
+                                    <div className="h-32 bg-slate-200 dark:bg-slate-900 rounded-[2rem] animate-pulse"></div>
+                                    <div className="h-32 bg-slate-200 dark:bg-slate-900 rounded-[2rem] animate-pulse"></div>
+                                    <div className="h-32 bg-slate-200 dark:bg-slate-900 rounded-[2rem] animate-pulse"></div>
+                                    <div className="h-32 bg-slate-200 dark:bg-slate-900 rounded-[2rem] animate-pulse"></div>
+                                </>
+                            ) : (
+                                <>
+                                    <StatsCard label="فئة المستخدم" value={user?.role === 'SUPERVISOR' ? 'مشرف عام' : 'معلم'} icon="🛡️" color="from-slate-700 to-slate-900" trend="صلاحيات كاملة" />
+                                    <StatsCard label="إجمالي الطلاب" value={totalStudentsCount} icon="👥" color="from-orange-400 to-amber-600" trend={getArabicCount(students.length, 'طالب واحد مسجل', 'طالبان مسجلان', 'طلاب مسجلين', 'طالباً مسجلاً')} />
+                                    <StatsCard label="عدد المعلمين" value={teachers.length} icon="👨‍🏫" color="from-emerald-400 to-teal-600" trend={getArabicCount(teachers.filter(t => (t._count?.teacherHalaqas || 0) > 0).length, 'معلم واحد لديه حلقة', 'معلمان لديهما حلقات', 'معلمين لديهم حلقات', 'معلماً لديهم حلقات')} />
+                                    <StatsCard label="إجمالي الحلقات" value={halaqas.length} icon="🕌" color="from-blue-500 to-indigo-600" trend="نشطة" />
+                                </>
+                            )}
                         </div>
 
                 <div className="premium-glass rounded-[3rem] p-10 shadow-2xl shadow-slate-200/50 dark:shadow-none border border-white/20 dark:border-slate-800/50 mb-12 reveal reveal-delay-2 relative group">
@@ -651,12 +662,20 @@ export default function SupervisorDashboard() {
                         <div className="flex-1 w-full">
                             <div className="flex items-center gap-4 mb-8"><div className="h-1 w-12 bg-gradient-to-r from-emerald-500 to-transparent rounded-full"></div><h3 className="text-2xl font-black text-slate-800 dark:text-white tracking-tight">توزيع الطلاب على الحلقات</h3></div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {halaqaDistribution.map((h, i) => {
-                                    const isHovered = hoveredHalaqaId === h.id;
-                                    const percentage = Math.round((h.count / totalStudentsInHalaqas) * 100);
-                                    return (
-                                        <div key={h.id} onMouseEnter={() => setHoveredHalaqaId(h.id)} onMouseLeave={() => setHoveredHalaqaId(null)} className={`flex items-center gap-4 p-5 rounded-[2rem] border-2 transition-all duration-500 group/item cursor-default ${isHovered ? 'bg-white dark:bg-slate-800 border-emerald-500 -translate-y-1 scale-[1.05]' : 'bg-slate-50/50 dark:bg-slate-900/30 border-transparent shadow-sm'}`} style={{ boxShadow: isHovered ? `0 20px 40px -10px ${chartColors[i % chartColors.length]}30` : 'none' }}>
-                                            <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-xl shadow-lg transition-transform duration-500 group-hover/item:rotate-12" style={{ backgroundColor: `${chartColors[i % chartColors.length]}15`, color: chartColors[i % chartColors.length], border: `1px solid ${chartColors[i % chartColors.length]}30` }}>🏫</div>
+                                {loading ? (
+                                    <>
+                                        <div className="h-24 bg-slate-200/50 dark:bg-slate-900/30 rounded-[2rem] animate-pulse"></div>
+                                        <div className="h-24 bg-slate-200/50 dark:bg-slate-900/30 rounded-[2rem] animate-pulse"></div>
+                                        <div className="h-24 bg-slate-200/50 dark:bg-slate-900/30 rounded-[2rem] animate-pulse"></div>
+                                        <div className="h-24 bg-slate-200/50 dark:bg-slate-900/30 rounded-[2rem] animate-pulse"></div>
+                                    </>
+                                ) : (
+                                    halaqaDistribution.map((h, i) => {
+                                        const isHovered = hoveredHalaqaId === h.id;
+                                        const percentage = Math.round((h.count / totalStudentsInHalaqas) * 100);
+                                        return (
+                                            <div key={h.id} onMouseEnter={() => setHoveredHalaqaId(h.id)} onMouseLeave={() => setHoveredHalaqaId(null)} className={`flex items-center gap-4 p-5 rounded-[2rem] border-2 transition-all duration-500 group/item cursor-default ${isHovered ? 'bg-white dark:bg-slate-800 border-emerald-500 -translate-y-1 scale-[1.05]' : 'bg-slate-50/50 dark:bg-slate-900/30 border-transparent shadow-sm'}`} style={{ boxShadow: isHovered ? `0 20px 40px -10px ${chartColors[i % chartColors.length]}30` : 'none' }}>
+                                                <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-xl shadow-lg transition-transform duration-500 group-hover/item:rotate-12" style={{ backgroundColor: `${chartColors[i % chartColors.length]}15`, color: chartColors[i % chartColors.length], border: `1px solid ${chartColors[i % chartColors.length]}30` }}>🏫</div>
                                             <div className="flex-1">
                                                 <div className="flex justify-between items-center mb-2">
                                                     <span className={`font-black text-sm transition-colors ${isHovered ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-700 dark:text-slate-300'}`}>{h.name}</span>
@@ -676,7 +695,7 @@ export default function SupervisorDashboard() {
                                             </div>
                                         </div>
                                     );
-                                })}
+                                }))}
                             </div>
                         </div>
                     </div>
@@ -825,7 +844,13 @@ export default function SupervisorDashboard() {
                             </div>
 
                             <div className="grid grid-cols-1 gap-6 max-h-[700px] overflow-y-auto custom-scrollbar px-1">
-                                {filteredTeachers.map(teacher => {
+                                {loading ? (
+                                    <>
+                                        <div className="h-28 bg-slate-200/50 dark:bg-slate-900/30 rounded-[2.5rem] animate-pulse"></div>
+                                        <div className="h-28 bg-slate-200/50 dark:bg-slate-900/30 rounded-[2.5rem] animate-pulse"></div>
+                                        <div className="h-28 bg-slate-200/50 dark:bg-slate-900/30 rounded-[2.5rem] animate-pulse"></div>
+                                    </>
+                                ) : filteredTeachers.map(teacher => {
                                     const teacherHalaqaCount = halaqas.filter(h => 
                                         h.teacherId?.toString() === teacher.id.toString() || 
                                         h.assistants?.some(a => a.id.toString() === teacher.id.toString())
@@ -921,7 +946,13 @@ export default function SupervisorDashboard() {
                                 </div>
                             </div>
                             <div className="grid grid-cols-1 gap-6 max-h-[700px] overflow-y-auto custom-scrollbar">
-                                {filteredHalaqas.map(halaqa => (
+                                {loading ? (
+                                    <>
+                                        <div className="h-28 bg-slate-200/50 dark:bg-slate-900/30 rounded-[2.5rem] animate-pulse"></div>
+                                        <div className="h-28 bg-slate-200/50 dark:bg-slate-900/30 rounded-[2.5rem] animate-pulse"></div>
+                                        <div className="h-28 bg-slate-200/50 dark:bg-slate-900/30 rounded-[2.5rem] animate-pulse"></div>
+                                    </>
+                                ) : filteredHalaqas.map(halaqa => (
                                     <div key={halaqa.id} className="group p-6 bg-white/50 dark:bg-slate-900/40 backdrop-blur-md rounded-[2.5rem] border-2 border-slate-100 dark:border-slate-800 hover:border-indigo-500/50 hover:shadow-xl transition-all duration-500 relative">
                                             <div className="flex flex-col sm:flex-row justify-between items-center gap-6 relative z-10">
                                                 {/* Info Side */}

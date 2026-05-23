@@ -1344,7 +1344,7 @@ export default function StudentDetailsPage() {
                         onClick={() => router.push(`/teacher/student/${student.id}/plan`)}
                         className="px-4 py-2 bg-emerald-500 text-white rounded-xl font-bold hover:bg-emerald-600 transition-colors flex items-center gap-2 shadow-lg shadow-emerald-200 dark:shadow-none"
                     >
-                        <span>📅</span> الخطة الدراسية
+                        <span>📅</span> الخطة القرآنية
                     </button>
                     <button
                         onClick={() => router.push(`/teacher/student/${student.id}/report`)}
@@ -1792,8 +1792,8 @@ export default function StudentDetailsPage() {
                                     {/* Review Section - Hidden if mode is HIFZ only (and student is not Khatim/QuranicDay) */}
                                     {(sessionType === 'MURAJAAH' || sessionType === 'BOTH' || isKhatim || isQuranicDaySession) && (
                                         <div className="p-8 bg-indigo-50/50 dark:bg-indigo-900/20 rounded-[2.5rem] border border-indigo-100 dark:border-indigo-800 shadow-inner">
-                                            <div className="flex justify-between items-center mb-6">
-                                                <div className="flex items-center gap-4">
+                                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
+                                                <div className="flex items-center gap-4 justify-between sm:justify-start w-full sm:w-auto">
                                                     <h3 className="text-indigo-800 dark:text-indigo-400 font-black text-xl flex items-center gap-3">
                                                         <span className="w-3 h-3 bg-indigo-500 rounded-full shadow-lg shadow-indigo-200 dark:shadow-none"></span>
                                                         المراجعة
@@ -1818,25 +1818,25 @@ export default function StudentDetailsPage() {
                                                     </div>
                                                 </div>
                                                 {!isQuranicDaySession && (
-                                                    <div className="flex bg-indigo-100/50 dark:bg-indigo-900/40 rounded-xl p-1">
+                                                    <div className="flex w-full sm:w-auto bg-indigo-100/50 dark:bg-indigo-900/40 rounded-xl p-1">
                                                         <button
                                                             type="button"
                                                             onClick={() => setMurajaahType('MAJOR')}
-                                                            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${murajaahType === 'MAJOR' ? 'bg-indigo-500 text-white shadow-md' : 'text-indigo-600 dark:text-indigo-300 hover:bg-indigo-200/50'}`}
+                                                            className={`flex-1 sm:flex-initial px-4 py-2 rounded-lg text-xs font-bold transition-all text-center ${murajaahType === 'MAJOR' ? 'bg-indigo-500 text-white shadow-md' : 'text-indigo-600 dark:text-indigo-300 hover:bg-indigo-200/50'}`}
                                                         >
                                                             كبرى
                                                         </button>
                                                         <button
                                                             type="button"
                                                             onClick={() => setMurajaahType('MINOR')}
-                                                            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${murajaahType === 'MINOR' ? 'bg-indigo-500 text-white shadow-md' : 'text-indigo-600 dark:text-indigo-300 hover:bg-indigo-200/50'}`}
+                                                            className={`flex-1 sm:flex-initial px-4 py-2 rounded-lg text-xs font-bold transition-all text-center ${murajaahType === 'MINOR' ? 'bg-indigo-500 text-white shadow-md' : 'text-indigo-600 dark:text-indigo-300 hover:bg-indigo-200/50'}`}
                                                         >
                                                             صغرى
                                                         </button>
                                                         <button
                                                             type="button"
                                                             onClick={() => setMurajaahType('BOTH')}
-                                                            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${murajaahType === 'BOTH' ? 'bg-indigo-500 text-white shadow-md' : 'text-indigo-600 dark:text-indigo-300 hover:bg-indigo-200/50'}`}
+                                                            className={`flex-1 sm:flex-initial px-4 py-2 rounded-lg text-xs font-bold transition-all text-center ${murajaahType === 'BOTH' ? 'bg-indigo-500 text-white shadow-md' : 'text-indigo-600 dark:text-indigo-300 hover:bg-indigo-200/50'}`}
                                                         >
                                                             كلاهما
                                                         </button>

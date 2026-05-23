@@ -3,16 +3,18 @@ import { NextResponse } from 'next/server';
 
 export async function GET() {
     try {
-        const [studentsCount, teachersCount, halaqatCount, students] = await Promise.all([
+        const [studentsCount, teachersCount, halaqatCount, totalJuzAgg] = await Promise.all([
             prisma.student.count(),
             prisma.user.count({ where: { role: 'TEACHER' } }),
             prisma.halaqa.count(),
-            prisma.student.findMany({
-                select: { juzCount: true }
+            prisma.student.aggregate({
+                _sum: {
+                    juzCount: true
+                }
             })
         ]);
 
-        const totalJuz = students.reduce((sum, s) => sum + (s.juzCount || 0), 0);
+        const totalJuz = totalJuzAgg._sum.juzCount || 0;
 
         return NextResponse.json({
             studentsCount,

@@ -355,10 +355,54 @@ export default function StudentDashboard() {
         };
     };
 
-    const intel = calculateIntelligence();
     const { isDarkMode, mounted } = useTheme();
 
-    if (!mounted || loading) return <LoadingScreen />;
+    if (!mounted) return <LoadingScreen />;
+
+    if (loading && !student) {
+        return (
+            <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white font-noto rtl transition-colors duration-300" dir="rtl">
+                {/* Navbar skeleton */}
+                <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg border-b border-slate-200 dark:border-slate-800 fixed top-0 w-full z-50 h-20 animate-pulse">
+                    <div className="max-w-2xl mx-auto px-4 h-full flex items-center justify-between">
+                        <div className="h-8 w-32 bg-slate-200 dark:bg-slate-800 rounded-xl"></div>
+                        <div className="h-8 w-24 bg-slate-200 dark:bg-slate-800 rounded-xl"></div>
+                    </div>
+                </div>
+
+                <main className="max-w-2xl mx-auto px-4 pt-32 pb-12 space-y-8 animate-pulse">
+                    {/* Hero Header Skeleton */}
+                    <div className="h-48 bg-slate-200 dark:bg-slate-900 rounded-[2.5rem] p-8 flex items-center gap-6 border border-slate-100 dark:border-slate-850">
+                        <div className="w-20 h-20 bg-slate-350 dark:bg-slate-800 rounded-3xl"></div>
+                        <div className="space-y-3 flex-1">
+                            <div className="h-8 w-1/3 bg-slate-350 dark:bg-slate-800 rounded-xl"></div>
+                            <div className="h-4 w-2/3 bg-slate-350 dark:bg-slate-800 rounded-xl"></div>
+                        </div>
+                    </div>
+
+                    {/* Next Assignment Card Skeleton */}
+                    <div className="bg-[#0f172a] rounded-[3rem] p-8 md:p-10 border border-slate-800 space-y-6">
+                        <div className="h-8 w-1/2 bg-slate-800 rounded-xl"></div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="h-40 bg-slate-900/50 rounded-[2rem] border border-slate-800"></div>
+                            <div className="h-40 bg-slate-900/50 rounded-[2rem] border border-slate-800"></div>
+                        </div>
+                    </div>
+
+                    {/* Progress Cards Skeleton */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="h-36 bg-slate-200 dark:bg-slate-900 rounded-[2.5rem] border border-slate-100 dark:border-slate-850"></div>
+                        <div className="h-36 bg-slate-200 dark:bg-slate-900 rounded-[2.5rem] border border-slate-100 dark:border-slate-850"></div>
+                    </div>
+
+                    {/* Achievement Log Skeleton */}
+                    <div className="bg-[#0f172a] rounded-[3rem] p-8 border border-slate-800 h-80"></div>
+                </main>
+            </div>
+        );
+    }
+
+    const intel = calculateIntelligence();
 
     if (!student) {
         const handleLogout = () => {
