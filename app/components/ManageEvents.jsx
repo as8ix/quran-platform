@@ -509,8 +509,14 @@ export default function ManageEvents({ teachers, students }) {
                                                     });
                                                 }
 
-                                                const myStudents = students.filter(s => s.halaqa?.teacherId?.toString() === assignmentTeacherId.toString());
-                                                const otherStudents = students.filter(s => s.halaqa?.teacherId?.toString() !== assignmentTeacherId.toString());
+                                                const myStudents = students.filter(s => 
+                                                     s.halaqa?.teacherId?.toString() === assignmentTeacherId.toString() ||
+                                                     (s.halaqa?.assistants && s.halaqa.assistants.some(a => a.id?.toString() === assignmentTeacherId.toString()))
+                                                 );
+                                                 const otherStudents = students.filter(s => 
+                                                     s.halaqa?.teacherId?.toString() !== assignmentTeacherId.toString() &&
+                                                     (!s.halaqa?.assistants || !s.halaqa.assistants.some(a => a.id?.toString() === assignmentTeacherId.toString()))
+                                                 );
 
                                                 const renderStudentRow = (s) => {
                                                     const isAssigned = assignments.some(a => a.studentId === s.id);

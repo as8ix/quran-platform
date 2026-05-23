@@ -112,7 +112,11 @@ export async function GET(request) {
                     id: true,
                     name: true,
                     logo: true,
-                    pointsEnabled: true
+                    pointsEnabled: true,
+                    teacherId: true,
+                    assistants: {
+                        select: { id: true }
+                    }
                 }
             }
         };
