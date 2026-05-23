@@ -268,12 +268,16 @@ export default function StudentDetailsPage() {
         const arabicToEn = (s) => s.replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d));
         const match = plan.match(/([\d\u0660-\u0669]+(\.[\d\u0660-\u0669]+)?)/);
         
+        if (match) return parseFloat(arabicToEn(match[0]));
+        
         if (plan === 'جزء' || plan === 'الجزء') return 20;
         if (plan === 'جزئين' || plan === 'الجزئين') return 40;
         if (plan.includes('ثلاث')) return 60;
         if (plan.includes('نصف جزء')) return 10;
         if (plan.includes('ربع جزء')) return 5;
-        if (match) return parseFloat(arabicToEn(match[0]));
+        if (plan.includes('نصف صفحة') || plan.includes('نصف وجه')) return 0.5;
+        if (plan.includes('صفحتين') || plan.includes('وجهين')) return 2;
+        if (plan.includes('صفحة') || plan.includes('وجه')) return 1;
         if (plan.includes('نصف')) return 10;
         if (plan.includes('ربع')) return 5;
         return 20;
