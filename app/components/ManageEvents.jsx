@@ -474,37 +474,104 @@ export default function ManageEvents({ teachers, students }) {
                                     <div>
                                         <label className="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">2. اختر الطلاب للإسناد</label>
                                         <div className="h-[300px] overflow-y-auto bg-slate-50 dark:bg-slate-900/50 border-2 border-slate-100 dark:border-slate-700 rounded-xl p-2 custom-scrollbar">
-                                            {students.map(s => {
-                                                const isAssigned = assignments.some(a => a.studentId === s.id);
-                                                const assignedTeacher = assignments.find(a => a.studentId === s.id)?.teacher.name;
+                                            {(() => {
+                                                if (!assignmentTeacherId) {
+                                                    return students.map(s => {
+                                                        const isAssigned = assignments.some(a => a.studentId === s.id);
+                                                        const assignedTeacher = assignments.find(a => a.studentId === s.id)?.teacher.name;
+
+                                                        return (
+                                                            <label key={s.id} className={`flex items-center justify-between p-3 rounded-lg mb-1 cursor-pointer transition-all ${assignmentStudentIds.includes(s.id) ? 'bg-indigo-100 dark:bg-indigo-900/30' : 'hover:bg-slate-100 dark:hover:bg-slate-700'}`}>
+                                                                <div className="flex items-center gap-3">
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        checked={assignmentStudentIds.includes(s.id)}
+                                                                        onChange={(e) => {
+                                                                            const current = [...assignmentStudentIds];
+                                                                            if (e.target.checked) current.push(s.id);
+                                                                            else {
+                                                                                const idx = current.indexOf(s.id);
+                                                                                if (idx > -1) current.splice(idx, 1);
+                                                                            }
+                                                                            setAssignmentStudentIds(current);
+                                                                        }}
+                                                                        className="w-5 h-5 accent-indigo-600"
+                                                                    />
+                                                                    <span className="font-bold text-slate-700 dark:text-slate-200 text-sm">{s.name}</span>
+                                                                </div>
+                                                                {isAssigned && (
+                                                                    <span className="text-[10px] font-black bg-white dark:bg-slate-800 px-2 py-0.5 rounded-full border border-indigo-100 dark:border-indigo-800 text-indigo-500 dark:text-indigo-400">
+                                                                        مع {assignedTeacher}
+                                                                    </span>
+                                                                )}
+                                                            </label>
+                                                        );
+                                                    });
+                                                }
+
+                                                const myStudents = students.filter(s => s.halaqa?.teacherId?.toString() === assignmentTeacherId.toString());
+                                                const otherStudents = students.filter(s => s.halaqa?.teacherId?.toString() !== assignmentTeacherId.toString());
+
+                                                const renderStudentRow = (s) => {
+                                                    const isAssigned = assignments.some(a => a.studentId === s.id);
+                                                    const assignedTeacher = assignments.find(a => a.studentId === s.id)?.teacher.name;
+
+                                                    return (
+                                                        <label key={s.id} className={`flex items-center justify-between p-3 rounded-lg mb-1 cursor-pointer transition-all ${assignmentStudentIds.includes(s.id) ? 'bg-indigo-100 dark:bg-indigo-900/30' : 'hover:bg-slate-100 dark:hover:bg-slate-700'}`}>
+                                                            <div className="flex items-center gap-3">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={assignmentStudentIds.includes(s.id)}
+                                                                    onChange={(e) => {
+                                                                        const current = [...assignmentStudentIds];
+                                                                        if (e.target.checked) current.push(s.id);
+                                                                        else {
+                                                                            const idx = current.indexOf(s.id);
+                                                                            if (idx > -1) current.splice(idx, 1);
+                                                                        }
+                                                                        setAssignmentStudentIds(current);
+                                                                    }}
+                                                                    className="w-5 h-5 accent-indigo-600"
+                                                                />
+                                                                <span className="font-bold text-slate-700 dark:text-slate-200 text-sm">{s.name}</span>
+                                                            </div>
+                                                            {isAssigned && (
+                                                                <span className="text-[10px] font-black bg-white dark:bg-slate-800 px-2 py-0.5 rounded-full border border-indigo-100 dark:border-indigo-800 text-indigo-500 dark:text-indigo-400">
+                                                                    مع {assignedTeacher}
+                                                                </span>
+                                                            )}
+                                                        </label>
+                                                    );
+                                                };
 
                                                 return (
-                                                    <label key={s.id} className={`flex items-center justify-between p-3 rounded-lg mb-1 cursor-pointer transition-all ${assignmentStudentIds.includes(s.id) ? 'bg-indigo-100 dark:bg-indigo-900/30' : 'hover:bg-slate-100 dark:hover:bg-slate-700'}`}>
-                                                        <div className="flex items-center gap-3">
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={assignmentStudentIds.includes(s.id)}
-                                                                onChange={(e) => {
-                                                                    const current = [...assignmentStudentIds];
-                                                                    if (e.target.checked) current.push(s.id);
-                                                                    else {
-                                                                        const idx = current.indexOf(s.id);
-                                                                        if (idx > -1) current.splice(idx, 1);
-                                                                    }
-                                                                    setAssignmentStudentIds(current);
-                                                                }}
-                                                                className="w-5 h-5 accent-indigo-600"
-                                                            />
-                                                            <span className="font-bold text-slate-700 dark:text-slate-200 text-sm">{s.name}</span>
-                                                        </div>
-                                                        {isAssigned && (
-                                                            <span className="text-[10px] font-black bg-white dark:bg-slate-800 px-2 py-0.5 rounded-full border border-indigo-100 dark:border-indigo-800 text-indigo-500 dark:text-indigo-400">
-                                                                مع {assignedTeacher}
-                                                            </span>
+                                                    <>
+                                                        {myStudents.length > 0 && (
+                                                            <>
+                                                                <div className="text-xs font-black text-indigo-600 dark:text-indigo-400 px-3 py-2 mb-2 bg-indigo-50 dark:bg-indigo-950/40 rounded-xl flex items-center justify-between">
+                                                                    <span>👨‍🏫 طلاب المعلم الحالي</span>
+                                                                    <span className="text-[10px] bg-indigo-200/50 dark:bg-indigo-800/50 px-2 py-0.5 rounded-full">
+                                                                        {myStudents.length} طلاب
+                                                                    </span>
+                                                                </div>
+                                                                {myStudents.map(renderStudentRow)}
+                                                            </>
                                                         )}
-                                                    </label>
+                                                        
+                                                        {otherStudents.length > 0 && (
+                                                            <>
+                                                                <div className="text-xs font-black text-slate-500 dark:text-slate-400 px-3 py-2 mt-4 mb-2 bg-slate-100 dark:bg-slate-800 rounded-xl flex items-center justify-between">
+                                                                    <span>👥 بقية الطلاب</span>
+                                                                    <span className="text-[10px] bg-slate-200 dark:bg-slate-700 px-2 py-0.5 rounded-full">
+                                                                        {otherStudents.length} طلاب
+                                                                    </span>
+                                                                </div>
+                                                                {otherStudents.map(renderStudentRow)}
+                                                            </>
+                                                        )}
+                                                    </>
                                                 );
-                                            })}
+                                            })()}
                                         </div>
                                     </div>
 
