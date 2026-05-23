@@ -16,6 +16,10 @@ export default function QuranicDaysDashboard() {
     const [isFullscreen, setIsFullscreen] = useState(false);
     const statsContainerRef = useRef(null);
 
+    const [manualTarget, setManualTarget] = useState(null);
+    const [isEditingTarget, setIsEditingTarget] = useState(false);
+    const [tempTarget, setTempTarget] = useState('');
+
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
         if (storedUser) setUser(JSON.parse(storedUser));
@@ -28,6 +32,22 @@ export default function QuranicDaysDashboard() {
 
         return () => clearInterval(interval);
     }, []);
+
+    useEffect(() => {
+        if (stats?.eventName) {
+            const stored = localStorage.getItem(`manual_target_event_${stats.eventName}`);
+            if (stored) {
+                setManualTarget(parseInt(stored));
+            } else {
+                setManualTarget(null);
+            }
+        }
+    }, [stats]);
+
+    const displayedTarget = manualTarget !== null ? manualTarget : (stats?.achievements?.target || 0);
+    const displayedAchievementRate = displayedTarget > 0 
+        ? parseFloat(((stats?.achievements?.accomplished / displayedTarget) * 100).toFixed(1))
+        : 0;
 
     const fetchStats = async (silent = false) => {
         if (!silent) setLoading(true);
@@ -116,7 +136,7 @@ export default function QuranicDaysDashboard() {
             ['إجمالي الجلسات المنفذة', stats.general.totalSessions],
             ['', ''],
             ['المنجزات', 'القيمة'],
-            ['المستهدف الإجمالي (صفحة)', stats.achievements.target],
+            ['المستهدف الإجمالي (صفحة)', displayedTarget],
             ['الصفحات المنجزة (صفحة)', stats.achievements.accomplished],
             ['الصفحات النقية', stats.achievements.purity],
             ['إجمالي الختمات', stats.achievements.khatmats],
@@ -124,7 +144,7 @@ export default function QuranicDaysDashboard() {
             ['معدلات الأداء', 'النسبة'],
             ['جودة التلاوة الإجمالية', `${stats.rates.purityRate}%`],
             ['معدل إنجاز الطلاب للورد', `${stats.rates.goalAchievementRate}%`],
-            ['معدل الإنجاز العام', `${stats.rates.achievementRate}%`],
+            ['معدل الإنجاز العام', `${displayedAchievementRate}%`],
         ];
 
         // 2. Teachers Sheet
@@ -314,7 +334,77 @@ export default function QuranicDaysDashboard() {
                         </h3>
 
                         <div className={`${isFullscreen ? 'space-y-4' : 'space-y-8'} relative z-10`}>
-                            <AchievementItem label="المستهدف من الصفحات" value={stats.achievements.target} unit="صفحة" color="text-slate-400" isFullscreen={isFullscreen} />
+                            {isEditingTarget ? (
+                                <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-700/50 pb-3" data-html2canvas-ignore="true">
+                                    <span className={`${isFullscreen ? 'text-[11px]' : 'text-sm'} font-bold text-slate-500 dark:text-slate-400`}>المستهدف من الصفحات</span>
+                                    <div className="flex items-center gap-1.5 ml-auto">
+                                        <input
+                                            type="number"
+                                            value={tempTarget}
+                                            onChange={(e) => setTempTarget(e.target.value)}
+                                            placeholder="الهدف..."
+                                            className="w-20 px-2 py-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs text-center outline-none focus:border-amber-500 font-bold dark:text-white"
+                                        />
+                                        <button
+                                            onClick={() => {
+                                                const val = parseInt(tempTarget);
+                                                if (!isNaN(val) && val > 0) {
+                                                    setManualTarget(val);
+                                                    localStorage.setItem(`manual_target_event_${stats.eventName}`, val.toString());
+                                                    toast.success('تم تحديد المستهدف يدوياً');
+                                                }
+                                                setIsEditingTarget(false);
+                                            }}
+                                            className="w-6 h-6 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md flex items-center justify-center text-xs font-bold shadow-sm"
+                                        >
+                                            ✓
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                setIsEditingTarget(false);
+                                            }}
+                                            className="w-6 h-6 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-500 dark:text-slate-300 rounded-md flex items-center justify-center text-xs font-bold"
+                                        >
+                                            ✕
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="group/target flex justify-between items-end border-b border-slate-100 dark:border-slate-700/50 pb-4 relative">
+                                    <span className={`${isFullscreen ? 'text-[11px]' : 'text-sm'} font-bold text-slate-500 dark:text-slate-400`}>المستهدف من الصفحات</span>
+                                    <div className="flex items-baseline gap-1 text-slate-400 dark:text-slate-500">
+                                        <span className={`${isFullscreen ? 'text-2xl' : 'text-2xl'} font-black tabular-nums ${manualTarget !== null ? 'text-indigo-600 dark:text-indigo-400 font-black' : ''}`}>{displayedTarget}</span>
+                                        <span className="text-[10px] font-black opacity-60 uppercase">صفحة</span>
+                                        {!isFullscreen && (
+                                            <div className="flex gap-1 items-center ml-2" data-html2canvas-ignore="true">
+                                                <button
+                                                    onClick={() => {
+                                                        setTempTarget(displayedTarget.toString());
+                                                        setIsEditingTarget(true);
+                                                    }}
+                                                    title="تعديل يدوي"
+                                                    className="opacity-0 group-hover/target:opacity-100 text-xs hover:text-amber-500 transition-all cursor-pointer mr-1"
+                                                >
+                                                    ✏️
+                                                </button>
+                                                {manualTarget !== null && (
+                                                    <button
+                                                        onClick={() => {
+                                                            setManualTarget(null);
+                                                            localStorage.removeItem(`manual_target_event_${stats.eventName}`);
+                                                            toast.success('تمت العودة للمستهدف التلقائي');
+                                                        }}
+                                                        title="إعادة تعيين للتلقائي"
+                                                        className="opacity-0 group-hover/target:opacity-100 text-[10px] hover:text-red-500 transition-all cursor-pointer"
+                                                    >
+                                                        🔄
+                                                    </button>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
                             <AchievementItem label="الصفحات المنجزة" value={stats.achievements.accomplished} unit="صفحة" color="text-amber-600" isMain isFullscreen={isFullscreen} />
                             <AchievementItem label="الصفحات النقية" value={stats.achievements.purity} unit="صفحة" color="text-emerald-500" isFullscreen={isFullscreen} />
                             <AchievementItem label="إجمالي الختمات" value={stats.achievements.khatmats} unit="ختمة" color="text-indigo-600" isFullscreen={isFullscreen} />
@@ -330,7 +420,7 @@ export default function QuranicDaysDashboard() {
                         <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
                             <RadialProgress percentage={stats.rates.purityRate} label="جودة التلاوة" color="#F59E0B" isFullscreen={isFullscreen} />
                             <RadialProgress percentage={stats.rates.goalAchievementRate} label="إنجاز الورد" color="#10B981" isFullscreen={isFullscreen} />
-                            <RadialProgress percentage={stats.rates.achievementRate} label="معدل الإنجاز" color="#6366F1" isFullscreen={isFullscreen} />
+                            <RadialProgress percentage={displayedAchievementRate} label="معدل الإنجاز" color="#6366F1" isFullscreen={isFullscreen} />
                         </div>
 
                         {!isFullscreen && (
