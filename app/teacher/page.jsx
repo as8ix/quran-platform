@@ -154,9 +154,16 @@ export default function TeacherDashboard() {
 
             const response = await fetch(url);
             const data = await response.json();
-            setStudents(data);
+            if (response.ok && Array.isArray(data)) {
+                setStudents(data);
+            } else {
+                setStudents([]);
+                toast.error(data?.error || 'حدث خطأ أثناء تحميل الطلاب');
+            }
         } catch (error) {
             console.error("Error fetching students:", error);
+            setStudents([]);
+            toast.error('حدث خطأ في الاتصال بالخادم');
         } finally {
             setLoading(false);
         }
@@ -178,9 +185,9 @@ export default function TeacherDashboard() {
         return normalized;
     };
 
-    const filteredStudents = students.filter(student =>
+    const filteredStudents = Array.isArray(students) ? students.filter(student =>
         normalizeText(student.name).includes(normalizeText(searchTerm))
-    );
+    ) : [];
 
     const { isDarkMode, mounted } = useTheme();
 
@@ -204,8 +211,8 @@ export default function TeacherDashboard() {
                             مرحباً بك، <span className="text-emerald-600 dark:text-emerald-500">يا {user ? getFirstName(user.name) : 'أستاذ'}!</span>
                         </h1>
                         <p className="text-slate-500 dark:text-slate-400 mt-2 text-lg">
-                            لديك {students.filter(s => !s.isInActiveEvent).length} طالب في حلقتك
-                            {students.some(s => s.isInActiveEvent) && (
+                            لديك {Array.isArray(students) ? students.filter(s => !s.isInActiveEvent).length : 0} طالب في حلقتك
+                            {Array.isArray(students) && students.some(s => s.isInActiveEvent) && (
                                 <span className="text-amber-600 dark:text-amber-500 font-black"> + {students.filter(s => s.isInActiveEvent).length} مشارك (اليوم القرآني)</span>
                             )}
                         </p>
@@ -257,7 +264,7 @@ export default function TeacherDashboard() {
                             <SendNotification
                                 senderRole="TEACHER"
                                 senderId={user.id}
-                                students={students}
+                                students={Array.isArray(students) ? students : []}
                             />
                         )}
                     </div>

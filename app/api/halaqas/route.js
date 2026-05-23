@@ -10,11 +10,21 @@ export async function GET(request) {
         const teacherId = searchParams.get('teacherId');
 
         let where = {};
-        if (id) where.id = parseInt(id);
+        if (id) {
+            const parsedId = parseInt(id);
+            if (isNaN(parsedId)) {
+                return NextResponse.json({ error: 'Invalid ID format' }, { status: 400 });
+            }
+            where.id = parsedId;
+        }
         if (teacherId) {
+            const parsedTeacherId = parseInt(teacherId);
+            if (isNaN(parsedTeacherId)) {
+                return NextResponse.json({ error: 'Invalid teacher ID format' }, { status: 400 });
+            }
             where.OR = [
-                { teacherId: parseInt(teacherId) },
-                { assistants: { some: { id: parseInt(teacherId) } } }
+                { teacherId: parsedTeacherId },
+                { assistants: { some: { id: parsedTeacherId } } }
             ];
         }
 
@@ -35,6 +45,7 @@ export async function GET(request) {
 
         return NextResponse.json(halaqas);
     } catch (error) {
+        console.error("GET Halaqas Error:", error);
         return NextResponse.json({ error: 'Failed to fetch halaqas' }, { status: 500 });
     }
 }

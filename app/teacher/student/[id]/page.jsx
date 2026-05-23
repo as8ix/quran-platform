@@ -736,8 +736,10 @@ export default function StudentDetailsPage() {
         
         let targetPages = getMurajaahTargetPages(student.reviewPlan);
         
-        // If it's a Quranic Day, the target is the student's entire memorized portion
-        if (isQuranicDaySession && student.juzCount > 0) {
+        // If it's a Quranic Day, the target is the student's entire memorized portion,
+        // UNLESS they have an explicit custom review plan (e.g. any number other than the defaults 10, 20, 40, 60)
+        const isCustomPlan = student.reviewPlan && !['10', '20', '40', '60'].includes(student.reviewPlan);
+        if (isQuranicDaySession && student.juzCount > 0 && !isCustomPlan) {
             const juzStartPages = [
                 0, 1, 22, 42, 62, 82, 102, 122, 142, 162, 182,
                 202, 222, 242, 262, 282, 302, 322, 342, 362, 382,
@@ -940,7 +942,9 @@ export default function StudentDetailsPage() {
             }
 
             // OVERRIDE: If it's a Quranic Day, the target is their entire portion
-            if (isQuranicDay) {
+            // UNLESS they have an explicit custom review plan (e.g. any number other than the defaults 10, 20, 40, 60)
+            const isCustomPlan = plan && !['10', '20', '40', '60'].includes(plan);
+            if (isQuranicDay && !isCustomPlan) {
                 const count = Math.min(30, Math.max(0, student?.juzCount || 0));
                 if (count > 0) {
                     const startJuzIndex = 31 - count;
