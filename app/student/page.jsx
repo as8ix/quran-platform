@@ -303,7 +303,7 @@ export default function StudentDashboard() {
                 reviewGoal = `من ${startSurah.name} إلى ${endSurah.name}`;
             }
         } else {
-            const nextReviewStartSurah = quranData.find(s => s.id === (mDirection === 'DESC' ? lastReviewSurah.id + 1 : lastReviewSurah.id - 1)) || lastReviewSurah;
+            const nextReviewStartSurah = quranData.find(s => s.id === (mDirection === 'DESC' ? lastReviewSurah.id - 1 : lastReviewSurah.id + 1)) || lastReviewSurah;
             reviewGoal = `من سورة ${nextReviewStartSurah.name}`;
         }
 

@@ -98,6 +98,15 @@ export default function SupervisorDashboard() {
     const [selectedHalaqaForSettings, setSelectedHalaqaForSettings] = useState(null);
     const [isResetting, setIsResetting] = useState(false);
     const [showHolidayModal, setShowHolidayModal] = useState(false);
+    const [syncing, setSyncing] = useState(false);
+    const [showSyncModal, setShowSyncModal] = useState(false);
+    const [syncOptions, setSyncOptions] = useState({
+        syncNames: true,
+        syncNationalIds: true,
+        syncPhones: true,
+        syncHalaqas: true,
+        addNewStudents: true
+    });
 
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
@@ -254,6 +263,87 @@ export default function SupervisorDashboard() {
         }
     };
 
+    const handleSyncSheets = async () => {
+        setShowSyncModal(false);
+        setSyncing(true);
+        const toastId = toast.loading('جاري مزامنة بيانات الطلاب من Google Sheets...', {
+            style: {
+                borderRadius: '16px',
+                fontFamily: 'Noto Sans Arabic',
+                fontWeight: 'bold',
+            }
+        });
+
+        try {
+            const res = await fetch('/api/sheets/sync', { 
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(syncOptions)
+            });
+            const data = await res.json();
+            
+            if (!res.ok) {
+                throw new Error(data.error || 'فشل الاتصال بجوجل');
+            }
+
+            setSyncing(false);
+            toast.success(data.message || 'تمت المزامنة بنجاح!', {
+                id: toastId,
+                duration: 7000,
+                style: {
+                    borderRadius: '16px',
+                    fontFamily: 'Noto Sans Arabic',
+                    fontWeight: 'bold',
+                }
+            });
+            fetchAllData(); // Refresh list to show newly synced students immediately
+        } catch (err) {
+            setSyncing(false);
+            const errorMessage = err.message || 'حدث خطأ غير متوقع أثناء المزامنة';
+            
+            // Dismiss loading toast
+            toast.dismiss(toastId);
+
+            // Display custom error toast with a copy button and robust overflow safety
+            toast.error(
+                (t) => (
+                    <div className="flex flex-col gap-2 w-full text-slate-800 dark:text-slate-100 text-right" style={{ direction: 'rtl', minWidth: '280px', maxWidth: '380px' }}>
+                        <div className="flex items-center justify-between gap-4">
+                            <span className="font-bold text-sm">حدث خطأ أثناء المزامنة:</span>
+                            <button
+                                onClick={() => {
+                                    navigator.clipboard.writeText(errorMessage);
+                                    toast.success('تم نسخ نص الخطأ!', { id: 'copy-success-toast' });
+                                }}
+                                className="px-2.5 py-1 text-xs bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg transition-colors border border-slate-200 dark:border-slate-700 flex items-center gap-1 active:scale-95 shrink-0"
+                            >
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 002 2h2a2 2 0 002-2" />
+                                </svg>
+                                <span>نسخ</span>
+                            </button>
+                        </div>
+                        <div 
+                            className="text-xs font-mono bg-slate-50 dark:bg-slate-900/60 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800 leading-relaxed overflow-x-auto whitespace-pre-wrap break-all max-h-36 overflow-y-auto"
+                            style={{ wordBreak: 'break-all', unicodeBidi: 'plaintext', textAlign: 'left' }}
+                        >
+                            {errorMessage}
+                        </div>
+                    </div>
+                ),
+                {
+                    duration: 12000,
+                    style: {
+                        minWidth: '320px',
+                        maxWidth: '420px',
+                        borderRadius: '16px',
+                        fontFamily: 'Noto Sans Arabic',
+                    }
+                }
+            );
+        }
+    };
+
     const handleCreateHalaqa = async (e) => {
         e.preventDefault();
         setSubmitting(true);
@@ -343,6 +433,10 @@ export default function SupervisorDashboard() {
             if (response.ok) {
                 // Update local state for the modal
                 setSelectedHalaqaStudents(prev => prev.map(s => 
+                    s.id === studentId ? { ...s, [fieldKey]: newStatus } : s
+                ));
+                // Update global students state to keep dashboard financial stats in sync in real-time
+                setStudents(prev => prev.map(s => 
                     s.id === studentId ? { ...s, [fieldKey]: newStatus } : s
                 ));
                 toast.success('تم تحديث حالة الرسوم');
@@ -437,6 +531,53 @@ export default function SupervisorDashboard() {
             if (res.ok) {
                 toast.success('تم حذف الحلقة بنجاح');
                 fetchAllData();
+            } else {
+                toast.error('حدث خطأ أثناء الحذف');
+            }
+        } catch (error) {
+            console.error(error);
+            toast.error('حدث خطأ أثناء الحذف');
+        } finally {
+            setDeletingId(null);
+        }
+    };
+
+    const handleDeleteStudent = (id, name) => {
+        toast((t) => (
+            <div className="premium-glass p-6 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-800 flex flex-col gap-4 min-w-[300px]" style={{ direction: 'rtl' }}>
+                <div className="font-bold text-slate-800 dark:text-white text-lg text-right">
+                    هل أنت متأكد من حذف الطالب "{name}"؟
+                    <div className="text-sm text-red-500 mt-2 font-medium text-right">سيتم حذفه نهائياً مع كافة سجلاته ونقاطه وحضوره من النظام.</div>
+                </div>
+                <div className="flex gap-3 mt-2">
+                    <button
+                        onClick={() => {
+                            toast.dismiss(t.id);
+                            performDeleteStudent(id);
+                        }}
+                        className="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-xl text-sm font-bold hover:bg-red-700 transition-colors shadow-lg shadow-red-200"
+                    >
+                        نعم، حذف
+                    </button>
+                    <button
+                        onClick={() => toast.dismiss(t.id)}
+                        className="flex-1 px-4 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-xl text-sm font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                    >
+                        إلغاء
+                    </button>
+                </div>
+            </div>
+        ), { duration: 5000, position: 'top-center' });
+    };
+
+    const performDeleteStudent = async (id) => {
+        setDeletingId(`student-${id}`);
+        try {
+            const res = await fetch(`/api/students?id=${id}`, { method: 'DELETE' });
+            if (res.ok) {
+                toast.success('تم حذف الطالب بنجاح');
+                fetchAllData();
+                setSelectedHalaqaStudents(prev => prev.filter(s => s.id !== id));
             } else {
                 toast.error('حدث خطأ أثناء الحذف');
             }
@@ -583,6 +724,16 @@ export default function SupervisorDashboard() {
                             إدارة الإجازات
                         </button>
                         {user && <SendNotification senderRole="SUPERVISOR" senderId={user.id} students={students} teachers={teachers} />}
+                        <button 
+                            onClick={() => setShowSyncModal(true)} 
+                            disabled={syncing}
+                            className="flex items-center gap-2 px-6 py-3 bg-amber-500 hover:bg-amber-600 dark:bg-amber-600 dark:hover:bg-amber-700 text-white rounded-2xl font-bold shadow-lg shadow-amber-200 dark:shadow-none transition-all active:scale-95 disabled:opacity-50"
+                        >
+                            <svg className={`w-5 h-5 ${syncing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                            </svg>
+                            <span>مزامنة Google Sheets</span>
+                        </button>
                     </div>
                 </div>
 
@@ -608,7 +759,7 @@ export default function SupervisorDashboard() {
                     <SupervisorStats />
                 ) : (
                     <>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10 reveal reveal-delay-1">
+                        <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10 ${loading ? '' : 'reveal reveal-delay-1'}`}>
                             {loading ? (
                                 <>
                                     <div className="h-32 bg-slate-200 dark:bg-slate-900 rounded-[2rem] animate-pulse"></div>
@@ -626,7 +777,7 @@ export default function SupervisorDashboard() {
                             )}
                         </div>
 
-                <div className="premium-glass rounded-[3rem] p-10 shadow-2xl shadow-slate-200/50 dark:shadow-none border border-white/20 dark:border-slate-800/50 mb-12 reveal reveal-delay-2 relative group">
+                <div className={`premium-glass rounded-[3rem] p-10 shadow-2xl shadow-slate-200/50 dark:shadow-none border border-white/20 dark:border-slate-800/50 mb-12 relative group ${loading ? '' : 'reveal reveal-delay-2'}`}>
                     <div className="premium-glow-emerald opacity-40 group-hover:opacity-60 transition-opacity duration-700"></div>
                     <div className="premium-glow-purple opacity-40 group-hover:opacity-60 transition-opacity duration-700"></div>
                     <div className="flex flex-col lg:flex-row items-center gap-12 relative z-10">
@@ -781,7 +932,7 @@ export default function SupervisorDashboard() {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <div className="premium-glass rounded-[3rem] p-8 shadow-2xl border border-white/20 dark:border-slate-800/50 flex flex-col reveal reveal-delay-2 relative group">
+                    <div className={`premium-glass rounded-[3rem] p-8 shadow-2xl border border-white/20 dark:border-slate-800/50 flex flex-col relative group ${loading ? '' : 'reveal reveal-delay-2'}`}>
                         <div className="premium-glow-emerald opacity-30 group-hover:opacity-50 transition-opacity duration-700"></div>
                         <div className="premium-glow-purple opacity-30 group-hover:opacity-50 transition-opacity duration-700"></div>
                         <div className="relative z-10 flex flex-col h-full">
@@ -924,7 +1075,7 @@ export default function SupervisorDashboard() {
                         </div>
                     </div>
 
-                    <div className="premium-glass rounded-[3rem] p-8 shadow-2xl border border-white/20 dark:border-slate-800/50 flex flex-col reveal reveal-delay-3 relative group">
+                    <div className={`premium-glass rounded-[3rem] p-8 shadow-2xl border border-white/20 dark:border-slate-800/50 flex flex-col relative group ${loading ? '' : 'reveal reveal-delay-3'}`}>
                         <div className="premium-glow-emerald opacity-30 group-hover:opacity-50 transition-opacity duration-700"></div>
                         <div className="premium-glow-purple opacity-30 group-hover:opacity-50 transition-opacity duration-700"></div>
                         <div className="relative z-10 flex flex-col h-full">
@@ -1432,6 +1583,20 @@ export default function SupervisorDashboard() {
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                                                     </svg>
                                                 </button>
+                                                <button
+                                                    onClick={() => handleDeleteStudent(s.id, s.name)}
+                                                    disabled={deletingId === `student-${s.id}`}
+                                                    className="p-2 bg-white dark:bg-slate-800 text-slate-400 hover:text-red-500 rounded-xl transition-all border border-transparent hover:border-red-500/20 shadow-sm disabled:opacity-50"
+                                                    title="حذف الطالب نهائياً"
+                                                >
+                                                    {deletingId === `student-${s.id}` ? (
+                                                        <div className="w-4 h-4 border border-red-500 border-t-transparent rounded-full animate-spin"></div>
+                                                    ) : (
+                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                        </svg>
+                                                    )}
+                                                </button>
                                                 <div className="relative flex h-2 w-2 flex-shrink-0">
                                                     <div className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></div>
                                                     <div className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></div>
@@ -1555,6 +1720,47 @@ export default function SupervisorDashboard() {
                     student={studentToEdit}
                     halaqaId={currentHalaqaIdForStudent}
                 />
+            )}
+            {showSyncModal && (
+                <div className="fixed inset-0 z-[1100] flex items-center justify-center p-4 backdrop-blur-xl">
+                    <div className="absolute inset-0 bg-slate-900/60" onClick={() => setShowSyncModal(false)}></div>
+                    <div className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl border border-white/20 dark:border-slate-800 overflow-hidden animate-slideUp">
+                        <div className="p-8 bg-gradient-to-r from-amber-500 to-amber-600 text-white text-center">
+                            <h3 className="text-2xl font-black mb-1">تخصيص مزامنة Google Sheets</h3>
+                            <p className="text-amber-100 font-bold text-sm">اختر الحقول والبيانات التي تريد مزامنتها بدقة</p>
+                        </div>
+                        
+                        <div className="p-8 space-y-4">
+                            <div className="space-y-3">
+                                {[
+                                    { key: 'syncNames', label: 'تحديث أسماء الطلاب (الأسماء الرباعية)', desc: 'تحديث صيغة الاسم لتصبح رباعية مطابقة للشيت' },
+                                    { key: 'syncNationalIds', label: 'مزامنة أرقام الهوية', desc: 'تحديث أرقام الهوية الوطنية أو الإقامة للطلاب المطابقين' },
+                                    { key: 'syncPhones', label: 'مزامنة أرقام الجوال', desc: 'تحديث جوال الطالب وجوال ولي الأمر من الشيت' },
+                                    { key: 'syncHalaqas', label: 'تحديث الحلقات والمراحل', desc: 'إعادة ربط وتحديث حلقات الطلاب (ما عدا التكرار)' },
+                                    { key: 'addNewStudents', label: 'إضافة طلاب جدد', desc: 'إنشاء حسابات جديدة للطلاب الغير مسجلين بالمنصة' }
+                                ].map(opt => (
+                                    <label key={opt.key} className="flex items-start gap-4 p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800 cursor-pointer transition-all hover:bg-slate-100/50 dark:hover:bg-slate-800/80 text-right" style={{ direction: 'rtl' }}>
+                                        <input
+                                            type="checkbox"
+                                            checked={syncOptions[opt.key]}
+                                            onChange={(e) => setSyncOptions({ ...syncOptions, [opt.key]: e.target.checked })}
+                                            className="mt-1 rounded border-slate-300 text-amber-500 focus:ring-amber-500 ml-3"
+                                        />
+                                        <div>
+                                            <div className="font-black text-slate-800 dark:text-white text-sm">{opt.label}</div>
+                                            <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 mt-0.5 leading-relaxed">{opt.desc}</div>
+                                        </div>
+                                    </label>
+                                ))}
+                            </div>
+
+                            <div className="flex gap-4 mt-6">
+                                <button onClick={() => setShowSyncModal(false)} className="flex-1 py-4 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-black rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all text-sm">إلغاء</button>
+                                <button onClick={handleSyncSheets} className="flex-[2] py-4 bg-amber-500 text-white font-black rounded-2xl hover:bg-amber-600 transition-all shadow-lg shadow-amber-200 dark:shadow-none text-sm">بدء المزامنة 🔄</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             )}
             {showHalaqaSettingsModal && selectedHalaqaForSettings && (
                 <div className="fixed inset-0 z-[1001] flex items-center justify-center p-4 backdrop-blur-xl">

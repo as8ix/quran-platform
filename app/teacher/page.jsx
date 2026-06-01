@@ -10,7 +10,32 @@ import ReportModal from '../components/ReportModal';
 import { useTheme } from '../components/ThemeProvider';
 import LoadingScreen from '../components/LoadingScreen';
 
-const StudentCard = ({ student, router }) => (
+const formatStudentName = (studentName, allStudents) => {
+    if (!studentName) return '';
+    const words = studentName.trim().split(/\s+/);
+    if (words.length < 2) return studentName;
+
+    const first = words[0];
+    const last = words[words.length - 1];
+
+    // Check if there is another student in the list who has the same first and last name
+    const hasConflict = allStudents.some(s => {
+        if (s.name === studentName) return false;
+        const sWords = (s.name || '').trim().split(/\s+/);
+        if (sWords.length < 2) return false;
+        const sFirst = sWords[0];
+        const sLast = sWords[sWords.length - 1];
+        return sFirst === first && sLast === last;
+    });
+
+    if (hasConflict && words.length >= 3) {
+        return `${first} ${words[1]} ${last}`;
+    }
+
+    return `${first} ${last}`;
+};
+
+const StudentCard = ({ student, router, displayName }) => (
     <div
         className="group premium-glass rounded-[2rem] sm:rounded-[2.5rem] p-5 sm:p-7 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-emerald-500/20 cursor-pointer relative overflow-hidden border border-white/20 dark:border-slate-800/50"
         onClick={() => router.push(`/teacher/student/${student.id}`)}
@@ -40,7 +65,7 @@ const StudentCard = ({ student, router }) => (
         </div>
 
         <h3 className="text-lg sm:text-2xl font-black text-slate-800 dark:text-white mb-0.5 sm:mb-1 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors relative z-10">
-            {student.name}
+            {displayName || student.name}
         </h3>
         {student.halaqa && (
             <p className="text-[10px] sm:text-xs font-bold text-slate-400 dark:text-slate-500 mb-1.5 sm:mb-2 flex items-center gap-1 relative z-10">
@@ -329,7 +354,12 @@ export default function TeacherDashboard() {
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                                     {filteredStudents.filter(s => s.isInActiveEvent).map((student) => (
-                                        <StudentCard key={student.id} student={student} router={router} />
+                                        <StudentCard 
+                                            key={student.id} 
+                                            student={student} 
+                                            router={router} 
+                                            displayName={formatStudentName(student.name, filteredStudents)}
+                                        />
                                     ))}
                                 </div>
                             </div>
@@ -355,7 +385,12 @@ export default function TeacherDashboard() {
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                                     {filteredStudents.filter(s => !s.isInActiveEvent).map((student) => (
-                                        <StudentCard key={student.id} student={student} router={router} />
+                                        <StudentCard 
+                                            key={student.id} 
+                                            student={student} 
+                                            router={router} 
+                                            displayName={formatStudentName(student.name, filteredStudents)}
+                                        />
                                     ))}
                                 </div>
                             </div>

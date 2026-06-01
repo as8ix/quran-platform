@@ -41,7 +41,7 @@ function CustomDynamicReportContent() {
         setLoading(true);
         try {
             const targetId = paramTeacherId || '';
-            const url = targetId ? `/api/students?teacherId=${targetId}` : `/api/students`;
+            const url = targetId ? `/api/students?teacherId=${targetId}&full=true` : `/api/students?full=true`;
             
             const response = await fetch(url);
             if (response.ok) {

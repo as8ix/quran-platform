@@ -29,6 +29,8 @@ export default function AddStudentModal({ isOpen, onClose, onAdd, student, halaq
     const [searchQuery, setSearchQuery] = useState('');
     const [showSecondaryFields, setShowSecondaryFields] = useState(false);
     const [userRole, setUserRole] = useState(null);
+    const [allHalaqas, setAllHalaqas] = useState([]);
+    const [selectedHalaqaId, setSelectedHalaqaId] = useState('');
 
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
@@ -39,7 +41,19 @@ export default function AddStudentModal({ isOpen, onClose, onAdd, student, halaq
     }, []);
 
     useEffect(() => {
+        if (userRole === 'SUPERVISOR') {
+            fetch('/api/halaqas')
+                .then(res => res.json())
+                .then(data => {
+                    if (Array.isArray(data)) setAllHalaqas(data);
+                })
+                .catch(err => console.error("Error fetching halaqas:", err));
+        }
+    }, [userRole, isOpen]);
+
+    useEffect(() => {
         if (student) {
+            setSelectedHalaqaId(student.halaqaId ? student.halaqaId.toString() : '');
             setName(student.name || '');
             setUsername(student.username || '');
             setPassword(student.password || '');
@@ -88,8 +102,9 @@ export default function AddStudentModal({ isOpen, onClose, onAdd, student, halaq
             setFeeStatusTerm2('PENDING');
             setFeeStatusSummer('PENDING');
             setJoinDate(new Date().toISOString().split('T')[0]);
+            setSelectedHalaqaId(halaqaId ? halaqaId.toString() : '');
         }
-    }, [student, isOpen]);
+    }, [student, isOpen, halaqaId]);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -132,7 +147,9 @@ export default function AddStudentModal({ isOpen, onClose, onAdd, student, halaq
             juzCount: parseInt(juzCount) || 0,
             reviewPlan,
             dailyTargetPages: parseFloat(dailyTargetPages),
-            halaqaId,
+            halaqaId: userRole === 'SUPERVISOR' 
+                ? (selectedHalaqaId ? parseInt(selectedHalaqaId) : null)
+                : (halaqaId ? parseInt(halaqaId) : null),
             phone,
             parentPhone,
             parentPhone2,
@@ -214,6 +231,30 @@ export default function AddStudentModal({ isOpen, onClose, onAdd, student, halaq
                                 onChange={(e) => setName(e.target.value)}
                             />
                         </div>
+
+                        {/* Halaqa Dropdown for Supervisor */}
+                        {userRole === 'SUPERVISOR' && (
+                            <div>
+                                <label className="block text-sm font-bold text-slate-500 dark:text-slate-400 mb-2 mr-1">الحلقة المنتسب إليها الطالب</label>
+                                <div className="relative">
+                                    <select
+                                        className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-900 border-2 border-transparent focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800 rounded-2xl transition-all outline-none appearance-none dark:text-white font-bold"
+                                        value={selectedHalaqaId}
+                                        onChange={(e) => setSelectedHalaqaId(e.target.value)}
+                                    >
+                                        <option value="" className="dark:bg-slate-800">بدون حلقة (غير محدد)</option>
+                                        {allHalaqas.map(h => (
+                                            <option key={h.id} value={h.id} className="dark:bg-slate-800">{h.name}</option>
+                                        ))}
+                                    </select>
+                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>

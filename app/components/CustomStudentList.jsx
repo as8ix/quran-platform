@@ -80,10 +80,10 @@ export default function CustomStudentList({ userRole, initialTeacherId, initialH
     const fetchStudents = async () => {
         setLoading(true);
         try {
-            let url = '/api/students';
+            let url = '/api/students?full=true';
             if (initialTeacherId) {
                 // If it's a teacher, get their specific students.
-                url += `?teacherId=${initialTeacherId}`;
+                url += `&teacherId=${initialTeacherId}`;
             }
             // For supervisor, we might want all students, or filter by teacher if passed.
             

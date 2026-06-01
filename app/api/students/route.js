@@ -107,6 +107,16 @@ export async function GET(request) {
             dailyTargetPages: true,
             reviewPlan: true,
             halaqaId: true,
+            nationalId: true,
+            phone: true,
+            parentPhone: true,
+            parentPhone2: true,
+            nationality: true,
+            studentNotes: true,
+            feeStatusSummer: true,
+            feeStatusTerm1: true,
+            feeStatusTerm2: true,
+            joinDate: true,
             halaqa: {
                 select: {
                     id: true,
@@ -203,7 +213,7 @@ export async function POST(request) {
                 name,
                 username: finalUsername,
                 displayId: nextDisplayId,
-                password: password || '123456', // Default password if empty
+                password: password || '123', // Default password if empty
                 hifzProgress: hifzProgress || 'الفاتحة',
                 currentHifzSurahId: parseInt(currentHifzSurahId) || 1,
                 juzCount: parseFloat(juzCount) || 0,
@@ -279,15 +289,19 @@ export async function DELETE(request) {
 
         if (!id) return NextResponse.json({ error: 'Student ID required' }, { status: 400 });
 
-        // First delete related records (Attendance, Sessions)
-        // Or if we had cascade delete, we could just delete student.
-        // Let's manually delete for safety if not defined in schema (though usually prisma handles generic cascade if defined, but SQLite is picky).
+        const studentId = parseInt(id);
 
-        await prisma.attendance.deleteMany({ where: { studentId: parseInt(id) } });
-        await prisma.session.deleteMany({ where: { studentId: parseInt(id) } });
+        // Delete all student relations to prevent constraint errors
+        await prisma.attendance.deleteMany({ where: { studentId } });
+        await prisma.session.deleteMany({ where: { studentId } });
+        await prisma.exam.deleteMany({ where: { studentId } });
+        await prisma.notification.deleteMany({ where: { studentId } });
+        await prisma.eventAssignment.deleteMany({ where: { studentId } });
+        await prisma.studyPlanEntry.deleteMany({ where: { studentId } });
+        await prisma.point.deleteMany({ where: { studentId } });
 
         await prisma.student.delete({
-            where: { id: parseInt(id) }
+            where: { id: studentId }
         });
 
         return NextResponse.json({ message: 'Deleted successfully' });

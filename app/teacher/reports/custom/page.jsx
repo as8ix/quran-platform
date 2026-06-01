@@ -58,7 +58,7 @@ function CustomDynamicReportContent() {
             const targetId = paramTeacherId || user?.id;
             if (!targetId) return;
 
-            const response = await fetch(`/api/students?teacherId=${targetId}`);
+            const response = await fetch(`/api/students?teacherId=${targetId}&full=true`);
             if (response.ok) {
                 const fetchedStudents = await response.json();
                 setStudents(fetchedStudents);

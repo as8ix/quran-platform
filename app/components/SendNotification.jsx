@@ -2,8 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { storage } from '../lib/firebase';
-import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { toast } from 'react-hot-toast';
 
 export default function SendNotification({ senderRole, senderId, students = [], teachers = [] }) {
@@ -53,8 +51,13 @@ export default function SendNotification({ senderRole, senderId, students = [], 
         const file = e.target.files[0];
         if (!file) return;
 
-        if (file.type.startsWith('video/')) {
-            toast.error('عذراً، لا يُسمح برفع ملفات الفيديو');
+        // Size limits: 15MB for images, 200MB for other files
+        const isImage = file.type.startsWith('image/');
+        const limitMB = isImage ? 15 : 200;
+        const limitBytes = limitMB * 1024 * 1024;
+
+        if (file.size > limitBytes) {
+            toast.error(`عذراً، الحد الأقصى لحجم ${isImage ? 'الصور' : 'الملفات'} هو ${limitMB} ميجابايت`);
             e.target.value = '';
             return;
         }
@@ -63,33 +66,68 @@ export default function SendNotification({ senderRole, senderId, students = [], 
         setUploadProgress(0);
         
         try {
-            const { uploadBytesResumable, getDownloadURL } = await import('firebase/storage');
-            const fileRef = ref(storage, `notifications/${Date.now()}_${file.name}`);
-            const uploadTask = uploadBytesResumable(fileRef, file);
+            // 1. Fetch pre-signed URL from Next.js backend API
+            const res = await fetch('/api/upload/presign', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    filename: file.name,
+                    contentType: file.type,
+                }),
+            });
 
-            uploadTask.on('state_changed', 
-                (snapshot) => {
-                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                    setUploadProgress(Math.round(progress));
-                }, 
-                (error) => {
-                    console.error("Firebase Storage Error:", error);
-                    toast.error("حدث خطأ أثناء رفع الملف");
-                    setUploading(false);
-                }, 
-                async () => {
-                    const url = await getDownloadURL(uploadTask.snapshot.ref);
-                    setAttachmentUrl(url);
-                    if (file.type.startsWith('image/')) setAttachmentType('IMAGE');
-                    else setAttachmentType('LINK');
+            if (!res.ok) {
+                const errData = await res.json();
+                throw new Error(errData.error || 'فشل توليد رابط الرفع');
+            }
+
+            const { uploadUrl, fileUrl } = await res.json();
+
+            // 2. Perform direct upload to Cloudflare R2 using XMLHttpRequest to monitor progress
+            const xhr = new XMLHttpRequest();
+            xhr.open('PUT', uploadUrl, true);
+            xhr.setRequestHeader('Content-Type', file.type);
+
+            xhr.upload.onprogress = (event) => {
+                if (event.lengthComputable) {
+                    const percent = Math.round((event.loaded / event.total) * 100);
+                    setUploadProgress(percent);
+                }
+            };
+
+            xhr.onload = () => {
+                if (xhr.status === 200) {
+                    setAttachmentUrl(fileUrl);
+                    
+                    // Determine attachmentType
+                    if (file.type.startsWith('image/')) {
+                        setAttachmentType('IMAGE');
+                    } else if (file.type.startsWith('video/')) {
+                        setAttachmentType('VIDEO');
+                    } else {
+                        setAttachmentType('LINK');
+                    }
+
                     setUploading(false);
                     setUploadProgress(100);
-                    toast.success('تم رفع الملف بنجاح');
+                    toast.success('تم رفع الملف بنجاح إلى Cloudflare R2');
+                } else {
+                    console.error('XHR Upload failed with status:', xhr.status, xhr.statusText);
+                    toast.error('فشل رفع الملف إلى الخادم');
+                    setUploading(false);
                 }
-            );
+            };
+
+            xhr.onerror = () => {
+                toast.error('حدث خطأ في الاتصال بالشبكة أثناء الرفع');
+                setUploading(false);
+            };
+
+            xhr.send(file);
+
         } catch (error) {
-            console.error("Firebase Storage Error:", error);
-            toast.error("حدث خطأ في الاتصال بخدمة التخزين");
+            console.error("Cloudflare R2 Upload Error:", error);
+            toast.error(error.message || "حدث خطأ في الاتصال بخدمة التخزين");
             setUploading(false);
         }
     };
@@ -97,14 +135,22 @@ export default function SendNotification({ senderRole, senderId, students = [], 
     const handleFileDelete = async () => {
         if (!attachmentUrl) return;
         try {
-            if (attachmentUrl.includes('firebasestorage.googleapis.com')) {
-                const fileRef = ref(storage, attachmentUrl);
-                await deleteObject(fileRef);
+            const res = await fetch('/api/upload/delete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ fileUrl: attachmentUrl }),
+            });
+
+            if (res.ok) {
+                setAttachmentUrl('');
+                toast.success('تم حذف الملف');
+            } else {
+                setAttachmentUrl('');
+                toast.success('تمت إزالة المرفق');
             }
-            setAttachmentUrl('');
-            toast.success('تم حذف الملف');
         } catch (error) {
             setAttachmentUrl('');
+            toast.success('تمت إزالة المرفق');
         }
     };
 
