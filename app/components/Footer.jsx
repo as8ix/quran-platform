@@ -41,7 +41,7 @@ export default function Footer() {
                             نحو حفظ متقن وإنجاز مستمر
                         </p>
                         <div className="text-xs text-slate-400 dark:text-slate-600 font-medium">
-                            © {year} جميع الحقوق محفوظة
+                            © {year} لمنصة مُعِين. جميع الحقوق محفوظة.
                         </div>
                     </div>
                 </div>
