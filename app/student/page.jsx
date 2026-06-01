@@ -7,8 +7,8 @@ import { formatHijri } from '../utils/dateUtils';
 import { useTheme } from '../components/ThemeProvider';
 import { quranData } from '../data/quranData';
 import { pageAyahMap } from '../data/pageAyahMap';
+import { getExactPosition, getAyahAtPosition } from '../utils/quranUtils';
 import ProfileModal from '../components/ProfileModal';
-import LoadingScreen from '../components/LoadingScreen';
 
 export default function StudentDashboard() {
     const router = useRouter();
@@ -241,6 +241,7 @@ export default function StudentDashboard() {
         const lastReviewFromSurah = quranData.find(s => s.name === lastReviewFromSurahName) || lastReviewSurah;
         
         let rStartSurah, rEndSurah, rStartPage, rEndPage;
+        let reviewFromAyah = 1, reviewToAyah = 1;
         let reviewGoal = '';
         
         if (student.reviewPlan?.includes('جزء')) {
@@ -298,6 +299,15 @@ export default function StudentDashboard() {
                 rStartPage = targetJuz.startPage; rEndPage = endJuzEndPage;
             }
             reviewGoal = `من ${rStartSurah.name} إلى ${rEndSurah.name}`;
+            
+            if (pageAyahMap && pageAyahMap[rStartPage] && pageAyahMap[rStartPage][rStartSurah.id]) {
+                const pageData = pageAyahMap[rStartPage][rStartSurah.id];
+                reviewFromAyah = (typeof pageData === 'object') ? pageData.start : 1;
+            }
+            if (pageAyahMap && pageAyahMap[rEndPage] && pageAyahMap[rEndPage][rEndSurah.id]) {
+                const pageData = pageAyahMap[rEndPage][rEndSurah.id];
+                reviewToAyah = (typeof pageData === 'object') ? pageData.end : pageData;
+            }
         } else {
             const nextReviewStartSurah = quranData.find(s => s.id === (mDirection === 'DESC' ? lastReviewSurah.id - 1 : lastReviewSurah.id + 1)) || lastReviewSurah;
             
@@ -311,22 +321,57 @@ export default function StudentDashboard() {
             }
 
             if (targetPages > 0) {
-                const sign = mDirection === 'DESC' ? -1 : 1;
-                let endPageNum = (nextReviewStartSurah.startPage || 1) + (sign * targetPages);
-                if (endPageNum < 1) endPageNum = 1;
-                if (endPageNum > 604) endPageNum = 604;
+                const startA = Number(latestSessionOverall?.murajaahToAyah) || 1;
+                let startSId = nextReviewStartSurah.id;
                 
-                const endSurah = quranData.slice().reverse().find(s => (s.startPage || 1) <= endPageNum) || nextReviewStartSurah;
-                
-                rStartSurah = nextReviewStartSurah;
-                rEndSurah = endSurah;
-                rStartPage = nextReviewStartSurah.startPage || 1;
-                rEndPage = endPageNum;
+                // If they have history, start from where they left off
+                if (latestSessionOverall && latestSessionOverall.murajaahToSurah) {
+                    const lastSurahObj = quranData.find(s => s.name === latestSessionOverall.murajaahToSurah);
+                    if (lastSurahObj) {
+                        const isFinished = Number(latestSessionOverall.murajaahToAyah) >= Number(lastSurahObj.ayahs);
+                        if (isFinished) {
+                            startSId = mDirection === 'DESC' ? lastSurahObj.id - 1 : lastSurahObj.id + 1;
+                            if (startSId < 1) startSId = 114;
+                            if (startSId > 114) startSId = 1;
+                        } else {
+                            startSId = lastSurahObj.id;
+                        }
+                    }
+                }
 
-                if (nextReviewStartSurah.id !== endSurah.id) {
-                    reviewGoal = `من سورة ${nextReviewStartSurah.name} إلى ${endSurah.name}`;
+                rStartSurah = quranData.find(s => s.id === startSId) || nextReviewStartSurah;
+                const startPos = getExactPosition(rStartSurah.id, startSId === nextReviewStartSurah.id ? startA : 1, false);
+                
+                if (startPos !== null) {
+                    rStartPage = Math.floor(startPos);
+                    reviewFromAyah = startSId === nextReviewStartSurah.id ? startA : 1;
+                    
+                    const sign = mDirection === 'DESC' ? -1 : 1;
+                    let endPos = startPos + (sign * targetPages);
+                    if (endPos < 1) endPos = 1;
+                    if (endPos > 604.99) endPos = 604.99;
+                    
+                    const predicted = getAyahAtPosition(endPos);
+                    if (predicted) {
+                        rEndSurah = quranData.find(s => s.id === predicted.surahId) || rStartSurah;
+                        rEndPage = Math.floor(endPos);
+                        reviewToAyah = predicted.ayah;
+                    } else {
+                        rEndSurah = rStartSurah;
+                        rEndPage = rStartPage;
+                        reviewToAyah = 1;
+                    }
                 } else {
-                    reviewGoal = `من سورة ${nextReviewStartSurah.name}`;
+                    rStartSurah = nextReviewStartSurah;
+                    rEndSurah = nextReviewStartSurah;
+                    rStartPage = nextReviewStartSurah.startPage || 1;
+                    rEndPage = rStartPage;
+                }
+
+                if (rStartSurah.id !== rEndSurah.id) {
+                    reviewGoal = `من سورة ${rStartSurah.name} إلى ${rEndSurah.name}`;
+                } else {
+                    reviewGoal = `من سورة ${rStartSurah.name}`;
                 }
             } else {
                 rStartSurah = nextReviewStartSurah; rEndSurah = nextReviewStartSurah;
@@ -335,20 +380,16 @@ export default function StudentDashboard() {
             }
         }
 
-        // Ensure smaller page is always fromPage for the UI
         let reviewFromPage = Math.min(rStartPage, rEndPage);
         let reviewToPage = Math.max(rStartPage, rEndPage);
         let reviewFromSurah = rStartPage < rEndPage ? rStartSurah : rEndSurah;
         let reviewToSurah = rStartPage < rEndPage ? rEndSurah : rStartSurah;
-
-        let reviewFromAyah = 1; let reviewToAyah = reviewToSurah.ayahs || 1;
-        if (pageAyahMap && pageAyahMap[reviewFromPage] && pageAyahMap[reviewFromPage][reviewFromSurah.id]) {
-            const pageData = pageAyahMap[reviewFromPage][reviewFromSurah.id];
-            reviewFromAyah = (typeof pageData === 'object') ? pageData.start : 1;
-        }
-        if (pageAyahMap && pageAyahMap[reviewToPage] && pageAyahMap[reviewToPage][reviewToSurah.id]) {
-            const pageData = pageAyahMap[reviewToPage][reviewToSurah.id];
-            reviewToAyah = (typeof pageData === 'object') ? pageData.end : pageData;
+        
+        // Use the exactly predicted Ayahs. Adjust if direction is descending to keep 'From' as the smaller value.
+        if (mDirection === 'DESC') {
+            const tempAyah = reviewFromAyah;
+            reviewFromAyah = reviewToAyah;
+            reviewToAyah = tempAyah;
         }
 
         const reviewObj = {
