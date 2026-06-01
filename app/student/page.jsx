@@ -304,7 +304,32 @@ export default function StudentDashboard() {
             }
         } else {
             const nextReviewStartSurah = quranData.find(s => s.id === (mDirection === 'DESC' ? lastReviewSurah.id - 1 : lastReviewSurah.id + 1)) || lastReviewSurah;
-            reviewGoal = `من سورة ${nextReviewStartSurah.name}`;
+            
+            let targetPages = 0;
+            const planStr = student.reviewPlan || "";
+            const match = planStr.match(/\d+/);
+            if (match) {
+                targetPages = parseInt(match[0]);
+            } else if (planStr.includes('وجه') || planStr.includes('صفحة')) {
+                targetPages = 1;
+            }
+
+            if (targetPages > 0) {
+                const sign = mDirection === 'DESC' ? -1 : 1;
+                let endPageNum = (nextReviewStartSurah.startPage || 1) + (sign * targetPages);
+                if (endPageNum < 1) endPageNum = 1;
+                if (endPageNum > 604) endPageNum = 604;
+                
+                const endSurah = quranData.slice().reverse().find(s => (s.startPage || 1) <= endPageNum) || nextReviewStartSurah;
+                
+                if (nextReviewStartSurah.id !== endSurah.id) {
+                    reviewGoal = `من سورة ${nextReviewStartSurah.name} إلى ${endSurah.name}`;
+                } else {
+                    reviewGoal = `من سورة ${nextReviewStartSurah.name}`;
+                }
+            } else {
+                reviewGoal = `من سورة ${nextReviewStartSurah.name}`;
+            }
         }
 
         // --- Lag Status Logic ---
