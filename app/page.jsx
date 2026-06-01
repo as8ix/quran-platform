@@ -70,7 +70,7 @@ export default function LandingPage() {
             <img src="/logo.svg" alt="شعار منصة مُعِين" className="w-10 h-10 object-contain inline-block dark:hidden" />
             <img src="/logo-dark.png" alt="شعار منصة مُعِين" className="w-10 h-10 object-contain hidden dark:inline-block" />
             <span className="font-amiri text-2xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
-              منصة تحفيظ القرآن الكريم
+              منصة مُعِين
             </span>
           </div>
           <Link

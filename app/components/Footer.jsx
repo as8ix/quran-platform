@@ -21,10 +21,10 @@ export default function Footer() {
                         <img src="/logo-dark.png" alt="شعار منصة مُعِين" className="w-12 h-12 object-contain hidden dark:inline-block" />
                         <div className="text-right">
                             <h2 className="font-amiri text-2xl font-bold text-slate-800 dark:text-white leading-tight">
-                                منصة تحفيظ القرآن الكريم
+                                منصة مُعِين
                             </h2>
                             <p className="text-sm text-emerald-600 dark:text-emerald-400 font-bold">
-                                جامع الحديقة بحي السلامة
+                                المنصة الرقمية لإدارة حلقات التحفيظ
                             </p>
                         </div>
                     </div>

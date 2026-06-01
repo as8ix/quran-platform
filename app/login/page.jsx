@@ -146,9 +146,9 @@ export default function LoginPage() {
                             <img src="/logo.svg" alt="شعار منصة مُعِين" className="w-24 h-24 mx-auto mb-4 object-contain dark:hidden" />
                             <img src="/logo-dark.png" alt="شعار منصة مُعِين" className="w-24 h-24 mx-auto mb-4 object-contain hidden dark:block" />
                             <h1 className="font-amiri text-3xl font-bold bg-gradient-to-r from-green-600 via-green-700 to-green-800 dark:from-emerald-500 dark:via-emerald-600 dark:to-emerald-700 bg-clip-text text-transparent mb-1">
-                                منصة تحفيظ القرآن الكريم
+                                منصة مُعِين
                             </h1>
-                            <p className="text-slate-600 dark:text-slate-300 font-bold text-sm">جامع الحديقة بحي السلامة</p>
+                            <p className="text-slate-600 dark:text-slate-300 font-bold text-sm">المنصة الرقمية لإدارة حلقات التحفيظ</p>
                             <p className="text-slate-400 dark:text-slate-500 text-xs mt-1">نحو حفظ متقن وإنجاز مستمر</p>
                         </div>
 
