@@ -67,7 +67,8 @@ export default function LandingPage() {
       <nav className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg border-b border-slate-200 dark:border-slate-800 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <img src="/mosque-logo.png" alt="شعار الجامع" className="w-10 h-10 object-contain inline-block dark:hidden" /><img src="/mosque-logo-white.png" alt="شعار الجامع" className="w-10 h-10 object-contain hidden dark:inline-block" />
+            <img src="/logo.svg" alt="شعار منصة مُعِين" className="w-10 h-10 object-contain inline-block dark:hidden" />
+            <img src="/logo-dark.png" alt="شعار منصة مُعِين" className="w-10 h-10 object-contain hidden dark:inline-block" />
             <span className="font-amiri text-2xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
               منصة تحفيظ القرآن الكريم
             </span>

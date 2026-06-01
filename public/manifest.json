@@ -1,14 +1,14 @@
 {
-  "name": "منصة الحديقة",
-  "short_name": "الحديقة",
-  "description": "منصة شاملة لإدارة حلقات تحفيظ القرآن الكريم والأنظمة التعليمية",
+  "name": "منصة مُعِين",
+  "short_name": "مُعِين",
+  "description": "منصة رقمية شاملة لإدارة حلقات تحفيظ القرآن الكريم",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#059669",
   "icons": [
     {
-      "src": "/mosque-logo.png",
+      "src": "/logo-dark.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"

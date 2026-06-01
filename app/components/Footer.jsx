@@ -17,8 +17,8 @@ export default function Footer() {
                 <div className="flex flex-col items-center gap-6">
                     {/* Logo and Brand */}
                     <div className="flex items-center justify-center gap-3">
-                        <img src="/mosque-logo.png" alt="شعار الجامع" className="w-12 h-12 object-contain inline-block dark:hidden" />
-                        <img src="/mosque-logo-white.png" alt="شعار الجامع" className="w-12 h-12 object-contain hidden dark:inline-block" />
+                        <img src="/logo.svg" alt="شعار منصة مُعِين" className="w-12 h-12 object-contain inline-block dark:hidden" />
+                        <img src="/logo-dark.png" alt="شعار منصة مُعِين" className="w-12 h-12 object-contain hidden dark:inline-block" />
                         <div className="text-right">
                             <h2 className="font-amiri text-2xl font-bold text-slate-800 dark:text-white leading-tight">
                                 منصة تحفيظ القرآن الكريم

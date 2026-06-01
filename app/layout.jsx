@@ -34,9 +34,9 @@ export const metadata = {
     },
   },
   icons: {
-    icon: "/mosque-logo.png",
-    apple: "/mosque-logo.png",
-    shortcut: "/mosque-logo.png",
+    icon: "/favicon.ico",
+    apple: "/logo.svg",
+    shortcut: "/favicon.ico",
   },
   openGraph: {
     title: "منصة مُعِين",
@@ -45,7 +45,7 @@ export const metadata = {
     siteName: "منصة مُعِين",
     images: [
       {
-        url: "/mosque-logo.png",
+        url: "/full-logo.svg",
         width: 512,
         height: 512,
         alt: "شعار منصة مُعِين",
