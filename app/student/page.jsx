@@ -435,6 +435,12 @@ export default function StudentDashboard() {
             )}
 
             <main className="max-w-2xl mx-auto px-4 pt-32 pb-12">
+                {/* Under Construction Banner */}
+                <div className="bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-200 p-4 rounded-2xl text-center font-bold text-sm border border-amber-200 dark:border-amber-800/50 shadow-sm flex flex-col sm:flex-row items-center justify-center gap-3 mb-8 reveal">
+                    <span className="text-2xl">🚧</span>
+                    <span>ملاحظة: حساب الطالب لا يزال قيد التطوير والعمل. قد تواجه بعض النواقص في الميزات الحالية.</span>
+                </div>
+
                 {/* Hero Header */}
                 <div className={`relative overflow-hidden bg-gradient-to-br ${isKhatim ? 'from-amber-500 to-yellow-700' : 'from-emerald-600 to-teal-700'} rounded-[2.5rem] p-8 md:p-12 text-white mb-8 shadow-2xl ${isKhatim ? 'shadow-amber-100' : 'shadow-emerald-100'} reveal group`}>
                     {/* Profile Settings Button */}
