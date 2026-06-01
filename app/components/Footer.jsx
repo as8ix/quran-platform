@@ -16,19 +16,9 @@ export default function Footer() {
             <div className="max-w-7xl mx-auto px-6 text-center">
                 <div className="flex flex-col items-center gap-6">
                     {/* Logo and Brand */}
-                    <div className="flex items-center justify-center gap-3">
-                        <img src="/logo.svg" alt="شعار منصة مُعِين" className="w-12 h-12 object-contain inline-block dark:hidden" />
-                        <img src="/logo-dark.png" alt="شعار منصة مُعِين" className="w-12 h-12 object-contain hidden dark:inline-block" />
-                        <div className="text-right">
-                            <h2 className="font-amiri text-2xl font-bold text-slate-800 dark:text-white leading-tight">
-                                منصة مُعِين
-                            </h2>
-                            <p className="text-sm text-emerald-600 dark:text-emerald-400 font-bold">
-                                المنصة الرقمية لإدارة حلقات التحفيظ
-                            </p>
-                        </div>
+                    <div className="flex items-center justify-center">
+                        <img src="/full-logo.svg" alt="شعار منصة مُعِين" className="h-16 w-auto object-contain" />
                     </div>
-
                     {/* Assistance Link */}
                     <div className="flex items-center justify-center gap-2 text-sm bg-white dark:bg-slate-800 px-6 py-3 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
                         <span className="text-slate-500 dark:text-slate-400">هل تحتاج إلى مساعدة؟</span>
