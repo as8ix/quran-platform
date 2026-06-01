@@ -34,9 +34,9 @@ export const metadata = {
     },
   },
   icons: {
-    icon: "/favicon.ico",
-    apple: "/logo.svg",
-    shortcut: "/favicon.ico",
+    icon: "/favicon.ico?v=2",
+    apple: "/logo.svg?v=2",
+    shortcut: "/favicon.ico?v=2",
   },
   openGraph: {
     title: "منصة مُعِين",
