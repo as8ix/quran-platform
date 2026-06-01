@@ -240,7 +240,9 @@ export default function StudentDashboard() {
         const lastReviewFromSurahName = latestSessionOverall?.murajaahFromSurah || lastReviewSurahName;
         const lastReviewFromSurah = quranData.find(s => s.name === lastReviewFromSurahName) || lastReviewSurah;
         
+        let rStartSurah, rEndSurah, rStartPage, rEndPage;
         let reviewGoal = '';
+        
         if (student.reviewPlan?.includes('جزء')) {
             const currentJuzIdx = juzData.findIndex(j => j.startPage > (lastReviewSurah.startPage || 1)) - 1;
             
@@ -251,27 +253,20 @@ export default function StudentDashboard() {
             else if (student.reviewPlan.includes('ثلاث')) targetIncrement = 3;
 
             const lastPagesCount = latestSessionOverall?.pagesCount || 0;
-            // More flexible threshold: 60% of the target is enough to move to next block
             const threshold = (targetIncrement * 20) * 0.6;
             let moveNextBlock = lastPagesCount >= threshold;
 
             let targetJuzIdx = currentJuzIdx;
-            // Determine if we finished the first or second half
-            // For DESC: 'ToSurah' tells us the end. For ASC: 'FromSurah' might tell us we reached the beginning.
             const relevantSurah = mDirection === 'DESC' ? lastReviewSurah : lastReviewFromSurah;
             let isSecondHalf = relevantSurah.startPage >= (juzData[currentJuzIdx].startPage + 10);
 
             if (moveNextBlock) {
                 if (targetIncrement === 0.5) {
                     if (mDirection === 'DESC') {
-                        // Descending: Finished Low Half (551-542) -> Prev Juz High Half (541-532)
                         if (!isSecondHalf) { targetJuzIdx = currentJuzIdx - 1; isSecondHalf = true; }
-                        // Descending: Finished High Half (561-552) -> Low Half (551-542)
                         else { isSecondHalf = false; }
                     } else {
-                        // Ascending: Finished High Half (552-561) -> Next Juz Low Half (562-571)
                         if (isSecondHalf) { targetJuzIdx = currentJuzIdx + 1; isSecondHalf = false; }
-                        // Ascending: Finished Low Half (542-551) -> High Half (552-561)
                         else { isSecondHalf = true; }
                     }
                 } else {
@@ -291,17 +286,18 @@ export default function StudentDashboard() {
                 if (isSecondHalf) { startP = midPage; endP = nextJuzStartPage - 1; }
                 else { startP = targetJuz.startPage; endP = midPage - 1; }
 
-                const startSurah = quranData.find(s => s.startPage >= startP) || quranData[0];
-                const endSurah = quranData.slice().reverse().find(s => s.startPage <= endP) || quranData[113];
-                reviewGoal = `من ${startSurah.name} إلى ${endSurah.name}`;
+                rStartSurah = quranData.find(s => s.startPage >= startP) || quranData[0];
+                rEndSurah = quranData.slice().reverse().find(s => s.startPage <= endP) || quranData[113];
+                rStartPage = startP; rEndPage = endP;
             } else {
                 const endJuzIdx = Math.max(0, Math.min(29, mDirection === 'DESC' ? targetJuzIdx + Math.floor(targetIncrement) - 1 : targetJuzIdx - Math.floor(targetIncrement) + 1));
                 const endJuzEndPage = (juzData[endJuzIdx + 1]?.startPage || 605) - 1;
                 
-                const startSurah = quranData.find(s => s.startPage >= targetJuz.startPage) || quranData[0];
-                const endSurah = quranData.slice().reverse().find(s => s.startPage <= endJuzEndPage) || quranData[113];
-                reviewGoal = `من ${startSurah.name} إلى ${endSurah.name}`;
+                rStartSurah = quranData.find(s => s.startPage >= targetJuz.startPage) || quranData[0];
+                rEndSurah = quranData.slice().reverse().find(s => s.startPage <= endJuzEndPage) || quranData[113];
+                rStartPage = targetJuz.startPage; rEndPage = endJuzEndPage;
             }
+            reviewGoal = `من ${rStartSurah.name} إلى ${rEndSurah.name}`;
         } else {
             const nextReviewStartSurah = quranData.find(s => s.id === (mDirection === 'DESC' ? lastReviewSurah.id - 1 : lastReviewSurah.id + 1)) || lastReviewSurah;
             
@@ -322,35 +318,65 @@ export default function StudentDashboard() {
                 
                 const endSurah = quranData.slice().reverse().find(s => (s.startPage || 1) <= endPageNum) || nextReviewStartSurah;
                 
+                rStartSurah = nextReviewStartSurah;
+                rEndSurah = endSurah;
+                rStartPage = nextReviewStartSurah.startPage || 1;
+                rEndPage = endPageNum;
+
                 if (nextReviewStartSurah.id !== endSurah.id) {
                     reviewGoal = `من سورة ${nextReviewStartSurah.name} إلى ${endSurah.name}`;
                 } else {
                     reviewGoal = `من سورة ${nextReviewStartSurah.name}`;
                 }
             } else {
+                rStartSurah = nextReviewStartSurah; rEndSurah = nextReviewStartSurah;
+                rStartPage = nextReviewStartSurah.startPage || 1; rEndPage = rStartPage;
                 reviewGoal = `من سورة ${nextReviewStartSurah.name}`;
             }
         }
+
+        // Ensure smaller page is always fromPage for the UI
+        let reviewFromPage = Math.min(rStartPage, rEndPage);
+        let reviewToPage = Math.max(rStartPage, rEndPage);
+        let reviewFromSurah = rStartPage < rEndPage ? rStartSurah : rEndSurah;
+        let reviewToSurah = rStartPage < rEndPage ? rEndSurah : rStartSurah;
+
+        let reviewFromAyah = 1; let reviewToAyah = reviewToSurah.ayahs || 1;
+        if (pageAyahMap && pageAyahMap[reviewFromPage] && pageAyahMap[reviewFromPage][reviewFromSurah.id]) {
+            const pageData = pageAyahMap[reviewFromPage][reviewFromSurah.id];
+            reviewFromAyah = (typeof pageData === 'object') ? pageData.start : 1;
+        }
+        if (pageAyahMap && pageAyahMap[reviewToPage] && pageAyahMap[reviewToPage][reviewToSurah.id]) {
+            const pageData = pageAyahMap[reviewToPage][reviewToSurah.id];
+            reviewToAyah = (typeof pageData === 'object') ? pageData.end : pageData;
+        }
+
+        const reviewObj = {
+            surah: reviewFromSurah.id !== reviewToSurah.id ? `${reviewFromSurah.name} إلى ${reviewToSurah.name}` : reviewFromSurah.name,
+            surahPages: Math.abs(reviewToPage - reviewFromPage) + 1,
+            fromPage: reviewFromPage,
+            toPage: reviewToPage,
+            fromAyah: reviewFromAyah,
+            toAyah: reviewToAyah,
+            text: reviewGoal
+        };
 
         // --- Lag Status Logic ---
         const lastDate = sessions.length > 0 ? new Date(sessions[0].date) : null;
         const today = new Date();
         const getPlanDaysBetween = (start, end) => {
-            if (!start) return 0; // If no sessions, they shouldn't be penalized as late
+            if (!start) return 0;
             let count = 0; let cur = new Date(start); cur.setHours(0,0,0,0);
             let targetEnd = new Date(end); targetEnd.setHours(0,0,0,0);
             cur.setDate(cur.getDate() + 1);
             while (cur <= targetEnd) {
                 const day = cur.getDay(); 
                 if (day >= 0 && day <= 3) {
-                    // Check if this date is a holiday (global or for this student's halaqa)
                     const dateStr = cur.toISOString().split('T')[0];
                     const isH = holidays.some(h => {
                         const hStart = new Date(h.startDate).toISOString().split('T')[0];
                         const hEnd = new Date(h.endDate).toISOString().split('T')[0];
-                        const isInRange = dateStr >= hStart && dateStr <= hEnd;
-                        const isRelevant = !h.halaqaId || h.halaqaId === student.halaqaId;
-                        return isInRange && isRelevant;
+                        return dateStr >= hStart && dateStr <= hEnd && (!h.halaqaId || h.halaqaId === student.halaqaId);
                     });
                     if (!isH) count++;
                 }
@@ -374,7 +400,7 @@ export default function StudentDashboard() {
                 range: `ص ${hifzFromPage} - ص ${hifzToPage}`,
                 surahPages: `${allowedPages[0]} - ${allowedPages[allowedPages.length - 1]}`
             },
-            review: reviewGoal,
+            review: reviewObj,
             status,
             label
         };
@@ -556,23 +582,37 @@ export default function StudentDashboard() {
                                     </p>
                                 </div>
                                 
-                                {/* Next Review */}
-                                <div className="p-8 bg-slate-900/50 rounded-[2.5rem] border border-amber-500/20 shadow-inner group/card hover:bg-slate-900 transition-all flex flex-col justify-between text-right" dir="rtl">
-                                    <div>
-                                        <div className="text-sm font-black text-amber-500 flex items-center gap-3 mb-6">
+                                {/* Next Review - Form Style */}
+                                <div className="p-8 bg-slate-900/50 rounded-[2.5rem] border border-amber-500/20 shadow-inner group/card hover:bg-slate-900 transition-all text-right" dir="rtl">
+                                    <div className="flex justify-between items-center mb-6">
+                                        <div className="text-sm font-black text-amber-500 flex items-center gap-3">
                                             <span className="w-2.5 h-2.5 bg-amber-500 rounded-full shadow-[0_0_8px_rgba(245,158,11,0.5)]"></span>
-                                            المراجعة القادمة
+                                            المراجعة القادمة ({intel.review.surah})
                                         </div>
-                                        <div className="text-2xl font-black text-white leading-tight mb-2 text-right">
-                                            {intel.review}
+                                        <span className="text-[10px] font-bold text-amber-500/60 bg-amber-500/5 px-3 py-1 rounded-full border border-amber-500/10">
+                                            مقدار المراجعة: {intel.review.surahPages} صفحة
+                                        </span>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <span className="block text-[10px] font-black text-amber-500/60 mr-2 uppercase tracking-wide text-right">من الصفحة</span>
+                                            <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 text-center font-black text-xl text-white">
+                                                {intel.review.fromPage}
+                                                <span className="block text-[8px] text-slate-500 mt-1 uppercase">آية {intel.review.fromAyah}</span>
+                                            </div>
                                         </div>
-                                        <div className="text-sm text-slate-400 font-bold italic bg-amber-500/5 p-3 rounded-xl border border-amber-500/10 inline-block mt-2">
-                                            المراجعة حياة الحفظ 🔄
+                                        <div className="space-y-2">
+                                            <span className="block text-[10px] font-black text-amber-500/60 mr-2 uppercase tracking-wide text-right">إلى الصفحة</span>
+                                            <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 text-center font-black text-xl text-white">
+                                                {intel.review.toPage}
+                                                <span className="block text-[8px] text-slate-500 mt-1 uppercase">آية {intel.review.toAyah}</span>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div className="mt-8 flex items-center gap-2 text-[10px] font-black text-amber-500/40 uppercase tracking-widest">
-                                        <span>تثبيت اليوم .. طمأنينة الغد</span>
-                                    </div>
+                                    <p className="mt-6 text-xs text-slate-400 font-bold italic opacity-60 text-center">
+                                        "تثبيت اليوم .. طمأنينة الغد"
+                                    </p>
                                 </div>
                             </div>
                         </div>
