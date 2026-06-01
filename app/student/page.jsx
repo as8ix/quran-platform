@@ -311,7 +311,7 @@ export default function StudentDashboard() {
         const lastDate = sessions.length > 0 ? new Date(sessions[0].date) : null;
         const today = new Date();
         const getPlanDaysBetween = (start, end) => {
-            if (!start) return 5;
+            if (!start) return 0; // If no sessions, they shouldn't be penalized as late
             let count = 0; let cur = new Date(start); cur.setHours(0,0,0,0);
             let targetEnd = new Date(end); targetEnd.setHours(0,0,0,0);
             cur.setDate(cur.getDate() + 1);
