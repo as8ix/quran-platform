@@ -12,16 +12,16 @@ export const viewport = {
 
 export const metadata = {
   title: {
-    default: "منصة تحفيظ القرآن الكريم | جامع الحديقة بحي السلامة",
-    template: "%s | منصة تحفيظ جامع الحديقة",
+    default: "منصة مُعِين | لإدارة حلقات تحفيظ القرآن الكريم",
+    template: "%s | منصة مُعِين",
   },
-  description: "المنصة الرقمية لإدارة حلقات تحفيظ القرآن الكريم في جامع الحديقة بحي السلامة. متابعة دقيقة لحفظ الطلاب ومراجعتهم، تسجيل الحضور والغياب، وإدارة الحلقات بسهولة وكفاءة.",
-  applicationName: "منصة تحفيظ جامع الحديقة",
-  authors: [{ name: "جامع الحديقة بحي السلامة" }],
+  description: "المنصة الرقمية لإدارة حلقات تحفيظ القرآن الكريم. متابعة دقيقة لحفظ الطلاب ومراجعتهم، تسجيل الحضور والغياب، وإدارة الحلقات بسهولة وكفاءة.",
+  applicationName: "منصة مُعِين",
+  authors: [{ name: "مُعِين" }],
   generator: "Next.js",
   keywords: [
     "قرآن", "تحفيظ", "حلقات", "تسميع", "إدارة حلقات",
-    "جامع الحديقة", "حي السلامة", "حفظ القرآن",
+    "مُعِين", "حفظ القرآن",
     "مراجعة", "حضور وغياب", "معلم قرآن",
     "Quran", "Memorization", "Halaqa", "Quran Platform"
   ],
@@ -39,16 +39,16 @@ export const metadata = {
     shortcut: "/mosque-logo.png",
   },
   openGraph: {
-    title: "منصة الحديقة | جامع الحديقة",
-    description: "المنصة الرقمية لإدارة حلقات تحفيظ القرآن الكريم في جامع الحديقة بحي السلامة - متابعة حفظ الطلاب ومراجعتهم وتسجيل الحضور",
-    url: "https://quran-platform-wheat.vercel.app",
-    siteName: "منصة الحديقة",
+    title: "منصة مُعِين",
+    description: "المنصة الرقمية لإدارة حلقات تحفيظ القرآن الكريم - متابعة حفظ الطلاب ومراجعتهم وتسجيل الحضور",
+    url: "https://mue3n.com",
+    siteName: "منصة مُعِين",
     images: [
       {
         url: "/mosque-logo.png",
         width: 512,
         height: 512,
-        alt: "شعار منصة الحديقة",
+        alt: "شعار منصة مُعِين",
       },
     ],
     locale: "ar_SA",
@@ -56,15 +56,15 @@ export const metadata = {
   },
   twitter: {
     card: "summary",
-    title: "منصة الحديقة | جامع الحديقة",
-    description: "المنصة الرقمية لإدارة حلقات تحفيظ القرآن الكريم في جامع الحديقة بحي السلامة",
+    title: "منصة مُعِين",
+    description: "المنصة الرقمية لإدارة حلقات تحفيظ القرآن الكريم",
     images: ["/mosque-logo.png"],
   },
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "منصة الحديقة",
+    title: "منصة مُعِين",
   },
 };
 
