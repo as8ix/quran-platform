@@ -11,7 +11,7 @@ import { formatHijri } from '../../../utils/dateUtils';
 
 import AddStudentModal from '../../../components/AddStudentModal';
 import BackButton from '../../../components/BackButton';
-import { getExactPosition, getAyahAtPosition, normalizeSurahName } from '../../../utils/quranUtils';
+import { getExactPosition, getAyahAtPosition, normalizeSurahName, getSurahPages } from '../../../utils/quranUtils';
 
 export default function StudentDetailsPage() {
     const params = useParams();

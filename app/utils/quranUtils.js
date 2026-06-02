@@ -105,3 +105,19 @@ export const getAyahAtPosition = (pos) => {
     const lastData = pageData[String(lastSid)];
     return { surahId: lastSid, ayah: (typeof lastData === 'object' ? lastData.end : lastData) };
 };
+
+export const getSurahPages = (surahId) => {
+    const surah = quranData.find(s => s.id === surahId);
+    if (!surah) return [];
+    const nextSurah = quranData.find(s => s.id === surahId + 1);
+    let endPage = nextSurah ? nextSurah.startPage : 604;
+    
+    if (pageAyahMap && pageAyahMap[endPage]) {
+        if (!pageAyahMap[endPage][surahId]) {
+            endPage = endPage - 1;
+        }
+    }
+    const pages = [];
+    for (let i = surah.startPage; i <= endPage; i++) pages.push(i);
+    return pages;
+};
