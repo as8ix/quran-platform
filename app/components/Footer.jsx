@@ -17,7 +17,7 @@ export default function Footer() {
                 <div className="flex flex-col items-center gap-6">
                     {/* Logo and Brand */}
                     <div className="flex items-center justify-center">
-                        <img src="/الشعار الكامل - شفاف.png" alt="شعار منصة مُعِين" className="h-16 w-auto object-contain" />
+                        <img src="/full-logo-transparent.png" alt="شعار منصة مُعِين" className="h-16 w-auto object-contain" />
                     </div>
                     {/* Assistance Link */}
                     <div className="flex items-center justify-center gap-2 text-sm bg-white dark:bg-slate-800 px-6 py-3 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
