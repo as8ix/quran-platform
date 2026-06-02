@@ -16,6 +16,7 @@ export default function ToasterProvider() {
         <Toaster
             position="top-center"
             reverseOrder={false}
+            pauseOnHover={false}
             containerStyle={{
                 zIndex: 1000000,
                 visibility: 'visible',
