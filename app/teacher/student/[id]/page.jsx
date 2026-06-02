@@ -1203,29 +1203,29 @@ export default function StudentDetailsPage() {
                 />
 
                 {/* Actions */}
-                <div className="flex justify-end gap-3 mb-4">
+                <div className="flex flex-wrap justify-center md:justify-end gap-3 mb-4">
                     <button
                         onClick={() => setShowEditModal(true)}
-                        className="px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl font-bold hover:bg-indigo-100 transition-colors flex items-center gap-2"
+                        className="flex-1 min-w-[120px] justify-center px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl font-bold hover:bg-indigo-100 transition-colors flex items-center gap-2"
                     >
                         <span>✏️</span> تعديل
                     </button>
                     <button
                         onClick={handleDelete}
                         disabled={deleting}
-                        className="px-4 py-2 bg-red-50 text-red-600 rounded-xl font-bold hover:bg-red-100 transition-colors flex items-center gap-2 disabled:opacity-50"
+                        className="flex-1 min-w-[120px] justify-center px-4 py-2 bg-red-50 text-red-600 rounded-xl font-bold hover:bg-red-100 transition-colors flex items-center gap-2 disabled:opacity-50"
                     >
                         <span>🗑️</span> {deleting ? 'جاري الحذف...' : 'حذف'}
                     </button>
                     <button
                         onClick={() => router.push(`/teacher/student/${student.id}/plan`)}
-                        className="px-4 py-2 bg-emerald-500 text-white rounded-xl font-bold hover:bg-emerald-600 transition-colors flex items-center gap-2 shadow-lg shadow-emerald-200 dark:shadow-none"
+                        className="flex-1 min-w-[120px] justify-center px-4 py-2 bg-emerald-500 text-white rounded-xl font-bold hover:bg-emerald-600 transition-colors flex items-center gap-2 shadow-lg shadow-emerald-200 dark:shadow-none"
                     >
                         <span>📅</span> الخطة القرآنية
                     </button>
                     <button
                         onClick={() => router.push(`/teacher/student/${student.id}/report`)}
-                        className="px-4 py-2 bg-slate-800 dark:bg-slate-700 text-white rounded-xl font-bold hover:bg-slate-900 dark:hover:bg-slate-600 transition-colors flex items-center gap-2 shadow-lg shadow-slate-200 dark:shadow-none"
+                        className="flex-1 min-w-[120px] justify-center px-4 py-2 bg-slate-800 dark:bg-slate-700 text-white rounded-xl font-bold hover:bg-slate-900 dark:hover:bg-slate-600 transition-colors flex items-center gap-2 shadow-lg shadow-slate-200 dark:shadow-none"
                     >
                         <span>🖨️</span> طباعة التقرير
                     </button>
