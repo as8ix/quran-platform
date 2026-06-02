@@ -11,6 +11,7 @@ export const viewport = {
 };
 
 export const metadata = {
+  metadataBase: new URL("https://mue3n.com"),
   title: {
     default: "منصة مُعِين | لإدارة حلقات تحفيظ القرآن الكريم",
     template: "%s | منصة مُعِين",
@@ -40,12 +41,12 @@ export const metadata = {
   },
   openGraph: {
     title: "منصة مُعِين",
-    description: "المنصة الرقمية لإدارة حلقات تحفيظ القرآن الكريم - متابعة حفظ الطلاب ومراجعتهم وتسجيل الحضور",
+    description: "المنصة الرقمية لإدارة حلقات تحفيظ القرآن الكريم. متابعة دقيقة لحفظ الطلاب ومراجعتهم، تسجيل الحضور والغياب، وإدارة الحلقات بسهولة وكفاءة.",
     url: "https://mue3n.com",
     siteName: "منصة مُعِين",
     images: [
       {
-        url: "/full-logo.svg",
+        url: "/logo-dark.png",
         width: 512,
         height: 512,
         alt: "شعار منصة مُعِين",
