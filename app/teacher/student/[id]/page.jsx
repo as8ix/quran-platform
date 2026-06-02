@@ -117,6 +117,19 @@ export default function StudentDetailsPage() {
         return last?.hifzSurah === 'البقرة' && last?.isFinishedSurah;
     }, [history, student]);
 
+    // Shared Hifz Calculation Logic
+    const parseTarget = (targetStr) => {
+        if (!targetStr) return 1;
+        const target = targetStr.toString().trim();
+        const arabicToEn = (s) => s.replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d));
+        const match = target.match(/([\d\u0660-\u0669]+(\.[\d\u0660-\u0669]+)?)/);
+        if (match) return parseFloat(arabicToEn(match[0]));
+        if (target.includes('نصف')) return 0.5;
+        if (target.includes('ربع')) return 0.25;
+        if (target.includes('وجهين') || target.includes('صفحتين')) return 2;
+        return 1;
+    };
+
     // Shared Murajaah Calculation Logic
     const getMurajaahTargetPages = (planStr) => {
         if (!planStr) return 20;
