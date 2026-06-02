@@ -273,7 +273,7 @@ export default function StudentDetailsPage() {
 
     const applySmartDefaults = () => {
         if (loading || !student || !history || isSessionActive) return;
-        console.log('Applying Smart Defaults for Student:', student);
+
 
         // Sort history by date desc, then by ID desc for stability
         const sortedHistory = [...history].sort((a, b) => {
