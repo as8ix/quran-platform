@@ -45,6 +45,10 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
+# Copy Serwist dependencies since Next.js standalone tracer might miss them from next.config.mjs
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@serwist ./node_modules/@serwist
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/serwist ./node_modules/serwist
+
 USER nextjs
 
 EXPOSE 3000
