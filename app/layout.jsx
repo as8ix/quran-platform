@@ -46,7 +46,7 @@ export const metadata = {
     siteName: "منصة مُعِين",
     images: [
       {
-        url: "/logo-dark.png",
+        url: "/og-image.png",
         width: 512,
         height: 512,
         alt: "شعار منصة مُعِين",
