@@ -56,10 +56,10 @@ export const metadata = {
     type: "website",
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "منصة مُعِين",
-    description: "المنصة الرقمية لإدارة حلقات تحفيظ القرآن الكريم",
-    images: ["/mosque-logo.png"],
+    description: "المنصة الرقمية لإدارة حلقات تحفيظ القرآن الكريم. متابعة دقيقة لحفظ الطلاب ومراجعتهم، تسجيل الحضور والغياب، وإدارة الحلقات بسهولة وكفاءة.",
+    images: ["/og-image.png"],
   },
   manifest: "/manifest.json",
   appleWebApp: {
