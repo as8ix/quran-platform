@@ -46,9 +46,9 @@ export const metadata = {
     siteName: "منصة مُعِين",
     images: [
       {
-        url: "/og-image.jpg",
-        width: 1200,
-        height: 630,
+        url: "/logo.png",
+        width: 1672,
+        height: 1663,
         alt: "شعار منصة مُعِين",
       },
     ],
@@ -59,7 +59,7 @@ export const metadata = {
     card: "summary_large_image",
     title: "منصة مُعِين",
     description: "المنصة الرقمية لإدارة حلقات تحفيظ القرآن الكريم. متابعة دقيقة لحفظ الطلاب ومراجعتهم، تسجيل الحضور والغياب، وإدارة الحلقات بسهولة وكفاءة.",
-    images: ["/og-image.jpg"],
+    images: ["/logo.png"],
   },
   manifest: "/manifest.json",
   appleWebApp: {
