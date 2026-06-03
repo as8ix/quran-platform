@@ -1429,6 +1429,16 @@ export default function StudentDetailsPage() {
                                                             <span className="w-3 h-3 bg-emerald-500 rounded-full shadow-lg shadow-emerald-200 dark:shadow-none"></span>
                                                             <div className="flex items-center gap-2">
                                                                 <span className="text-emerald-800 dark:text-emerald-400 font-black text-xl">الحفظ الجديد:</span>
+                                                                {sessionType === 'BOTH' && (
+                                                                    <button 
+                                                                        type="button" 
+                                                                        onClick={() => setSessionType('MURAJAAH')}
+                                                                        className="mr-2 px-3 py-1 bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-900/30 dark:hover:bg-red-900/50 dark:text-red-400 text-xs font-bold rounded-lg transition-all border border-red-200 dark:border-red-800/50"
+                                                                        title="إزالة قسم الحفظ من هذه الجلسة"
+                                                                    >
+                                                                        إلغاء الحفظ ✕
+                                                                    </button>
+                                                                )}
                                                                 <div className="relative inline-block text-right ml-2" dir="rtl">
                                                                     {/* Trigger Button */}
                                                                     <button 
@@ -1668,6 +1678,16 @@ export default function StudentDetailsPage() {
                                                     <h3 className="text-indigo-800 dark:text-indigo-400 font-black text-xl flex items-center gap-3">
                                                         <span className="w-3 h-3 bg-indigo-500 rounded-full shadow-lg shadow-indigo-200 dark:shadow-none"></span>
                                                         المراجعة
+                                                        {sessionType === 'BOTH' && !isKhatim && !isQuranicDaySession && (
+                                                            <button 
+                                                                type="button" 
+                                                                onClick={() => setSessionType('HIFZ')}
+                                                                className="mr-2 px-3 py-1 bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-900/30 dark:hover:bg-red-900/50 dark:text-red-400 text-xs font-bold rounded-lg transition-all border border-red-200 dark:border-red-800/50"
+                                                                title="إزالة قسم المراجعة من هذه الجلسة"
+                                                            >
+                                                                إلغاء المراجعة ✕
+                                                            </button>
+                                                        )}
                                                     </h3>
                                                     <div className="group relative">
                                                         <div className="w-6 h-6 flex items-center justify-center rounded-full bg-slate-800 dark:bg-white text-white dark:text-slate-900 cursor-help text-[10px] font-black transition-all hover:scale-110 shadow-lg border border-white/20 dark:border-slate-200">
