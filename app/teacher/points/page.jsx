@@ -44,8 +44,19 @@ export default function TeacherPointsPage() {
         if (user) {
             fetchTestData(true);
             checkPointsStatus();
+            
+            // Polling for instant updates from other assistants
+            const interval = setInterval(() => {
+                if (isScanning || isProcessingRef.current) return;
+                fetch(`/api/points?teacherId=${user.id}&t=${Date.now()}`, { cache: 'no-store' })
+                    .then(res => res.json())
+                    .then(logs => setPointsLog(logs))
+                    .catch(e => console.error(e));
+            }, 3000); // Update every 3 seconds
+            
+            return () => clearInterval(interval);
         }
-    }, [user]);
+    }, [user, isScanning]);
 
     const checkPointsStatus = async () => {
         if (!user) return;
@@ -154,7 +165,7 @@ export default function TeacherPointsPage() {
             if (res.ok) {
                 setStudents(await res.json());
             }
-            const pRes = await fetch(`/api/points?teacherId=${user.id}`);
+            const pRes = await fetch(`/api/points?teacherId=${user.id}&t=${Date.now()}`, { cache: 'no-store' });
             if (pRes.ok) {
                 const logs = await pRes.json();
                 // Server now filters by teacherId, so we can use logs directly

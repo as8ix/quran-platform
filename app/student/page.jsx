@@ -9,12 +9,14 @@ import { quranData } from '../data/quranData';
 import { pageAyahMap } from '../data/pageAyahMap';
 import { getExactPosition, getAyahAtPosition } from '../utils/quranUtils';
 import ProfileModal from '../components/ProfileModal';
+import { QRCodeSVG } from 'qrcode.react';
 
 export default function StudentDashboard() {
     const router = useRouter();
     const [student, setStudent] = useState(null);
     const [sessions, setSessions] = useState([]);
     const [holidays, setHolidays] = useState([]);
+    const [points, setPoints] = useState(0);
     const [loading, setLoading] = useState(true);
     const [showProfileModal, setShowProfileModal] = useState(false);
 
@@ -37,6 +39,19 @@ export default function StudentDashboard() {
         }
 
         fetchData(user.id);
+
+        // Polling for instant points updates
+        const interval = setInterval(() => {
+            fetch(`/api/points?studentId=${user.id}&aggregate=true&t=${Date.now()}`, { cache: 'no-store' })
+                .then(res => res.json())
+                .then(pointsData => {
+                    const myPoints = pointsData.find(p => p.id === user.id || p.id === parseInt(user.id));
+                    setPoints(myPoints ? myPoints.totalPoints : 0);
+                })
+                .catch(e => console.error(e));
+        }, 3000);
+
+        return () => clearInterval(interval);
     }, []);
 
     const reinitObserver = () => {
@@ -67,21 +82,28 @@ export default function StudentDashboard() {
 
     const fetchData = async (id) => {
         try {
-            const [studentRes, sessionsRes, holidaysRes] = await Promise.all([
+            const [studentRes, sessionsRes, holidaysRes, pointsRes] = await Promise.all([
                 fetch(`/api/students?id=${id}&full=true`),
                 fetch(`/api/sessions?studentId=${id}`),
-                fetch(`/api/holidays`)
+                fetch(`/api/holidays`),
+                fetch(`/api/points?studentId=${id}&aggregate=true`)
             ]);
             
             if (studentRes.ok) {
                 const studentData = await studentRes.json();
                 // API returns array with one student or the student object directly
-                const myData = Array.isArray(studentData) ? studentData.find(s => s.id === id) : studentData;
+                const myData = Array.isArray(studentData) ? studentData.find(s => s.id === id || s.id === parseInt(id)) : studentData;
                 if (myData && !myData.error) setStudent(myData);
             }
             
             if (holidaysRes.ok) {
                 setHolidays(await holidaysRes.json());
+            }
+
+            if (pointsRes.ok) {
+                const pointsData = await pointsRes.json();
+                const myPoints = pointsData.find(p => p.id === id || p.id === parseInt(id));
+                setPoints(myPoints ? myPoints.totalPoints : 0);
             }
             
             if (sessionsRes.ok) {
@@ -675,6 +697,74 @@ export default function StudentDashboard() {
                         </div>
                     </div>
                 )}
+
+                {/* Student Card & Points Section */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10 reveal reveal-delay-2">
+                    {/* Digital ID Card */}
+                    <div className="premium-glass p-6 rounded-[2.5rem] shadow-xl shadow-slate-200/50 dark:shadow-none border border-white dark:border-slate-700 flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 overflow-hidden relative group">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl transition-all duration-500 group-hover:bg-emerald-500/20"></div>
+                        <div className="absolute bottom-0 left-0 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl transition-all duration-500 group-hover:bg-blue-500/20"></div>
+                        
+                        <div className="relative z-10 w-full max-w-[280px] bg-white dark:bg-slate-950 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden transform transition-transform duration-500 hover:scale-105 hover:-rotate-1">
+                            {/* Card Header */}
+                            <div className="bg-slate-900 p-3 flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-8 h-8 flex items-center justify-center flex-shrink-0 bg-white/10 rounded-lg p-1">
+                                        <img src="/mosque-logo-white.png" className="max-w-full max-h-full object-contain" alt="logo" />
+                                    </div>
+                                    <div className="text-[9px] text-white font-bold leading-tight">
+                                        جامع الحديقة<br/>
+                                        <span className="text-slate-400">حي السلامة</span>
+                                    </div>
+                                </div>
+                                <div className="text-emerald-400 font-black text-[10px] uppercase tracking-tighter">
+                                    بطاقة الطالب
+                                </div>
+                            </div>
+                            
+                            {/* Card Body */}
+                            <div className="p-5 flex-1 flex flex-col items-center justify-center text-center relative">
+                                {student.halaqa?.logo ? (
+                                    <div className="w-16 h-16 flex items-center justify-center mb-2">
+                                        <img 
+                                            src={student.halaqa.logo} 
+                                            decoding="async"
+                                            className="max-w-full max-h-full object-contain rounded-xl" 
+                                            alt="halaqa-logo" 
+                                        />
+                                    </div>
+                                ) : (
+                                    <div className="w-16 h-16 mb-2 flex items-center justify-center bg-slate-100 dark:bg-slate-800 rounded-xl">
+                                        <span className="text-2xl">👤</span>
+                                    </div>
+                                )}
+                                <h3 className="text-lg font-black text-slate-800 dark:text-white mb-0.5">{student.name}</h3>
+                                <p className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-4">الحلقة: {student.halaqa?.name || 'غير محدد'}</p>
+
+                                <div className="p-3 bg-white rounded-2xl shadow-inner border border-slate-100 mb-3 group-hover:shadow-emerald-500/20 transition-shadow">
+                                    <QRCodeSVG value={student.id.toString()} size={110} level="H" includeMargin={true} />
+                                </div>
+
+                                <div className="flex items-center justify-between w-full mt-2 px-2">
+                                    <div className="text-[10px] font-black text-slate-400">#STU-{student.id}</div>
+                                    <div className="text-[10px] font-black text-slate-400">QURAN {new Date().getFullYear()}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Points Card */}
+                    <div className="premium-glass p-8 rounded-[2.5rem] shadow-xl shadow-slate-200/50 dark:shadow-none border border-white dark:border-slate-700 flex flex-col justify-center items-center text-center bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 group hover:border-indigo-500 transition-colors">
+                        <div className="w-24 h-24 bg-white dark:bg-indigo-900/50 rounded-full flex items-center justify-center text-5xl mb-6 shadow-xl shadow-indigo-200/50 dark:shadow-none border border-indigo-100 dark:border-indigo-800 transform group-hover:scale-110 transition-transform duration-500">
+                            🌟
+                        </div>
+                        <h3 className="text-slate-500 dark:text-slate-400 font-bold mb-2 uppercase tracking-widest text-sm">مجموع النقاط</h3>
+                        <div className="text-6xl font-black text-indigo-600 dark:text-indigo-400 drop-shadow-sm mb-2">
+                            {points}
+                        </div>
+                        <p className="text-indigo-600/60 dark:text-indigo-400/60 text-sm font-bold bg-indigo-100 dark:bg-indigo-900/40 px-4 py-1.5 rounded-full">نقطة في رصيدك</p>
+                    </div>
+                </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
                     {/* Hifz Progress Card */}

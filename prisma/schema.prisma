@@ -21,6 +21,8 @@ model User {
   notifications       Notification[]
   assistantHalaqas    Halaqa[]          @relation("AssistantTeachers")
   participatingEvents QuranicEvent[]    @relation("EventTeachers")
+
+  @@index([role])
 }
 
 model Halaqa {
@@ -34,6 +36,8 @@ model Halaqa {
   holidays      Holiday[]
   students      Student[]
   assistants    User[]    @relation("AssistantTeachers")
+
+  @@index([teacherId])
 }
 
 model Student {
@@ -69,6 +73,8 @@ model Student {
   sessions           Session[]
   halaqa             Halaqa?           @relation(fields: [halaqaId], references: [id])
   StudyPlanEntry     StudyPlanEntry[]
+
+  @@index([halaqaId])
 }
 
 model Point {
@@ -79,6 +85,9 @@ model Point {
   category  String
   createdAt DateTime @default(now())
   student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@index([category])
 }
 
 model Attendance {
@@ -87,6 +96,9 @@ model Attendance {
   date      DateTime @default(now())
   status    String
   student   Student  @relation(fields: [studentId], references: [id])
+
+  @@index([studentId])
+  @@index([date])
 }
 
 model Session {
@@ -125,6 +137,9 @@ model Session {
   isFinishedSurah        Boolean       @default(false)
   quranicEvent           QuranicEvent? @relation(fields: [quranicEventId], references: [id])
   student                Student       @relation(fields: [studentId], references: [id])
+
+  @@index([studentId])
+  @@index([date])
 }
 
 model QuranicEvent {
@@ -150,6 +165,8 @@ model EventAssignment {
   teacher   User         @relation(fields: [teacherId], references: [id], onDelete: Cascade)
 
   @@unique([eventId, teacherId, studentId])
+  @@index([studentId])
+  @@index([teacherId])
 }
 
 model Notification {
@@ -167,6 +184,9 @@ model Notification {
   senderRole     String?
   student        Student? @relation(fields: [studentId], references: [id])
   user           User?    @relation(fields: [userId], references: [id])
+
+  @@index([studentId])
+  @@index([userId])
 }
 
 model Exam {
@@ -182,6 +202,8 @@ model Exam {
   grade       Float?
   notes       String?
   student     Student   @relation(fields: [studentId], references: [id])
+
+  @@index([studentId])
 }
 
 model Holiday {
@@ -192,6 +214,8 @@ model Holiday {
   createdAt DateTime @default(now())
   halaqaId  Int?
   halaqa    Halaqa?  @relation(fields: [halaqaId], references: [id])
+
+  @@index([halaqaId])
 }
 
 model StudyPlanEntry {
@@ -207,4 +231,7 @@ model StudyPlanEntry {
   sessionId   Int?
   toSurahId   Int?
   Student     Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@index([date])
 }
