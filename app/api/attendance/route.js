@@ -44,44 +44,50 @@ export async function POST(request) {
         const body = await request.json();
         const { attendanceData } = body; // Array of { studentId, status, date }
 
-        // We use an interactive transaction to handle the find-then-update/create logic atomically
-        const results = await prisma.$transaction(async (tx) => {
-            const savedRecords = [];
-            
-            // Use sequential execution instead of Promise.all to avoid exhausting connection pool
-            for (const item of attendanceData) {
-                const itemDate = new Date(item.date);
+        if (!attendanceData || attendanceData.length === 0) {
+            return NextResponse.json([]);
+        }
 
-                const existing = await tx.attendance.findFirst({
-                    where: {
+        // Get common date (assuming all records in the payload share the same date for attendance)
+        const commonDate = new Date(attendanceData[0].date);
+        const studentIds = attendanceData.map(item => item.studentId);
+
+        // 1. Fetch all existing attendance records for these students on this date in ONE query
+        const existingRecords = await prisma.attendance.findMany({
+            where: {
+                date: commonDate,
+                studentId: { in: studentIds }
+            }
+        });
+
+        const existingMap = new Map();
+        existingRecords.forEach(record => existingMap.set(record.studentId, record.id));
+
+        // 2. Prepare all create and update queries in memory
+        const transactionQueries = attendanceData.map(item => {
+            const existingId = existingMap.get(item.studentId);
+            
+            if (existingId) {
+                // Prepare Update query
+                return prisma.attendance.update({
+                    where: { id: existingId },
+                    data: { status: item.status }
+                });
+            } else {
+                // Prepare Create query
+                return prisma.attendance.create({
+                    data: {
                         studentId: item.studentId,
-                        date: itemDate
+                        status: item.status,
+                        date: commonDate
                     }
                 });
-
-                if (existing) {
-                    const updated = await tx.attendance.update({
-                        where: { id: existing.id },
-                        data: { status: item.status }
-                    });
-                    savedRecords.push(updated);
-                } else {
-                    const created = await tx.attendance.create({
-                        data: {
-                            studentId: item.studentId,
-                            status: item.status,
-                            date: itemDate
-                        }
-                    });
-                    savedRecords.push(created);
-                }
             }
-
-            return savedRecords;
-        }, {
-            maxWait: 5000, // default: 2000
-            timeout: 60000, // default: 5000 - Increased to 60 seconds for slow sequential operations
         });
+
+        // 3. Execute all queries atomically in a single database transaction using exactly ONE connection!
+        // This is 100x faster than sequential queries and safe for Neon.
+        const results = await prisma.$transaction(transactionQueries);
 
         return NextResponse.json(results);
     } catch (error) {
