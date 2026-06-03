@@ -1551,7 +1551,7 @@ export default function StudentDetailsPage() {
                                                                         </>
                                                                     )}
                                                                 </div>
-                                                                <div className="w-1/3 relative"><span className="absolute -top-6 right-0 text-[10px] text-emerald-400 font-bold">آية</span><input type="number" value={hifzFromAyah || ''} min="1" max={currentHifzSurah?.ayahs} onFocus={() => hifzFromAyah === 1 && setHifzFromAyah('')} onBlur={() => hifzFromAyah === '' && setHifzFromAyah(1)} onChange={e => { const val = e.target.value; if (val === '') setHifzFromAyah(''); else { const parsed = parseInt(val); const max = currentHifzSurah?.ayahs || 286; if (parsed > max) setHifzFromAyah(max); else setHifzFromAyah(parsed); } }} className="w-full px-4 py-4 premium-glass border-2 border-transparent focus:border-emerald-500 rounded-2xl outline-none font-bold text-center dark:text-white" placeholder="آية" /></div>
+                                                                <div className="w-1/3 relative"><span className="absolute -top-6 right-0 text-[10px] text-emerald-400 font-bold">آية</span><input type="number" value={hifzFromAyah === '' ? '' : hifzFromAyah} min="1" max={currentHifzSurah?.ayahs} onFocus={(e) => e.target.select()}  onChange={e => { const val = e.target.value; if (val === '') setHifzFromAyah(''); else { const parsed = parseInt(val); const max = currentHifzSurah?.ayahs || 286; if (parsed > max) setHifzFromAyah(max); else setHifzFromAyah(parsed); } }} className="w-full px-4 py-4 premium-glass border-2 border-transparent focus:border-emerald-500 rounded-2xl outline-none font-bold text-center dark:text-white" placeholder="آية" /></div>
                                                             </div>
                                                         </div>
                                                         <div>
@@ -1599,7 +1599,7 @@ export default function StudentDetailsPage() {
                                                                         </>
                                                                     )}
                                                                 </div>
-                                                                <div className="w-1/3 relative"><span className="absolute -top-6 right-0 text-[10px] text-emerald-400 font-bold">آية</span><input type="number" value={hifzToAyah || ''} min="1" max={currentHifzSurah?.ayahs} onFocus={() => hifzToAyah === 1 && setHifzToAyah('')} onBlur={() => hifzToAyah === '' && setHifzToAyah(1)} onChange={e => { const val = e.target.value; if (val === '') setHifzToAyah(''); else { const parsed = parseInt(val); const max = currentHifzSurah?.ayahs || 286; if (parsed > max) setHifzToAyah(max); else setHifzToAyah(parsed); } }} className="w-full px-4 py-4 premium-glass border-2 border-transparent focus:border-emerald-500 rounded-2xl outline-none font-bold text-center dark:text-white" placeholder="آية" /></div>
+                                                                <div className="w-1/3 relative"><span className="absolute -top-6 right-0 text-[10px] text-emerald-400 font-bold">آية</span><input type="number" value={hifzToAyah === '' ? '' : hifzToAyah} min="1" max={currentHifzSurah?.ayahs} onFocus={(e) => e.target.select()}  onChange={e => { const val = e.target.value; if (val === '') setHifzToAyah(''); else { const parsed = parseInt(val); const max = currentHifzSurah?.ayahs || 286; if (parsed > max) setHifzToAyah(max); else setHifzToAyah(parsed); } }} className="w-full px-4 py-4 premium-glass border-2 border-transparent focus:border-emerald-500 rounded-2xl outline-none font-bold text-center dark:text-white" placeholder="آية" /></div>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -1609,9 +1609,7 @@ export default function StudentDetailsPage() {
                                                             <label className="block text-xs font-bold text-red-600 mb-2 mr-2">عدد أخطاء الحفظ</label>
                                                             <input
                                                                 type="number"
-                                                                value={hifzErrors || 0}
-                                                                onFocus={() => hifzErrors === 0 && setHifzErrors('')}
-                                                                onBlur={() => hifzErrors === '' && setHifzErrors(0)}
+                                                                value={hifzErrors === '' ? '' : hifzErrors} onFocus={(e) => e.target.select()} 
                                                                 onChange={e => {
                                                                     const val = e.target.value;
                                                                     if (val === '') setHifzErrors('');
@@ -1626,9 +1624,7 @@ export default function StudentDetailsPage() {
                                                             <label className="block text-xs font-bold text-orange-600 mb-2 mr-2">عدد تنبيهات الحفظ</label>
                                                             <input
                                                                 type="number"
-                                                                value={hifzAlerts || 0}
-                                                                onFocus={() => hifzAlerts === 0 && setHifzAlerts('')}
-                                                                onBlur={() => hifzAlerts === '' && setHifzAlerts(0)}
+                                                                value={hifzAlerts === '' ? '' : hifzAlerts} onFocus={(e) => e.target.select()} 
                                                                 onChange={e => {
                                                                     const val = e.target.value;
                                                                     if (val === '') setHifzAlerts('');
@@ -1644,9 +1640,7 @@ export default function StudentDetailsPage() {
                                                             <input
                                                                 type="number"
                                                                 step="0.1"
-                                                                value={hifzCleanPages || 0}
-                                                                onFocus={() => hifzCleanPages === 0 && setHifzCleanPages('')}
-                                                                onBlur={() => hifzCleanPages === '' && setHifzCleanPages(0)}
+                                                                value={hifzCleanPages === '' ? '' : hifzCleanPages} onFocus={(e) => e.target.select()} 
                                                                 onChange={e => {
                                                                     const val = e.target.value;
                                                                     if (val === '') setHifzCleanPages('');
@@ -1745,8 +1739,8 @@ export default function StudentDetailsPage() {
                                                                             value={mFromAyah}
                                                                             min="1"
                                                                             max={quranData.find(s => s.id === mFromSurah)?.ayahs}
-                                                                            onFocus={() => mFromAyah === 1 && setMFromAyah('')}
-                                                                            onBlur={() => mFromAyah === '' && setMFromAyah(1)}
+                                                                            onFocus={(e) => e.target.select()}
+                                                                            
                                                                             onChange={e => {
                                                                                 const val = e.target.value;
                                                                                 if (val === '') setMFromAyah('');
@@ -1787,8 +1781,8 @@ export default function StudentDetailsPage() {
                                                                             value={mToAyah}
                                                                             min="1"
                                                                             max={quranData.find(s => s.id === mToSurah)?.ayahs}
-                                                                            onFocus={() => mToAyah === 1 && setMToAyah('')}
-                                                                            onBlur={() => mToAyah === '' && setMToAyah(1)}
+                                                                            onFocus={(e) => e.target.select()}
+                                                                            
                                                                             onChange={e => {
                                                                                 const val = e.target.value;
                                                                                 if (val === '') setMToAyah('');
@@ -1808,15 +1802,15 @@ export default function StudentDetailsPage() {
                                                                 <div className="grid grid-cols-3 gap-4 mt-4 pt-4 border-t border-indigo-100 dark:border-indigo-800">
                                                                     <div>
                                                                         <label className="block text-xs font-bold text-red-600 mb-2">أخطاء</label>
-                                                                        <input type="number" value={errorsCount || 0} onFocus={() => errorsCount === 0 && setErrorsCount('')} onBlur={() => errorsCount === '' && setErrorsCount(0)} onChange={e => { const v = e.target.value; if (v === '') setErrorsCount(''); else setErrorsCount(Math.max(0, parseFloat(v) || 0)); }} min="0" className="w-full px-4 py-3 bg-indigo-50/50 dark:bg-slate-800 border-2 border-transparent focus:border-red-400 rounded-2xl outline-none font-bold dark:text-white" placeholder="0" />
+                                                                        <input type="number" value={errorsCount === '' ? '' : errorsCount} onFocus={(e) => e.target.select()}  onChange={e => { const v = e.target.value; if (v === '') setErrorsCount(''); else setErrorsCount(Math.max(0, parseFloat(v) || 0)); }} min="0" className="w-full px-4 py-3 bg-indigo-50/50 dark:bg-slate-800 border-2 border-transparent focus:border-red-400 rounded-2xl outline-none font-bold dark:text-white" placeholder="0" />
                                                                     </div>
                                                                     <div>
                                                                         <label className="block text-xs font-bold text-orange-600 mb-2">تنبيهات</label>
-                                                                        <input type="number" value={alertsCount || 0} onFocus={() => alertsCount === 0 && setAlertsCount('')} onBlur={() => alertsCount === '' && setAlertsCount(0)} onChange={e => { const v = e.target.value; if (v === '') setAlertsCount(''); else setAlertsCount(Math.max(0, parseFloat(v) || 0)); }} min="0" className="w-full px-4 py-3 bg-indigo-50/50 dark:bg-slate-800 border-2 border-transparent focus:border-orange-400 rounded-2xl outline-none font-bold dark:text-white" placeholder="0" />
+                                                                        <input type="number" value={alertsCount === '' ? '' : alertsCount} onFocus={(e) => e.target.select()}  onChange={e => { const v = e.target.value; if (v === '') setAlertsCount(''); else setAlertsCount(Math.max(0, parseFloat(v) || 0)); }} min="0" className="w-full px-4 py-3 bg-indigo-50/50 dark:bg-slate-800 border-2 border-transparent focus:border-orange-400 rounded-2xl outline-none font-bold dark:text-white" placeholder="0" />
                                                                     </div>
                                                                     <div>
                                                                         <label className="block text-xs font-bold text-emerald-600 mb-2">نقية</label>
-                                                                        <input type="number" step="0.1" value={cleanPagesCount || 0} onFocus={() => cleanPagesCount === 0 && setCleanPagesCount('')} onBlur={() => cleanPagesCount === '' && setCleanPagesCount(0)} onChange={e => { const v = e.target.value; if (v === '') setCleanPagesCount(''); else setCleanPagesCount(Math.max(0, parseFloat(v) || 0)); }} min="0" className="w-full px-4 py-3 bg-indigo-50/50 dark:bg-slate-800 border-2 border-transparent focus:border-emerald-400 rounded-2xl outline-none font-bold dark:text-white" placeholder="0" />
+                                                                        <input type="number" step="0.1" value={cleanPagesCount === '' ? '' : cleanPagesCount} onFocus={(e) => e.target.select()}  onChange={e => { const v = e.target.value; if (v === '') setCleanPagesCount(''); else setCleanPagesCount(Math.max(0, parseFloat(v) || 0)); }} min="0" className="w-full px-4 py-3 bg-indigo-50/50 dark:bg-slate-800 border-2 border-transparent focus:border-emerald-400 rounded-2xl outline-none font-bold dark:text-white" placeholder="0" />
                                                                     </div>
                                                                 </div>
 
@@ -1857,8 +1851,8 @@ export default function StudentDetailsPage() {
                                                                             value={minorMFromAyah}
                                                                             min="1"
                                                                             max={quranData.find(s => s.id === minorMFromSurah)?.ayahs}
-                                                                            onFocus={() => minorMFromAyah === 1 && setMinorMFromAyah('')}
-                                                                            onBlur={() => minorMFromAyah === '' && setMinorMFromAyah(1)}
+                                                                            onFocus={(e) => e.target.select()}
+                                                                            
                                                                             onChange={e => {
                                                                                 const val = e.target.value;
                                                                                 if (val === '') setMinorMFromAyah('');
@@ -1899,8 +1893,8 @@ export default function StudentDetailsPage() {
                                                                             value={minorMToAyah}
                                                                             min="1"
                                                                             max={quranData.find(s => s.id === minorMToSurah)?.ayahs}
-                                                                            onFocus={() => minorMToAyah === 1 && setMinorMToAyah('')}
-                                                                            onBlur={() => minorMToAyah === '' && setMinorMToAyah(1)}
+                                                                            onFocus={(e) => e.target.select()}
+                                                                            
                                                                             onChange={e => {
                                                                                 const val = e.target.value;
                                                                                 if (val === '') setMinorMToAyah('');
@@ -1921,9 +1915,9 @@ export default function StudentDetailsPage() {
                                                                         <label className="block text-xs font-bold text-red-500 mb-2 mr-2">أخطاء الصغرى</label>
                                                                         <input
                                                                             type="number"
-                                                                            value={minorErrors || ''}
-                                                                            onFocus={() => minorErrors === 0 && setMinorErrors('')}
-                                                                            onBlur={() => minorErrors === '' && setMinorErrors(0)}
+                                                                            value={minorErrors === '' ? '' : minorErrors}
+                                                                            onFocus={(e) => e.target.select()}
+                                                                            
                                                                             onChange={e => { const v = e.target.value; if (v === '') setMinorErrors(''); else setMinorErrors(Math.max(0, parseFloat(v) || 0)); }}
                                                                             min="0"
                                                                             className="w-full px-4 py-3 bg-indigo-50/50 dark:bg-slate-800 border-2 border-transparent focus:border-red-400 rounded-2xl outline-none font-bold dark:text-white"
@@ -1934,9 +1928,9 @@ export default function StudentDetailsPage() {
                                                                         <label className="block text-xs font-bold text-orange-500 mb-2 mr-2">تنبيهات الصغرى</label>
                                                                         <input
                                                                             type="number"
-                                                                            value={minorAlerts || ''}
-                                                                            onFocus={() => minorAlerts === 0 && setMinorAlerts('')}
-                                                                            onBlur={() => minorAlerts === '' && setMinorAlerts(0)}
+                                                                            value={minorAlerts === '' ? '' : minorAlerts}
+                                                                            onFocus={(e) => e.target.select()}
+                                                                            
                                                                             onChange={e => { const v = e.target.value; if (v === '') setMinorAlerts(''); else setMinorAlerts(Math.max(0, parseFloat(v) || 0)); }}
                                                                             min="0"
                                                                             className="w-full px-4 py-3 bg-indigo-50/50 dark:bg-slate-800 border-2 border-transparent focus:border-orange-400 rounded-2xl outline-none font-bold dark:text-white"
@@ -1948,9 +1942,9 @@ export default function StudentDetailsPage() {
                                                                         <input
                                                                             type="number"
                                                                             step="0.1"
-                                                                            value={minorCleanPages || ''}
-                                                                            onFocus={() => minorCleanPages === 0 && setMinorCleanPages('')}
-                                                                            onBlur={() => minorCleanPages === '' && setMinorCleanPages(0)}
+                                                                            value={minorCleanPages === '' ? '' : minorCleanPages}
+                                                                            onFocus={(e) => e.target.select()}
+                                                                            
                                                                             onChange={e => { const v = e.target.value; if (v === '') setMinorCleanPages(''); else setMinorCleanPages(Math.max(0, parseFloat(v) || 0)); }}
                                                                             min="0"
                                                                             className="w-full px-4 py-3 bg-indigo-50/50 dark:bg-slate-800 border-2 border-transparent focus:border-emerald-400 rounded-2xl outline-none font-bold dark:text-white"
