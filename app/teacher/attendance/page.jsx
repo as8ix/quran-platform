@@ -172,10 +172,12 @@ export default function AttendancePage() {
                 toast.success('تم تسجيل الحضور بنجاح');
                 setTimeout(() => router.push('/teacher'), 1000); // Wait a bit for toast
             } else {
-                throw new Error('Failed to save');
+                const errData = await response.json();
+                throw new Error(errData.error || 'Failed to save');
             }
         } catch (error) {
-            toast.error('حدث خطأ أثناء الحفظ');
+            console.error('Save Error:', error);
+            toast.error(error.message || 'حدث خطأ أثناء الحفظ');
         } finally {
             setSaving(false);
         }
