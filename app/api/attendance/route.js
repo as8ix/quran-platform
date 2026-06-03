@@ -78,6 +78,9 @@ export async function POST(request) {
             }
 
             return savedRecords;
+        }, {
+            maxWait: 5000, // default: 2000
+            timeout: 60000, // default: 5000 - Increased to 60 seconds for slow sequential operations
         });
 
         return NextResponse.json(results);
