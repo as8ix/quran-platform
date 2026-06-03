@@ -10,6 +10,11 @@ export async function GET(request) {
         const id = searchParams.get('id');
 
         let where = {};
+        
+        // Variables to store teacher context to avoid redundant queries later
+        let myHalaqaIds = [];
+        let specificIds = [];
+        let activeEventStudentIds = new Set();
 
         if (id) {
             const parsedId = parseInt(id);
@@ -22,41 +27,39 @@ export async function GET(request) {
             if (isNaN(parsedTeacherId)) {
                 return NextResponse.json({ error: 'Invalid teacher ID format' }, { status: 400 });
             }
-            // Find halaqas for this teacher
-            const myHalaqas = await prisma.halaqa.findMany({
-                where: {
-                    OR: [
-                        { teacherId: parsedTeacherId },
-                        { assistants: { some: { id: parsedTeacherId } } }
-                    ]
-                },
-                select: { id: true }
-            });
-            const myHalaqaIds = myHalaqas.map(h => h.id);
+            
+            // Execute independent queries concurrently for better performance
+            const [myHalaqas, activeEvents, specificAssignments, allActiveEventAssignments] = await Promise.all([
+                prisma.halaqa.findMany({
+                    where: {
+                        OR: [
+                            { teacherId: parsedTeacherId },
+                            { assistants: { some: { id: parsedTeacherId } } }
+                        ]
+                    },
+                    select: { id: true }
+                }),
+                prisma.quranicEvent.findMany({
+                    where: { isActive: true, teachers: { some: { id: parsedTeacherId } } },
+                    include: { assignments: true }
+                }),
+                prisma.eventAssignment.findMany({
+                    where: { teacherId: parsedTeacherId, event: { isActive: true } },
+                    select: { studentId: true }
+                }),
+                prisma.eventAssignment.findMany({
+                    where: { event: { isActive: true } },
+                    select: { studentId: true }
+                })
+            ]);
 
-            // Find active events where this teacher is participating
-            const activeEvents = await prisma.quranicEvent.findMany({
-                where: {
-                    isActive: true,
-                    teachers: { some: { id: parsedTeacherId } }
-                },
-                include: {
-                    assignments: true
-                }
-            });
+            myHalaqaIds = myHalaqas.map(h => h.id);
+            specificIds = specificAssignments.map(a => a.studentId);
+            activeEventStudentIds = new Set(allActiveEventAssignments.map(a => a.studentId));
 
-            // Collect student IDs:
-            // 1. Specifically assigned to this teacher
-            const specificAssignments = await prisma.eventAssignment.findMany({
-                where: {
-                    teacherId: parsedTeacherId,
-                    event: { isActive: true }
-                },
-                select: { studentId: true }
-            });
-            let allowedStudentIds = specificAssignments.map(a => a.studentId);
+            let allowedStudentIds = [...specificIds];
 
-            // 2. If event allows open testing, include ALL students from that event
+            // If event allows open testing, include ALL students from that event
             activeEvents.forEach(event => {
                 if (event.allowOpenTesting) {
                     const eventStudentIds = event.assignments.map(a => a.studentId);
@@ -83,7 +86,6 @@ export async function GET(request) {
             else if (juzFilter === '5-15') { juzWhere.gte = 5; juzWhere.lte = 15; }
             else if (juzFilter === '15-30') juzWhere.gt = 15;
 
-            // If we already have an OR from teacherId, we must apply juzFilter to each branch or use AND
             if (where.OR) {
                 where = {
                     AND: [
@@ -124,9 +126,7 @@ export async function GET(request) {
                     logo: true,
                     pointsEnabled: true,
                     teacherId: true,
-                    assistants: {
-                        select: { id: true }
-                    }
+                    assistants: { select: { id: true } }
                 }
             }
         };
@@ -135,54 +135,20 @@ export async function GET(request) {
             where,
             select: selectFields,
             include: isFull ? { halaqa: true } : undefined,
-            orderBy: {
-                name: 'asc'
-            }
+            orderBy: { name: 'asc' }
         });
 
-        // If teacherId was used, mark guests
+        // Mark guests instantly using pre-fetched data
         if (teacherId) {
-            const parsedTeacherId = parseInt(teacherId);
-            if (!isNaN(parsedTeacherId)) {
-                // Re-fetch teacher halaqas to be sure
-                const halaqas = await prisma.halaqa.findMany({
-                    where: {
-                        OR: [
-                            { teacherId: parsedTeacherId },
-                            { assistants: { some: { id: parsedTeacherId } } }
-                        ]
-                    },
-                    select: { id: true }
-                });
-                const myHalaqaIds = halaqas.map(h => h.id);
-
-                // Get specifically assigned IDs again for marking
-                const specificAssignments = await prisma.eventAssignment.findMany({
-                    where: {
-                        teacherId: parsedTeacherId,
-                        event: { isActive: true }
-                    },
-                    select: { studentId: true }
-                });
-                const specificIds = specificAssignments.map(a => a.studentId);
-
-                // Get all student IDs participating in any active event
-                const allActiveEventAssignments = await prisma.eventAssignment.findMany({
-                    where: { event: { isActive: true } },
-                    select: { studentId: true }
-                });
-                const activeEventStudentIds = new Set(allActiveEventAssignments.map(a => a.studentId));
-
-                students = students.map(student => {
-                    const isMyHalaqa = myHalaqaIds.includes(student.halaqaId);
-                    return {
-                        ...student,
-                        isEventGuest: !isMyHalaqa,
-                        isSpecificallyAssigned: specificIds.includes(student.id),
-                        isInActiveEvent: activeEventStudentIds.has(student.id)
-                    };
-                });
-            }
+            students = students.map(student => {
+                const isMyHalaqa = myHalaqaIds.includes(student.halaqaId);
+                return {
+                    ...student,
+                    isEventGuest: !isMyHalaqa,
+                    isSpecificallyAssigned: specificIds.includes(student.id),
+                    isInActiveEvent: activeEventStudentIds.has(student.id)
+                };
+            });
         }
 
         return NextResponse.json(students);
