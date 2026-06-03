@@ -46,7 +46,10 @@ export async function POST(request) {
 
         // We use an interactive transaction to handle the find-then-update/create logic atomically
         const results = await prisma.$transaction(async (tx) => {
-            const promises = attendanceData.map(async (item) => {
+            const savedRecords = [];
+            
+            // Use sequential execution instead of Promise.all to avoid exhausting connection pool
+            for (const item of attendanceData) {
                 const itemDate = new Date(item.date);
 
                 const existing = await tx.attendance.findFirst({
@@ -57,22 +60,24 @@ export async function POST(request) {
                 });
 
                 if (existing) {
-                    return tx.attendance.update({
+                    const updated = await tx.attendance.update({
                         where: { id: existing.id },
                         data: { status: item.status }
                     });
+                    savedRecords.push(updated);
                 } else {
-                    return tx.attendance.create({
+                    const created = await tx.attendance.create({
                         data: {
                             studentId: item.studentId,
                             status: item.status,
                             date: itemDate
                         }
                     });
+                    savedRecords.push(created);
                 }
-            });
+            }
 
-            return Promise.all(promises);
+            return savedRecords;
         });
 
         return NextResponse.json(results);
