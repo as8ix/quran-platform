@@ -1,6 +1,8 @@
 import { prisma } from '@/app/lib/prisma';
 import { NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+
 // GET: Fetch attendance for a specific date OR a range
 export async function GET(request) {
     try {

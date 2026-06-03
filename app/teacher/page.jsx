@@ -177,7 +177,7 @@ export default function TeacherDashboard() {
                 url += `?${params.toString()}`;
             }
 
-            const response = await fetch(url);
+            const response = await fetch(url, { cache: 'no-store' });
             const data = await response.json();
             if (response.ok && Array.isArray(data)) {
                 setStudents(data);

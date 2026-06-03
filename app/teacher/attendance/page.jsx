@@ -126,7 +126,7 @@ export default function AttendancePage() {
                 return selectedDate >= start && selectedDate <= end;
             });
 
-            const response = await fetch(`/api/attendance?date=${selectedDate}`);
+            const response = await fetch(`/api/attendance?date=${selectedDate}`, { cache: 'no-store' });
             if (response.ok) {
                 const data = await response.json();
 
@@ -170,6 +170,7 @@ export default function AttendancePage() {
 
             if (response.ok) {
                 toast.success('تم تسجيل الحضور بنجاح');
+                router.refresh(); // Purge Next.js client cache
                 setTimeout(() => router.push('/teacher'), 1000); // Wait a bit for toast
             } else {
                 const errData = await response.json();
