@@ -104,8 +104,8 @@ export default function SupervisorStats() {
             <div className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 rounded-[4rem] p-10 md:p-14 text-white shadow-2xl border border-white/10">
                 <div className="absolute inset-0 overflow-hidden rounded-[4rem] pointer-events-none">
                     <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
-                    <div className="absolute -top-24 -right-24 w-96 h-96 bg-emerald-500/10 rounded-full blur-[100px] animate-pulse"></div>
-                    <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-indigo-500/10 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '2s' }}></div>
+                    <div className="hidden md:block absolute -top-24 -right-24 w-96 h-96 bg-emerald-500/10 rounded-full blur-[100px] animate-pulse"></div>
+                    <div className="hidden md:block absolute -bottom-24 -left-24 w-96 h-96 bg-indigo-500/10 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '2s' }}></div>
                 </div>
                 
                 <div className="relative z-10 flex flex-col lg:flex-row justify-between items-center gap-12">
@@ -143,7 +143,7 @@ export default function SupervisorStats() {
                 
                 {/* 2. Action Needed - Inactive Students */}
                 <div className="premium-glass rounded-[3.5rem] p-10 border border-rose-500/10 dark:border-rose-500/5 shadow-2xl relative group overflow-hidden">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-rose-500/5 rounded-full blur-3xl -mr-32 -mt-32 group-hover:bg-rose-500/10 transition-colors"></div>
+                    <div className="hidden md:block absolute top-0 right-0 w-64 h-64 bg-rose-500/5 rounded-full blur-3xl -mr-32 -mt-32 group-hover:bg-rose-500/10 transition-colors"></div>
                     
                     <div className="flex justify-between items-center mb-10 relative z-10">
                         <h3 className="text-2xl font-black text-slate-800 dark:text-white flex items-center gap-4">
@@ -177,7 +177,7 @@ export default function SupervisorStats() {
 
                 {/* 3. Top Achievers - "Weekly Knights" */}
                 <div className="premium-glass rounded-[3.5rem] p-10 border border-emerald-500/10 dark:border-emerald-500/5 shadow-2xl relative group overflow-hidden">
-                    <div className="absolute top-0 left-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl -ml-32 -mt-32 group-hover:bg-emerald-500/10 transition-colors"></div>
+                    <div className="hidden md:block absolute top-0 left-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl -ml-32 -mt-32 group-hover:bg-emerald-500/10 transition-colors"></div>
                     
                     <div className="flex justify-between items-center mb-10 relative z-10">
                         <h3 className="text-2xl font-black text-slate-800 dark:text-white flex items-center gap-4">
@@ -212,7 +212,7 @@ export default function SupervisorStats() {
 
                 {/* 4. Halaqa Efficiency */}
                 <div className="lg:col-span-2 premium-glass rounded-[4rem] p-12 border border-slate-100 dark:border-slate-800 shadow-2xl relative group">
-                    <div className="absolute bottom-0 right-0 w-96 h-96 bg-indigo-500/5 rounded-full blur-3xl -mr-48 -mb-48"></div>
+                    <div className="hidden md:block absolute bottom-0 right-0 w-96 h-96 bg-indigo-500/5 rounded-full blur-3xl -mr-48 -mb-48"></div>
                     
                     <div className="flex flex-col md:flex-row justify-between items-center mb-12 gap-6 relative z-10">
                         <h3 className="text-3xl font-black text-slate-800 dark:text-white flex items-center gap-5">
@@ -246,7 +246,7 @@ export default function SupervisorStats() {
 
                 {/* 5. Memorization Distribution - Re-added and Expanded */}
                 <div className="lg:col-span-2 premium-glass rounded-[4rem] p-10 md:p-14 border border-slate-100 dark:border-slate-800 shadow-2xl relative overflow-hidden mt-6">
-                    <div className="absolute top-0 right-0 w-96 h-96 bg-amber-500/5 rounded-full blur-[100px] -mr-48 -mt-48"></div>
+                    <div className="hidden md:block absolute top-0 right-0 w-96 h-96 bg-amber-500/5 rounded-full blur-[100px] -mr-48 -mt-48"></div>
                     
                     <div className="flex flex-col md:flex-row justify-between items-center mb-12 gap-6 relative z-10">
                         <h3 className="text-3xl font-black text-slate-800 dark:text-white flex items-center gap-5">

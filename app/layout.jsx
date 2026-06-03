@@ -71,7 +71,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="ar" dir="rtl">
+    <html lang="ar" dir="rtl" suppressHydrationWarning>
       <body className="antialiased flex flex-col min-h-screen transition-colors duration-300" suppressHydrationWarning>
         <ToasterProvider />
         <ThemeProvider>
