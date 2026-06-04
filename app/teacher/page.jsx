@@ -253,6 +253,13 @@ export default function TeacherDashboard() {
                             تحضير الطلاب
                         </button>
                         <button
+                            onClick={() => router.push('/teacher/certificates')}
+                            className="flex items-center gap-2 px-6 py-3 bg-sky-50 dark:bg-sky-900/30 border-2 border-sky-100 dark:border-sky-800 rounded-2xl font-bold text-sky-600 dark:text-sky-400 hover:border-sky-400 hover:text-sky-700 transition-all shadow-sm active:scale-95"
+                        >
+                            <span className="text-xl">📜</span>
+                            شهادات خيركم
+                        </button>
+                        <button
                             onClick={() => setShowReportModal(true)}
                             className="flex items-center gap-2 px-6 py-3 bg-indigo-50 dark:bg-indigo-900/30 border-2 border-indigo-100 dark:border-indigo-800 rounded-2xl font-bold text-indigo-600 dark:text-indigo-400 hover:border-indigo-400 hover:text-indigo-700 transition-all shadow-sm active:scale-95"
                         >

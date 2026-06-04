@@ -10,6 +10,7 @@ import { pageAyahMap } from '../data/pageAyahMap';
 import { getExactPosition, getAyahAtPosition } from '../utils/quranUtils';
 import ProfileModal from '../components/ProfileModal';
 import { QRCodeSVG } from 'qrcode.react';
+import ViewKhayrukumCertificateModal from '../components/ViewKhayrukumCertificateModal';
 
 export default function StudentDashboard() {
     const router = useRouter();
@@ -19,6 +20,9 @@ export default function StudentDashboard() {
     const [points, setPoints] = useState(0);
     const [loading, setLoading] = useState(true);
     const [showProfileModal, setShowProfileModal] = useState(false);
+    const [certificates, setCertificates] = useState([]);
+    const [selectedCertificate, setSelectedCertificate] = useState(null);
+    const [currentCertIndex, setCurrentCertIndex] = useState(0);
 
     const getFirstName = (fullName) => {
         if (!fullName) return '';
@@ -82,11 +86,12 @@ export default function StudentDashboard() {
 
     const fetchData = async (id) => {
         try {
-            const [studentRes, sessionsRes, holidaysRes, pointsRes] = await Promise.all([
+            const [studentRes, sessionsRes, holidaysRes, pointsRes, certsRes] = await Promise.all([
                 fetch(`/api/students?id=${id}&full=true`),
                 fetch(`/api/sessions?studentId=${id}`),
                 fetch(`/api/holidays`),
-                fetch(`/api/points?studentId=${id}&aggregate=true`)
+                fetch(`/api/points?studentId=${id}&aggregate=true`),
+                fetch(`/api/certificates?studentId=${id}`)
             ]);
             
             if (studentRes.ok) {
@@ -104,6 +109,14 @@ export default function StudentDashboard() {
                 const pointsData = await pointsRes.json();
                 const myPoints = pointsData.find(p => p.id === id || p.id === parseInt(id));
                 setPoints(myPoints ? myPoints.totalPoints : 0);
+            }
+            
+            if (certsRes.ok) {
+                const certsData = await certsRes.json();
+                // Sort by highest branch number first
+                const sortedCerts = (certsData || []).sort((a, b) => parseInt(b.branchNumber) - parseInt(a.branchNumber));
+                setCertificates(sortedCerts);
+                setCurrentCertIndex(0); // Default to the highest branch
             }
             
             if (sessionsRes.ok) {
@@ -841,6 +854,114 @@ export default function StudentDashboard() {
                         <p className="text-slate-400 dark:text-slate-500 text-xs font-bold mt-4 italic">المراجعة حياة الحفظ 🤍</p>
                     </div>
                 </div>
+
+                {/* Khayrukum Certificates Section */}
+                {certificates && certificates.length > 0 && (
+                    <div className="mb-10 reveal reveal-delay-3 max-w-2xl mx-auto">
+                        <div className="flex items-center gap-4 mb-6">
+                            <h3 className="text-2xl font-black text-slate-800 dark:text-white flex items-center gap-3">
+                                <span className="text-3xl">📜</span>
+                                شهادات خيركم
+                            </h3>
+                            <div className="flex-1 h-0.5 bg-gradient-to-r from-slate-200 to-transparent dark:from-slate-800"></div>
+                        </div>
+                        
+                        <div className="relative">
+                            {/* Navigation Buttons */}
+                            {certificates.length > 1 && (
+                                <>
+                                    <button 
+                                        onClick={() => setCurrentCertIndex(prev => prev === 0 ? certificates.length - 1 : prev - 1)}
+                                        className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 md:translate-x-6 z-10 w-10 h-10 md:w-12 md:h-12 bg-white dark:bg-slate-800 rounded-full flex items-center justify-center shadow-lg border border-slate-100 dark:border-slate-700 text-sky-600 hover:scale-110 transition-transform focus:outline-none"
+                                    >
+                                        <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7"></path></svg>
+                                    </button>
+                                    <button 
+                                        onClick={() => setCurrentCertIndex(prev => prev === certificates.length - 1 ? 0 : prev + 1)}
+                                        className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 md:-translate-x-6 z-10 w-10 h-10 md:w-12 md:h-12 bg-white dark:bg-slate-800 rounded-full flex items-center justify-center shadow-lg border border-slate-100 dark:border-slate-700 text-sky-600 hover:scale-110 transition-transform focus:outline-none"
+                                    >
+                                        <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7"></path></svg>
+                                    </button>
+                                </>
+                            )}
+
+                            {/* Certificate Content */}
+                            <div className="overflow-hidden rounded-[2.5rem] px-2 py-2">
+                                <div className="transition-all duration-300 transform">
+                                    {(() => {
+                                        const cert = certificates[currentCertIndex];
+                                        const isPdf = cert.fileUrl.endsWith('.pdf');
+                                        return (
+                                            <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] border border-sky-100 dark:border-slate-800 shadow-xl overflow-hidden flex flex-col max-h-[85vh]">
+                                                {/* Header */}
+                                                <div className="p-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex justify-between items-center shrink-0 text-right" dir="rtl">
+                                                    <div>
+                                                        <h4 className="text-xl md:text-2xl font-black text-slate-800 dark:text-white flex items-center gap-3">
+                                                            <span className="text-3xl">📜</span>
+                                                            {cert.title ? cert.title : `شهادة اجتياز الفرع ${cert.branchNumber}`}
+                                                        </h4>
+                                                        <p className="text-slate-500 dark:text-slate-400 mt-1 font-bold text-sm">
+                                                            بتقدير {cert.grade}% - بتاريخ {new Date(cert.examDate).toLocaleDateString('ar-SA')}
+                                                        </p>
+                                                    </div>
+                                                    <button 
+                                                        onClick={() => window.open(cert.fileUrl, '_blank')}
+                                                        className="hidden md:flex py-3 px-5 bg-sky-600 text-white rounded-2xl font-black text-sm hover:bg-sky-700 shadow-xl shadow-sky-200/50 dark:shadow-none hover:-translate-y-1 transition-all active:scale-95 items-center justify-center gap-2"
+                                                    >
+                                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                                                        طباعة / حفظ
+                                                    </button>
+                                                </div>
+
+                                                {/* Body (File Viewer) */}
+                                                <div className="p-4 md:p-6 overflow-y-auto bg-slate-50/50 dark:bg-slate-950 flex-1 flex items-center justify-center min-h-[500px]">
+                                                    {isPdf ? (
+                                                        <iframe 
+                                                            src={`${cert.fileUrl}#view=FitH`} 
+                                                            className="w-full h-[500px] md:h-[600px] rounded-2xl border border-slate-200 dark:border-slate-700 shadow-inner" 
+                                                            title={`شهادة ${cert.branchNumber}`}
+                                                        />
+                                                    ) : (
+                                                        <img 
+                                                            src={cert.fileUrl} 
+                                                            alt={`شهادة الفرع ${cert.branchNumber}`}
+                                                            className="max-w-full max-h-[600px] rounded-2xl shadow-lg border-4 border-white dark:border-slate-800 object-contain"
+                                                        />
+                                                    )}
+                                                </div>
+                                                
+                                                {/* Mobile Print Button */}
+                                                <div className="md:hidden p-4 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0">
+                                                    <button 
+                                                        onClick={() => window.open(cert.fileUrl, '_blank')}
+                                                        className="w-full py-3 bg-sky-600 text-white rounded-xl font-black text-sm hover:bg-sky-700 shadow-lg active:scale-95 flex items-center justify-center gap-2"
+                                                    >
+                                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                                                        طباعة / حفظ الشهادة
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
+                                </div>
+                            </div>
+
+                            {/* Indicators */}
+                            {certificates.length > 1 && (
+                                <div className="flex justify-center gap-2 mt-4">
+                                    {certificates.map((_, idx) => (
+                                        <button 
+                                            key={idx}
+                                            onClick={() => setCurrentCertIndex(idx)}
+                                            className={`w-2.5 h-2.5 rounded-full transition-all ${idx === currentCertIndex ? 'bg-sky-500 w-6' : 'bg-slate-300 dark:bg-slate-700'}`}
+                                        />
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+
 
                     {/* Achievement Log - Detailed View like Teacher's Recording Form */}
                     <div className="bg-[#0f172a] rounded-[3rem] p-6 md:p-10 shadow-2xl border border-slate-800/60 mb-20 max-w-2xl mx-auto reveal reveal-delay-3 relative overflow-hidden text-right" dir="rtl">

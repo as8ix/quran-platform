@@ -21,6 +21,7 @@ model User {
   notifications       Notification[]
   assistantHalaqas    Halaqa[]          @relation("AssistantTeachers")
   participatingEvents QuranicEvent[]    @relation("EventTeachers")
+  khayrukumCertificates KhayrukumCertificate[] @relation("TeacherCertificates")
 
   @@index([role])
 }
@@ -73,6 +74,7 @@ model Student {
   sessions           Session[]
   halaqa             Halaqa?           @relation(fields: [halaqaId], references: [id])
   StudyPlanEntry     StudyPlanEntry[]
+  khayrukumCertificates KhayrukumCertificate[]
 
   @@index([halaqaId])
 }
@@ -235,3 +237,22 @@ model StudyPlanEntry {
   @@index([studentId])
   @@index([date])
 }
+
+model KhayrukumCertificate {
+  id           Int      @id @default(autoincrement())
+  studentId    Int
+  teacherId    Int?
+  title        String?
+  branchNumber Int
+  examDate     DateTime
+  grade        Float
+  fileUrl      String
+  createdAt    DateTime @default(now())
+
+  student      Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  teacher      User?    @relation("TeacherCertificates", fields: [teacherId], references: [id], onDelete: SetNull)
+
+  @@index([studentId])
+  @@index([teacherId])
+}
+
