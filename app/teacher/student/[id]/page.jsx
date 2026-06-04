@@ -1505,16 +1505,6 @@ export default function StudentDetailsPage() {
                                                             </div>
                                                         </div>
                                                         <div className="flex flex-wrap items-center gap-2">
-                                                            {sessionType === 'BOTH' && (
-                                                                <button 
-                                                                    type="button" 
-                                                                    onClick={() => setSessionType('MURAJAAH')}
-                                                                    className="px-3 py-1 bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-900/30 dark:hover:bg-red-900/50 dark:text-red-400 text-xs font-bold rounded-lg transition-all border border-red-200 dark:border-red-800/50 shadow-sm"
-                                                                    title="إزالة قسم الحفظ من هذه الجلسة"
-                                                                >
-                                                                    إلغاء الحفظ ✕
-                                                                </button>
-                                                            )}
                                                             <span className="text-xs font-bold text-emerald-600 bg-emerald-100 px-3 py-1 rounded-full">
                                                                 صفحات السورة: {allowedPages[0]} - {allowedPages[allowedPages.length - 1]}
                                                             </span>
@@ -1665,6 +1655,19 @@ export default function StudentDetailsPage() {
                                                         </div>
                                                     </div>
 
+                                                    {sessionType === 'BOTH' && (
+                                                        <div className="mt-8 flex justify-center border-t border-emerald-100 dark:border-emerald-800/50 pt-6">
+                                                            <button 
+                                                                type="button" 
+                                                                onClick={() => setSessionType('MURAJAAH')}
+                                                                className="px-6 py-2 bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-900/30 dark:hover:bg-red-900/50 dark:text-red-400 text-sm font-bold rounded-xl transition-all border border-red-200 dark:border-red-800/50 shadow-sm"
+                                                                title="إزالة قسم الحفظ من هذه الجلسة"
+                                                            >
+                                                                إلغاء قسم الحفظ لهذه الجلسة ✕
+                                                            </button>
+                                                        </div>
+                                                    )}
+
                                                 </div>
                                             );
                                         }
@@ -1681,16 +1684,6 @@ export default function StudentDetailsPage() {
                                                         <span className="w-3 h-3 bg-indigo-500 rounded-full shadow-lg shadow-indigo-200 dark:shadow-none"></span>
                                                         المراجعة
                                                     </h3>
-                                                    {sessionType === 'BOTH' && !isKhatim && !isQuranicDaySession && (
-                                                        <button 
-                                                            type="button" 
-                                                            onClick={() => setSessionType('HIFZ')}
-                                                            className="px-3 py-1 bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-900/30 dark:hover:bg-red-900/50 dark:text-red-400 text-xs font-bold rounded-lg transition-all border border-red-200 dark:border-red-800/50 shadow-sm"
-                                                            title="إزالة قسم المراجعة من هذه الجلسة"
-                                                        >
-                                                            إلغاء المراجعة ✕
-                                                        </button>
-                                                    )}
                                                     <div className="group relative">
                                                         <div className="w-6 h-6 flex items-center justify-center rounded-full bg-slate-800 dark:bg-white text-white dark:text-slate-900 cursor-help text-[10px] font-black transition-all hover:scale-110 shadow-lg border border-white/20 dark:border-slate-200">
                                                             i
@@ -1995,6 +1988,18 @@ export default function StudentDetailsPage() {
                                                     </div>
                                                 )}
                                             </div>
+                                            {sessionType === 'BOTH' && !isKhatim && !isQuranicDaySession && (
+                                                <div className="mt-8 flex justify-center border-t border-indigo-100 dark:border-indigo-800/50 pt-6">
+                                                    <button 
+                                                        type="button" 
+                                                        onClick={() => setSessionType('HIFZ')}
+                                                        className="px-6 py-2 bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-900/30 dark:hover:bg-red-900/50 dark:text-red-400 text-sm font-bold rounded-xl transition-all border border-red-200 dark:border-red-800/50 shadow-sm"
+                                                        title="إزالة قسم المراجعة من هذه الجلسة"
+                                                    >
+                                                        إلغاء قسم المراجعة لهذه الجلسة ✕
+                                                    </button>
+                                                </div>
+                                            )}
                                         </div>
                                     )}
 
