@@ -1504,9 +1504,21 @@ export default function StudentDetailsPage() {
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <span className="text-xs font-bold text-emerald-600 bg-emerald-100 px-3 py-1 rounded-full">
-                                                            صفحات السورة: {allowedPages[0]} - {allowedPages[allowedPages.length - 1]}
-                                                        </span>
+                                                        <div className="flex flex-wrap items-center gap-2">
+                                                            {sessionType === 'BOTH' && (
+                                                                <button 
+                                                                    type="button" 
+                                                                    onClick={() => setSessionType('MURAJAAH')}
+                                                                    className="px-3 py-1 bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-900/30 dark:hover:bg-red-900/50 dark:text-red-400 text-xs font-bold rounded-lg transition-all border border-red-200 dark:border-red-800/50 shadow-sm"
+                                                                    title="إزالة قسم الحفظ من هذه الجلسة"
+                                                                >
+                                                                    إلغاء الحفظ ✕
+                                                                </button>
+                                                            )}
+                                                            <span className="text-xs font-bold text-emerald-600 bg-emerald-100 px-3 py-1 rounded-full">
+                                                                صفحات السورة: {allowedPages[0]} - {allowedPages[allowedPages.length - 1]}
+                                                            </span>
+                                                        </div>
                                                     </div>
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                         <div>
