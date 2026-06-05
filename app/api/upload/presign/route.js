@@ -58,7 +58,7 @@ export async function POST(request) {
   } catch (error) {
     console.error("Presign API Error:", error);
     return NextResponse.json(
-      { error: "Failed to generate pre-signed upload URL" },
+      { error: "Failed to generate pre-signed upload URL", details: error.message, stack: error.stack },
       { status: 500 }
     );
   }

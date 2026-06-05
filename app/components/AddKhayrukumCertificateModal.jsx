@@ -47,7 +47,8 @@ export default function AddKhayrukumCertificateModal({ isOpen, onClose, onSucces
         });
 
         if (!presignRes.ok) {
-            throw new Error('فشل في تحضير رابط الرفع');
+            const errData = await presignRes.json().catch(() => ({}));
+            throw new Error(errData.details || errData.error || 'فشل في تحضير رابط الرفع');
         }
 
         const { uploadUrl, fileUrl } = await presignRes.json();
