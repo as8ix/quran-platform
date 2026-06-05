@@ -68,12 +68,12 @@ const StudentCard = ({ student, router, displayName }) => {
                         🏆 {student.isSpecificallyAssigned ? 'ضيف: مسند' : 'متاح (عام)'}
                     </div>
                 )}
-                {highestPendingBranch && (
+                {false && highestPendingBranch && (
                     <div className="px-2.5 py-1 rounded-lg sm:rounded-xl text-[9px] sm:text-[10px] font-black border bg-gradient-to-r from-amber-400 to-orange-400 text-white border-amber-400/50 shadow-sm shadow-amber-500/20 animate-pulse">
                         🌟 مؤهل: {highestPendingBranch.label}
                     </div>
                 )}
-                {almostEligibleBranch && (
+                {false && almostEligibleBranch && (
                     <div className="px-2.5 py-1 rounded-lg sm:rounded-xl text-[9px] sm:text-[10px] font-black border bg-gradient-to-r from-emerald-500 to-teal-500 text-white border-emerald-400/50 shadow-sm shadow-emerald-500/20 animate-pulse mt-1">
                         ⏳ مرشح قريب: {almostEligibleBranch.label}
                     </div>

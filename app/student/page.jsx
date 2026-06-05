@@ -572,7 +572,7 @@ export default function StudentDashboard() {
                     <span>ملاحظة: حساب الطالب لا يزال قيد التطوير والعمل. قد تواجه بعض النواقص في الميزات الحالية.</span>
                 </div>
 
-                {highestPendingBranch && (
+                {false && highestPendingBranch && (
                     <div className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white p-4 sm:p-5 rounded-2xl md:rounded-3xl shadow-xl shadow-emerald-500/20 flex flex-col sm:flex-row items-center justify-between gap-4 mb-8 reveal border border-emerald-400/50">
                         <div className="flex items-center gap-4 text-center sm:text-right flex-col sm:flex-row">
                             <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center text-3xl shrink-0 animate-bounce-subtle shadow-inner">
