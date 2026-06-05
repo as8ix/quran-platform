@@ -9,6 +9,7 @@ import SendNotification from '../components/SendNotification';
 import ReportModal from '../components/ReportModal';
 import { useTheme } from '../components/ThemeProvider';
 import LoadingScreen from '../components/LoadingScreen';
+import { getPendingEligibleBranches, getAlmostEligibleBranch } from '../utils/khayrukumBranches';
 
 const formatStudentName = (studentName, allStudents) => {
     if (!studentName) return '';
@@ -35,7 +36,13 @@ const formatStudentName = (studentName, allStudents) => {
     return `${first} ${last}`;
 };
 
-const StudentCard = ({ student, router, displayName }) => (
+const StudentCard = ({ student, router, displayName }) => {
+    const pendingBranches = getPendingEligibleBranches(student.juzCount, student.currentHifzSurahId, student.khayrukumCertificates || []);
+    const highestPendingBranch = pendingBranches.length > 0 ? pendingBranches[0] : null;
+    
+    const almostEligibleBranch = getAlmostEligibleBranch(student.currentHifzSurahId, student.khayrukumCertificates || []);
+
+    return (
     <div
         className="group premium-glass rounded-[2rem] sm:rounded-[2.5rem] p-5 sm:p-7 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-emerald-500/20 cursor-pointer relative overflow-hidden border border-white/20 dark:border-slate-800/50"
         onClick={() => router.push(`/teacher/student/${student.id}`)}
@@ -59,6 +66,16 @@ const StudentCard = ({ student, router, displayName }) => (
                         : 'bg-indigo-500/10 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 border-indigo-500/20 dark:border-indigo-800'
                     }`}>
                         🏆 {student.isSpecificallyAssigned ? 'ضيف: مسند' : 'متاح (عام)'}
+                    </div>
+                )}
+                {highestPendingBranch && (
+                    <div className="px-2.5 py-1 rounded-lg sm:rounded-xl text-[9px] sm:text-[10px] font-black border bg-gradient-to-r from-amber-400 to-orange-400 text-white border-amber-400/50 shadow-sm shadow-amber-500/20 animate-pulse">
+                        🌟 مؤهل: {highestPendingBranch.label}
+                    </div>
+                )}
+                {almostEligibleBranch && (
+                    <div className="px-2.5 py-1 rounded-lg sm:rounded-xl text-[9px] sm:text-[10px] font-black border bg-gradient-to-r from-emerald-500 to-teal-500 text-white border-emerald-400/50 shadow-sm shadow-emerald-500/20 animate-pulse mt-1">
+                        ⏳ مرشح قريب: {almostEligibleBranch.label}
                     </div>
                 )}
             </div>
@@ -96,7 +113,8 @@ const StudentCard = ({ student, router, displayName }) => (
             </div>
         </div>
     </div>
-);
+    );
+};
 
 const StudentSkeleton = () => (
     <div className="premium-glass rounded-[2rem] sm:rounded-[2.5rem] p-5 sm:p-7 relative overflow-hidden border border-white/20 dark:border-slate-800/50 animate-pulse">

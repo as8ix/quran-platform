@@ -3,9 +3,17 @@
 import { useState, useRef } from 'react';
 import { toast } from 'react-hot-toast';
 
+import { KHAYRUKUM_BRANCHES } from '../utils/khayrukumBranches';
+
+const EXAM_TYPES = [
+    { value: 'حضوري',   label: 'حضوري',   icon: '🕌' },
+    { value: 'عن بُعد', label: 'عن بُعد', icon: '💻' },
+];
+
 export default function AddKhayrukumCertificateModal({ isOpen, onClose, onSuccess, student, teacher }) {
     const [title, setTitle] = useState('');
     const [branchNumber, setBranchNumber] = useState('');
+    const [examType, setExamType] = useState('حضوري');
     const [examDate, setExamDate] = useState('');
     const [grade, setGrade] = useState('');
     const [file, setFile] = useState(null);
@@ -13,6 +21,8 @@ export default function AddKhayrukumCertificateModal({ isOpen, onClose, onSucces
     const fileInputRef = useRef(null);
 
     if (!isOpen) return null;
+
+    const selectedBranch = KHAYRUKUM_BRANCHES.find(b => b.number === parseInt(branchNumber));
 
     const handleFileChange = (e) => {
         if (e.target.files && e.target.files[0]) {
@@ -60,7 +70,7 @@ export default function AddKhayrukumCertificateModal({ isOpen, onClose, onSucces
     const handleSubmit = async (e) => {
         e.preventDefault();
         
-        if (!branchNumber || !examDate || !grade || !file) {
+        if (!branchNumber || !examType || !examDate || !grade || !file) {
             toast.error('الرجاء تعبئة جميع الحقول وإرفاق الشهادة');
             return;
         }
@@ -80,6 +90,7 @@ export default function AddKhayrukumCertificateModal({ isOpen, onClose, onSucces
                     teacherId: teacher.id,
                     title,
                     branchNumber: parseInt(branchNumber),
+                    examType,
                     examDate,
                     grade: parseFloat(grade),
                     fileUrl
@@ -96,6 +107,7 @@ export default function AddKhayrukumCertificateModal({ isOpen, onClose, onSucces
             // Reset state
             setTitle('');
             setBranchNumber('');
+            setExamType('حضوري');
             setExamDate('');
             setGrade('');
             setFile(null);
@@ -133,33 +145,75 @@ export default function AddKhayrukumCertificateModal({ isOpen, onClose, onSucces
                 </div>
 
                 {/* Form */}
-                <form onSubmit={handleSubmit} className="p-6 space-y-5">
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="col-span-2">
-                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">عنوان الشهادة (اختياري)</label>
-                            <input 
-                                type="text"
-                                placeholder="مثال: شهادة إتمام جزء عم"
-                                value={title}
-                                onChange={(e) => setTitle(e.target.value)}
-                                className="w-full p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none transition-all dark:text-white"
-                            />
-                        </div>
+                <form onSubmit={handleSubmit} className="p-6 space-y-5 max-h-[80vh] overflow-y-auto">
 
-                        <div className="col-span-2">
-                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">رقم الفرع المختبر</label>
-                            <select 
-                                value={branchNumber}
-                                onChange={(e) => setBranchNumber(e.target.value)}
-                                className="w-full p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none transition-all dark:text-white"
-                            >
-                                <option value="">-- اختر الفرع --</option>
-                                {[...Array(10)].map((_, i) => (
-                                    <option key={i+1} value={i+1}>الفرع {i+1}</option>
-                                ))}
-                            </select>
+                    {/* Optional Title */}
+                    <div>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">عنوان الشهادة (اختياري)</label>
+                        <input 
+                            type="text"
+                            placeholder="مثال: شهادة إتمام جزء عم"
+                            value={title}
+                            onChange={(e) => setTitle(e.target.value)}
+                            className="w-full p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none transition-all dark:text-white"
+                        />
+                    </div>
+
+                    {/* Branch Select */}
+                    <div>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+                            الفرع المُختبَر
+                        </label>
+                        <select 
+                            value={branchNumber}
+                            onChange={(e) => setBranchNumber(e.target.value)}
+                            className="w-full p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none transition-all dark:text-white"
+                        >
+                            <option value="">-- اختر الفرع --</option>
+                            {KHAYRUKUM_BRANCHES.map((branch) => (
+                                <option key={branch.number} value={branch.number}>
+                                    {branch.label} — {branch.parts}
+                                </option>
+                            ))}
+                        </select>
+
+                        {/* Branch Info Badge */}
+                        {selectedBranch && (
+                            <div className="mt-2 flex items-center gap-2 p-2.5 bg-sky-50 dark:bg-sky-900/20 rounded-xl border border-sky-100 dark:border-sky-800">
+                                <span className="text-sky-500 text-lg">📖</span>
+                                <p className="text-xs font-bold text-sky-700 dark:text-sky-400">
+                                    من سورة الناس إلى سورة <span className="text-sky-600 dark:text-sky-300">{selectedBranch.endSurah}</span>
+                                </p>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Exam Type */}
+                    <div>
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+                            نمط الاختبار
+                        </label>
+                        <div className="grid grid-cols-2 gap-3">
+                            {EXAM_TYPES.map((type) => (
+                                <button
+                                    key={type.value}
+                                    type="button"
+                                    onClick={() => setExamType(type.value)}
+                                    className={`flex items-center justify-center gap-2 p-3 rounded-xl border-2 font-bold text-sm transition-all ${
+                                        examType === type.value
+                                            ? 'border-sky-500 bg-sky-50 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 shadow-sm'
+                                            : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:border-slate-300'
+                                    }`}
+                                >
+                                    <span>{type.icon}</span>
+                                    {type.label}
+                                </button>
+                            ))}
                         </div>
-                        
+                    </div>
+
+                    {/* Date and Grade */}
+                    <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">تاريخ الاختبار</label>
                             <input 
@@ -185,6 +239,7 @@ export default function AddKhayrukumCertificateModal({ isOpen, onClose, onSucces
                         </div>
                     </div>
 
+                    {/* File Upload */}
                     <div>
                         <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">ملف الشهادة (صورة أو PDF)</label>
                         <div 
@@ -216,7 +271,8 @@ export default function AddKhayrukumCertificateModal({ isOpen, onClose, onSucces
                         </div>
                     </div>
 
-                    <div className="pt-4 flex gap-3">
+                    {/* Actions */}
+                    <div className="pt-2 flex gap-3">
                         <button 
                             type="button"
                             onClick={onClose}

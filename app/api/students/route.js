@@ -107,6 +107,7 @@ export async function GET(request) {
             name: true,
             username: true,
             hifzProgress: true,
+            currentHifzSurahId: true,
             juzCount: true,
             dailyTargetPages: true,
             reviewPlan: true,
@@ -130,13 +131,18 @@ export async function GET(request) {
                     teacherId: true,
                     assistants: { select: { id: true } }
                 }
+            },
+            khayrukumCertificates: {
+                select: {
+                    branchNumber: true
+                }
             }
         };
 
         let students = await prisma.student.findMany({
             where,
             select: selectFields,
-            include: isFull ? { halaqa: true } : undefined,
+            include: isFull ? { halaqa: true, khayrukumCertificates: true } : undefined,
             orderBy: { name: 'asc' }
         });
 

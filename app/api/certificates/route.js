@@ -36,7 +36,7 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     const data = await request.json();
-    const { studentId, teacherId, title, branchNumber, examDate, grade, fileUrl } = data;
+    const { studentId, teacherId, title, branchNumber, examType, examDate, grade, fileUrl } = data;
 
     if (!studentId || !branchNumber || !examDate || !grade || !fileUrl) {
       return NextResponse.json({ error: 'جميع الحقول المطلوبة يجب تعبئتها' }, { status: 400 });
@@ -49,6 +49,7 @@ export async function POST(request) {
         teacherId: teacherId ? parseInt(teacherId) : null,
         title: title || null,
         branchNumber: parseInt(branchNumber),
+        examType: examType || 'حضوري',
         examDate: new Date(examDate),
         grade: parseFloat(grade),
         fileUrl,

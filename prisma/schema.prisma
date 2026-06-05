@@ -244,6 +244,7 @@ model KhayrukumCertificate {
   teacherId    Int?
   title        String?
   branchNumber Int
+  examType     String   @default("حضوري")
   examDate     DateTime
   grade        Float
   fileUrl      String

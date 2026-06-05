@@ -125,6 +125,27 @@ export default function Navbar({ userType, userName, onLogout, displayId }) {
         }
     };
 
+    const handleMarkAllAsRead = async (e) => {
+        e.stopPropagation();
+        try {
+            const storedUser = localStorage.getItem('user');
+            if (!storedUser) return;
+            const user = JSON.parse(storedUser);
+            const param = (userType === 'student' || user.role === 'STUDENT')
+                ? `studentId=${user.id}`
+                : `userId=${user.id}`;
+                
+            const res = await fetch(`/api/notifications/read-all?${param}`, { method: 'PATCH' });
+            if (res.ok) {
+                setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+                setUnreadCount(0);
+                toast.success('تم تحديد الكل كمقروء');
+            }
+        } catch (error) {
+            console.error("Error marking all as read", error);
+        }
+    };
+
     const handleClose = useCallback(() => {
         setIsClosing(true);
         setTimeout(() => {
@@ -218,7 +239,18 @@ export default function Navbar({ userType, userName, onLogout, displayId }) {
                                 <div className={`fixed md:absolute inset-x-4 md:inset-x-auto md:left-0 top-[75px] md:top-full mt-2 md:mt-4 md:w-80 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.2)] dark:shadow-none border border-slate-100 dark:border-slate-800 overflow-hidden z-[100] ${isClosing ? 'animate-slideDown' : 'animate-slideUp'}`}>
                                     <div className="p-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 flex justify-between items-center">
                                         <h3 className="font-black text-slate-800 dark:text-white uppercase tracking-tight">الإشعارات</h3>
-                                        <span className="text-[10px] font-black bg-emerald-500 text-white px-2 py-0.5 rounded-full">{unreadCount} غير مقروء</span>
+                                        <div className="flex items-center gap-2">
+                                            {unreadCount > 0 && (
+                                                <button 
+                                                    onClick={handleMarkAllAsRead}
+                                                    className="text-[10px] text-slate-500 hover:text-emerald-600 transition-colors bg-white dark:bg-slate-800 px-2 py-0.5 rounded-full border border-slate-200 dark:border-slate-700 font-bold"
+                                                    title="تحديد الكل كمقروء"
+                                                >
+                                                    ✔ مقروء
+                                                </button>
+                                            )}
+                                            <span className="text-[10px] font-black bg-emerald-500 text-white px-2 py-0.5 rounded-full">{unreadCount} غير مقروء</span>
+                                        </div>
                                     </div>
                                     <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
                                         {notifications.length > 0 ? (

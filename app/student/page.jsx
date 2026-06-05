@@ -11,6 +11,7 @@ import { getExactPosition, getAyahAtPosition } from '../utils/quranUtils';
 import ProfileModal from '../components/ProfileModal';
 import { QRCodeSVG } from 'qrcode.react';
 import ViewKhayrukumCertificateModal from '../components/ViewKhayrukumCertificateModal';
+import { KHAYRUKUM_BRANCHES, getPendingEligibleBranches } from '../utils/khayrukumBranches';
 
 export default function StudentDashboard() {
     const router = useRouter();
@@ -548,6 +549,9 @@ export default function StudentDashboard() {
     }
 
     const isKhatim = student.juzCount === 30;
+    
+    const pendingBranches = getPendingEligibleBranches(student.juzCount, student.currentHifzSurahId, certificates);
+    const highestPendingBranch = pendingBranches.length > 0 ? pendingBranches[0] : null;
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white font-noto rtl transition-colors duration-300" dir="rtl">
@@ -567,6 +571,25 @@ export default function StudentDashboard() {
                     <span className="text-2xl">🚧</span>
                     <span>ملاحظة: حساب الطالب لا يزال قيد التطوير والعمل. قد تواجه بعض النواقص في الميزات الحالية.</span>
                 </div>
+
+                {highestPendingBranch && (
+                    <div className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white p-4 sm:p-5 rounded-2xl md:rounded-3xl shadow-xl shadow-emerald-500/20 flex flex-col sm:flex-row items-center justify-between gap-4 mb-8 reveal border border-emerald-400/50">
+                        <div className="flex items-center gap-4 text-center sm:text-right flex-col sm:flex-row">
+                            <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center text-3xl shrink-0 animate-bounce-subtle shadow-inner">
+                                🌟
+                            </div>
+                            <div>
+                                <h3 className="font-black text-lg md:text-xl">مبارك! أنت مؤهل لاختبار {highestPendingBranch.label}</h3>
+                                <p className="text-emerald-50 text-sm md:text-base font-medium mt-1">
+                                    لقد أتممت حفظ {highestPendingBranch.parts}، تواصل مع معلمك لترتيب دخولك لاختبار جمعية خيركم!
+                                </p>
+                            </div>
+                        </div>
+                        <div className="bg-white/20 px-4 py-2 rounded-xl font-bold text-sm shrink-0 backdrop-blur-sm">
+                            إنجاز رائع 👏
+                        </div>
+                    </div>
+                )}
 
                 {/* Hero Header */}
                 <div className={`relative overflow-hidden bg-gradient-to-br ${isKhatim ? 'from-amber-500 to-yellow-700' : 'from-emerald-600 to-teal-700'} rounded-[2.5rem] p-8 md:p-12 text-white mb-8 shadow-2xl ${isKhatim ? 'shadow-amber-100' : 'shadow-emerald-100'} reveal group`}>
@@ -710,6 +733,67 @@ export default function StudentDashboard() {
                         </div>
                     </div>
                 )}
+
+                {/* Khayrukum Branches Progress */}
+                <div className="mb-10 reveal reveal-delay-2">
+                    <div className="bg-white dark:bg-slate-900 rounded-[3rem] p-6 sm:p-8 shadow-xl border border-slate-200 dark:border-slate-800 relative overflow-hidden">
+                        <div className="absolute top-0 left-0 w-64 h-64 bg-emerald-500/5 blur-[100px] pointer-events-none rounded-full"></div>
+                        
+                        <div className="flex justify-between items-center mb-8 relative z-10">
+                            <div className="flex items-center gap-3">
+                                <span className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xl shadow-inner border border-slate-200 dark:border-slate-700">📜</span>
+                                <div>
+                                    <h3 className="text-xl font-black text-slate-800 dark:text-white">مسار فروع خيركم</h3>
+                                    <p className="text-xs text-slate-500 font-bold mt-1">تتبع تقدمك للوصول إلى ختم القرآن الكريم</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div className="relative pt-4 pb-6 overflow-x-auto pb-scrollbar" dir="ltr">
+                            <div className="min-w-[1000px] flex justify-between relative px-6 mx-auto">
+                                {/* Track Line */}
+                                <div className="absolute top-6 left-6 right-6 h-3 bg-slate-100 dark:bg-slate-800 -translate-y-1/2 rounded-full z-0 shadow-inner"></div>
+                                
+                                {/* Active Track Line */}
+                                <div 
+                                    className="absolute top-6 right-6 h-3 bg-gradient-to-l from-emerald-400 to-emerald-600 -translate-y-1/2 rounded-full z-0 transition-all duration-1000 shadow-[0_0_10px_rgba(16,185,129,0.3)]" 
+                                    style={{ width: `calc(${(Math.min(student.juzCount, 30) / 30) * 100}% - 48px)` }}
+                                ></div>
+
+                                {[...KHAYRUKUM_BRANCHES].reverse().map((branch, index) => {
+                                    const isEarned = certificates.some(c => parseInt(c.branchNumber) === branch.number);
+                                    const isEligible = student.juzCount >= branch.juzRequired && !isEarned;
+                                    const isLocked = student.juzCount < branch.juzRequired;
+
+                                    return (
+                                        <div key={branch.number} className="relative z-10 flex flex-col items-center group w-14 cursor-help" title={`نهاية الفرع: سورة ${branch.endSurah}`}>
+                                            <div className={`w-12 h-12 rounded-full flex items-center justify-center font-black text-lg mb-3 transition-all duration-300 ${
+                                                isEarned ? 'bg-gradient-to-br from-emerald-400 to-emerald-600 text-white shadow-lg shadow-emerald-500/40 border-2 border-emerald-200 dark:border-emerald-800' :
+                                                isEligible ? 'bg-gradient-to-br from-amber-300 to-amber-500 text-amber-900 shadow-lg shadow-amber-500/40 animate-bounce-subtle border-2 border-white dark:border-slate-900' :
+                                                'bg-white dark:bg-slate-900 text-slate-400 border-4 border-slate-100 dark:border-slate-800 group-hover:border-slate-200 dark:group-hover:border-slate-700'
+                                            }`}>
+                                                {isEarned ? '✓' : branch.number}
+                                            </div>
+                                            
+                                            {/* Tooltip on hover */}
+                                            <div className="absolute -top-12 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-800 text-white text-[10px] py-1 px-3 rounded-lg whitespace-nowrap pointer-events-none z-20">
+                                                سورة {branch.endSurah}
+                                                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800"></div>
+                                            </div>
+
+                                            <div className="text-[11px] font-black text-center text-slate-700 dark:text-slate-300 mt-1 w-20 leading-tight">
+                                                {branch.label}
+                                            </div>
+                                            <div className="text-[9px] font-bold text-center text-slate-400 mt-1 w-20 leading-tight">
+                                                {branch.parts}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 {/* Student Card & Points Section */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10 reveal reveal-delay-2">

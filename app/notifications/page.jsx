@@ -51,6 +51,22 @@ export default function NotificationsPage() {
         }
     };
 
+    const handleMarkAllAsRead = async () => {
+        try {
+            const param = (user.role === 'STUDENT')
+                ? `studentId=${user.id}`
+                : `userId=${user.id}`;
+                
+            const res = await fetch(`/api/notifications/read-all?${param}`, { method: 'PATCH' });
+            if (res.ok) {
+                setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+                toast.success('تم تحديد الكل كمقروء');
+            }
+        } catch (error) {
+            console.error("Error marking all as read", error);
+        }
+    };
+
     if (loading) return <LoadingScreen />;
 
     return (
@@ -59,7 +75,17 @@ export default function NotificationsPage() {
 
             <main className="max-w-4xl mx-auto px-4 md:px-6 pb-12 pt-44">
                 <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-12">
-                    <h1 className="text-4xl font-black text-slate-800 dark:text-white">كافة الإشعارات 🔔</h1>
+                    <div className="flex items-center gap-4">
+                        <h1 className="text-4xl font-black text-slate-800 dark:text-white">كافة الإشعارات 🔔</h1>
+                        {notifications.some(n => !n.isRead) && (
+                            <button
+                                onClick={handleMarkAllAsRead}
+                                className="text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-emerald-600 px-4 py-1.5 rounded-full font-bold transition-all hover:shadow-md active:scale-95"
+                            >
+                                ✔ تحديد الكل كمقروء
+                            </button>
+                        )}
+                    </div>
                     <BackButton 
                         href="/" 
                         text="العودة للرئيسية" 
