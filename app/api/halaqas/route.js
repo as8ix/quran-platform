@@ -52,6 +52,12 @@ export async function GET(request) {
 
 export async function POST(request) {
     try {
+        // SECURITY FIX (HIGH-05): Only supervisors can create halaqas
+        const role = request.headers.get('x-user-role');
+        if (role !== 'SUPERVISOR') {
+            return NextResponse.json({ error: 'Unauthorized: Only supervisors can create halaqas' }, { status: 403 });
+        }
+
         const body = await request.json();
         const { name, teacherId, assistantTeacherIds, logo } = body;
 
@@ -84,6 +90,12 @@ export async function POST(request) {
 
 export async function PUT(request) {
     try {
+        // SECURITY: Only supervisors can update halaqas
+        const role = request.headers.get('x-user-role');
+        if (role !== 'SUPERVISOR') {
+            return NextResponse.json({ error: 'Unauthorized: Only supervisors can update halaqas' }, { status: 403 });
+        }
+
         const body = await request.json();
         const { id, name, teacherId, assistantTeacherIds, pointsEnabled, logo } = body;
 
@@ -141,6 +153,12 @@ export async function PUT(request) {
 
 export async function DELETE(request) {
     try {
+        // SECURITY: Only supervisors can delete halaqas
+        const role = request.headers.get('x-user-role');
+        if (role !== 'SUPERVISOR') {
+            return NextResponse.json({ error: 'Unauthorized: Only supervisors can delete halaqas' }, { status: 403 });
+        }
+
         const { searchParams } = new URL(request.url);
         const id = searchParams.get('id');
 

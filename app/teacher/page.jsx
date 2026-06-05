@@ -9,6 +9,7 @@ import SendNotification from '../components/SendNotification';
 import ReportModal from '../components/ReportModal';
 import { useTheme } from '../components/ThemeProvider';
 import LoadingScreen from '../components/LoadingScreen';
+import ResetPasswordModal from '../components/ResetPasswordModal';
 import { getPendingEligibleBranches, getAlmostEligibleBranch } from '../utils/khayrukumBranches';
 
 const formatStudentName = (studentName, allStudents) => {
@@ -36,7 +37,7 @@ const formatStudentName = (studentName, allStudents) => {
     return `${first} ${last}`;
 };
 
-const StudentCard = ({ student, router, displayName }) => {
+const StudentCard = ({ student, router, displayName, onResetPassword }) => {
     const pendingBranches = getPendingEligibleBranches(student.juzCount, student.currentHifzSurahId, student.khayrukumCertificates || []);
     const highestPendingBranch = pendingBranches.length > 0 ? pendingBranches[0] : null;
     
@@ -56,8 +57,22 @@ const StudentCard = ({ student, router, displayName }) => {
                 {student.name?.charAt(0)}
             </div>
             <div className="flex flex-col items-end gap-1.5 sm:gap-2">
-                <div className="bg-white/50 dark:bg-slate-900/50 px-2.5 py-1 rounded-lg sm:rounded-xl text-[9px] sm:text-[10px] font-black text-slate-400 dark:text-slate-500 border border-white/20 dark:border-slate-800">
-                    ID: #{student.displayId || student.id}
+                <div className="flex items-center gap-2 relative z-20">
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onResetPassword(student.id, student.name);
+                        }}
+                        className="p-1.5 bg-rose-50 dark:bg-rose-900/20 text-rose-600 rounded-lg hover:bg-rose-600 hover:text-white transition-all shadow-sm"
+                        title="إعادة تعيين كلمة المرور"
+                    >
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                        </svg>
+                    </button>
+                    <div className="bg-white/50 dark:bg-slate-900/50 px-2.5 py-1 rounded-lg sm:rounded-xl text-[9px] sm:text-[10px] font-black text-slate-400 dark:text-slate-500 border border-white/20 dark:border-slate-800">
+                        ID: #{student.displayId || student.id}
+                    </div>
                 </div>
                 {student.isEventGuest && (
                     <div className={`px-2.5 py-1 rounded-lg sm:rounded-xl text-[9px] sm:text-[10px] font-black border ${
@@ -140,6 +155,7 @@ export default function TeacherDashboard() {
     const [juzFilter, setJuzFilter] = useState('all');
     const [loading, setLoading] = useState(true);
     const [students, setStudents] = useState([]);
+    const [resetModalConfig, setResetModalConfig] = useState({ isOpen: false, targetId: null, targetName: '', role: '' });
 
     const [user, setUser] = useState(null);
     const [teacherHalaqas, setTeacherHalaqas] = useState([]);
@@ -379,13 +395,14 @@ export default function TeacherDashboard() {
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                                     {filteredStudents.filter(s => s.isInActiveEvent).map((student) => (
-                                        <StudentCard 
-                                            key={student.id} 
-                                            student={student} 
-                                            router={router} 
-                                            displayName={formatStudentName(student.name, filteredStudents)}
-                                        />
-                                    ))}
+                                            <StudentCard 
+                                                key={student.id} 
+                                                student={student} 
+                                                router={router} 
+                                                displayName={formatStudentName(student.name, filteredStudents)}
+                                                onResetPassword={(id, name) => setResetModalConfig({ isOpen: true, targetId: id, targetName: name, role: 'STUDENT' })}
+                                            />
+                                        ))}
                                 </div>
                             </div>
                         )}
@@ -410,13 +427,14 @@ export default function TeacherDashboard() {
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                                     {filteredStudents.filter(s => !s.isInActiveEvent).map((student) => (
-                                        <StudentCard 
-                                            key={student.id} 
-                                            student={student} 
-                                            router={router} 
-                                            displayName={formatStudentName(student.name, filteredStudents)}
-                                        />
-                                    ))}
+                                            <StudentCard 
+                                                key={student.id} 
+                                                student={student} 
+                                                router={router} 
+                                                displayName={formatStudentName(student.name, filteredStudents)}
+                                                onResetPassword={(id, name) => setResetModalConfig({ isOpen: true, targetId: id, targetName: name, role: 'STUDENT' })}
+                                            />
+                                        ))}
                                 </div>
                             </div>
                         )}
@@ -438,6 +456,14 @@ export default function TeacherDashboard() {
                     fetchStudents();
                 }}
                 halaqaId={teacherHalaqas.length > 0 ? teacherHalaqas[0].id : (user?.halaqaId || null)}
+            />
+
+            <ResetPasswordModal 
+                isOpen={resetModalConfig.isOpen}
+                onClose={() => setResetModalConfig({ ...resetModalConfig, isOpen: false })}
+                targetId={resetModalConfig.targetId}
+                targetName={resetModalConfig.targetName}
+                role={resetModalConfig.role}
             />
 
             <ReportModal

@@ -1,8 +1,13 @@
 import { prisma } from '@/app/lib/prisma';
 import { NextResponse } from 'next/server';
 
-export async function GET() {
+export async function GET(request) {
     try {
+        // SECURITY FIX (HIGH-06): Only supervisors can access platform-wide statistics
+        const role = request.headers.get('x-user-role');
+        if (role !== 'SUPERVISOR') {
+            return NextResponse.json({ error: 'Unauthorized: Supervisor access required' }, { status: 403 });
+        }
         // Calculate date 7 days ago
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);

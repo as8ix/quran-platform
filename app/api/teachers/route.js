@@ -1,8 +1,11 @@
 import { prisma } from '@/app/lib/prisma';
 import { NextResponse } from 'next/server';
+import bcrypt from 'bcryptjs';
 
-export async function GET() {
+export async function GET(request) {
   try {
+    const role = request.headers.get('x-user-role');
+    
     const teachers = await prisma.user.findMany({
       where: {
         role: 'TEACHER'
@@ -12,7 +15,7 @@ export async function GET() {
         displayId: true,
         name: true,
         username: true,
-        password: true,
+        // password: true removed to fix data exposure
         createdAt: true,
         _count: {
           select: {
@@ -32,6 +35,11 @@ export async function GET() {
 
 export async function POST(request) {
   try {
+    const role = request.headers.get('x-user-role');
+    if (role !== 'SUPERVISOR') {
+      return NextResponse.json({ error: 'Unauthorized: Only supervisors can create teachers' }, { status: 403 });
+    }
+
     const body = await request.json();
     const { name, username, password } = body;
 
@@ -51,13 +59,22 @@ export async function POST(request) {
     });
     const nextDisplayId = (lastTeacher?.displayId || 0) + 1;
 
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     const teacher = await prisma.user.create({
       data: {
         name,
         username,
         displayId: nextDisplayId,
-        password, // In a real app, hash this!
+        password: hashedPassword,
         role: 'TEACHER'
+      },
+      select: { // Exclude password from the response
+        id: true,
+        name: true,
+        username: true,
+        displayId: true,
+        role: true
       }
     });
 
@@ -69,12 +86,16 @@ export async function POST(request) {
 
 export async function DELETE(request) {
   try {
+    const role = request.headers.get('x-user-role');
+    if (role !== 'SUPERVISOR') {
+      return NextResponse.json({ error: 'Unauthorized: Only supervisors can delete teachers' }, { status: 403 });
+    }
+
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 
     if (!id) return NextResponse.json({ error: 'المعرف مطلوب' }, { status: 400 });
 
-    // Simple approach: Delete.
     await prisma.user.delete({
       where: { id: parseInt(id) }
     });
@@ -88,6 +109,11 @@ export async function DELETE(request) {
 
 export async function PUT(request) {
   try {
+    const role = request.headers.get('x-user-role');
+    if (role !== 'SUPERVISOR') {
+      return NextResponse.json({ error: 'Unauthorized: Only supervisors can update teachers' }, { status: 403 });
+    }
+
     const body = await request.json();
     const { id, name, username, password } = body;
 
@@ -109,11 +135,18 @@ export async function PUT(request) {
     const updateData = {};
     if (name) updateData.name = name;
     if (username) updateData.username = username;
-    if (password) updateData.password = password;
+    if (password) updateData.password = await bcrypt.hash(password, 10);
 
     const teacher = await prisma.user.update({
       where: { id: parseInt(id) },
-      data: updateData
+      data: updateData,
+      select: { // Exclude password from the response
+        id: true,
+        name: true,
+        username: true,
+        displayId: true,
+        role: true
+      }
     });
 
     return NextResponse.json(teacher);

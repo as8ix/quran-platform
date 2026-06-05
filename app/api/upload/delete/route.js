@@ -4,6 +4,16 @@ import { NextResponse } from "next/server";
 
 export async function POST(request) {
   try {
+    const role = request.headers.get('x-user-role');
+
+    // Security Check: Only TEACHER or SUPERVISOR can delete files
+    if (role !== 'SUPERVISOR' && role !== 'TEACHER') {
+      return NextResponse.json(
+        { error: "Unauthorized: You do not have permission to delete files" },
+        { status: 403 }
+      );
+    }
+
     const body = await request.json();
     const { key: inputKey, fileUrl } = body;
 
@@ -37,6 +47,16 @@ export async function POST(request) {
       );
     }
 
+    // Security Check (HIGH-08): Path Traversal Prevention
+    // Normalize path separators and verify it stays within the 'notifications/' directory
+    const normalizedKey = key.replace(/\\/g, '/');
+    if (normalizedKey.includes('..') || !normalizedKey.startsWith('notifications/')) {
+      return NextResponse.json(
+        { error: "Invalid file key. Only deletion within the notifications/ folder is allowed." },
+        { status: 400 }
+      );
+    }
+
     const bucketName = process.env.CLOUDFLARE_R2_BUCKET_NAME;
     if (!bucketName) {
       return NextResponse.json(
@@ -47,7 +67,7 @@ export async function POST(request) {
 
     const command = new DeleteObjectCommand({
       Bucket: bucketName,
-      Key: key,
+      Key: normalizedKey,
     });
 
     await r2Client.send(command);
@@ -55,7 +75,7 @@ export async function POST(request) {
     return NextResponse.json({
       success: true,
       message: `File deleted successfully from R2`,
-      key,
+      key: normalizedKey,
     });
   } catch (error) {
     console.error("Delete API Error:", error);

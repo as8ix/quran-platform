@@ -16,7 +16,7 @@ import AddStudentModal from '../components/AddStudentModal';
 import ManageHolidaysModal from '../components/ManageHolidaysModal';
 import SupervisorStats from '../components/SupervisorStats';
 import LoadingScreen from '../components/LoadingScreen';
-
+import ResetPasswordModal from '../components/ResetPasswordModal';
 
 export default function SupervisorDashboard() {
     const router = useRouter();
@@ -107,6 +107,7 @@ export default function SupervisorDashboard() {
         syncHalaqas: true,
         addNewStudents: true
     });
+    const [resetModalConfig, setResetModalConfig] = useState({ isOpen: false, targetId: null, targetName: '', role: '' });
 
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
@@ -1048,6 +1049,15 @@ export default function SupervisorDashboard() {
                                                     </div>
                                                     <div className="flex items-center gap-3">
                                                         <button 
+                                                            onClick={() => setResetModalConfig({ isOpen: true, targetId: teacher.id, targetName: teacher.name, role: 'TEACHER' })}
+                                                            className="w-11 h-11 flex items-center justify-center bg-amber-50 dark:bg-amber-900/20 text-amber-600 rounded-xl hover:bg-amber-600 hover:text-white transition-all duration-300 border border-amber-100 dark:border-amber-900/30 shadow-sm"
+                                                            title="إعادة تعيين كلمة المرور"
+                                                        >
+                                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                                                            </svg>
+                                                        </button>
+                                                        <button 
                                                             onClick={() => handleDeleteTeacher(teacher.id, teacher.name)} 
                                                             className="w-11 h-11 flex items-center justify-center bg-rose-50 dark:bg-rose-900/20 text-rose-600 rounded-xl hover:bg-rose-600 hover:text-white transition-all duration-300 border border-rose-100 dark:border-rose-900/30 shadow-sm"
                                                             title="حذف"
@@ -1213,6 +1223,14 @@ export default function SupervisorDashboard() {
                     </>
                 )}
             </main>
+
+            <ResetPasswordModal 
+                isOpen={resetModalConfig.isOpen}
+                onClose={() => setResetModalConfig({ ...resetModalConfig, isOpen: false })}
+                targetId={resetModalConfig.targetId}
+                targetName={resetModalConfig.targetName}
+                role={resetModalConfig.role}
+            />
 
             {showTeacherModal && (
                 <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 backdrop-blur-[12px] md:backdrop-blur-[20px]">
@@ -1574,6 +1592,15 @@ export default function SupervisorDashboard() {
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-2">
+                                                <button 
+                                                    onClick={() => setResetModalConfig({ isOpen: true, targetId: s.id, targetName: s.name, role: 'STUDENT' })}
+                                                    className="p-2 bg-amber-50 dark:bg-amber-900/20 text-amber-600 hover:text-white hover:bg-amber-600 rounded-xl transition-all border border-transparent shadow-sm"
+                                                    title="إعادة تعيين كلمة المرور"
+                                                >
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                                                    </svg>
+                                                </button>
                                                 <button
                                                     onClick={() => handleEditStudent(s)}
                                                     className="p-2 bg-white dark:bg-slate-800 text-slate-400 hover:text-emerald-500 rounded-xl transition-all border border-transparent hover:border-emerald-500/20 shadow-sm"

@@ -156,6 +156,12 @@ function findExistingStudent(sheetStudent, dbStudents) {
 
 export async function POST(request) {
   try {
+    // SECURITY FIX (HIGH-07): Only supervisors can trigger Google Sheets sync
+    const role = request.headers.get('x-user-role');
+    if (role !== 'SUPERVISOR') {
+        return NextResponse.json({ error: 'Unauthorized: Supervisor access required' }, { status: 403 });
+    }
+
     // Read options from body (support selective sync)
     const body = await request.json().catch(() => ({}));
     const {

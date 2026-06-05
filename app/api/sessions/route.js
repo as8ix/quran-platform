@@ -2,18 +2,65 @@ import { prisma } from '../../lib/prisma';
 import { NextResponse } from 'next/server';
 import { quranData } from '@/app/data/quranData';
 
+// Helper function to verify if a teacher is authorized to manage a student's sessions
+async function checkTeacherAccess(teacherId, studentId) {
+    const isStudentInTeacherHalaqa = await prisma.student.findFirst({
+        where: {
+            id: studentId,
+            halaqa: {
+                OR: [
+                    { teacherId: teacherId },
+                    { assistants: { some: { id: teacherId } } }
+                ]
+            }
+        }
+    });
+
+    if (isStudentInTeacherHalaqa) return true;
+
+    const isStudentAssignedInEvent = await prisma.eventAssignment.findFirst({
+        where: {
+            teacherId: teacherId,
+            studentId: studentId
+        }
+    });
+
+    if (isStudentAssignedInEvent) return true;
+
+    return false;
+}
+
 export async function GET(request) {
     try {
+        const userId = parseInt(request.headers.get('x-user-id'));
+        const role = request.headers.get('x-user-role');
+
         const { searchParams } = new URL(request.url);
-        const studentId = searchParams.get('studentId');
+        let studentId = searchParams.get('studentId');
 
         if (!studentId) {
             return NextResponse.json({ error: 'Missing studentId' }, { status: 400 });
         }
 
+        const targetStudentId = parseInt(studentId);
+
+        // Security Check (HIGH-02): IDOR validation
+        if (role === 'STUDENT') {
+            if (userId !== targetStudentId) {
+                return NextResponse.json({ error: 'غير مصرح لك بالوصول لبيانات هذا الطالب' }, { status: 403 });
+            }
+        } else if (role === 'TEACHER') {
+            const hasAccess = await checkTeacherAccess(userId, targetStudentId);
+            if (!hasAccess) {
+                return NextResponse.json({ error: 'غير مصرح لك بالوصول لبيانات هذا الطالب' }, { status: 403 });
+            }
+        } else if (role !== 'SUPERVISOR') {
+            return NextResponse.json({ error: 'دور غير صالح' }, { status: 403 });
+        }
+
         const sessions = await prisma.session.findMany({
             where: {
-                studentId: parseInt(studentId)
+                studentId: targetStudentId
             },
             orderBy: {
                 date: 'desc'
@@ -28,6 +75,9 @@ export async function GET(request) {
 
 export async function POST(request) {
     try {
+        const userId = parseInt(request.headers.get('x-user-id'));
+        const role = request.headers.get('x-user-role');
+
         const body = await request.json();
         const {
             studentId,
@@ -41,9 +91,23 @@ export async function POST(request) {
             quranicEventId
         } = body;
 
+        const targetStudentId = parseInt(studentId);
+
+        // Security Check (HIGH-02): Only TEACHER or SUPERVISOR can create sessions
+        if (role === 'STUDENT') {
+            return NextResponse.json({ error: 'غير مصرح للطلاب بتسجيل الجلسات' }, { status: 403 });
+        } else if (role === 'TEACHER') {
+            const hasAccess = await checkTeacherAccess(userId, targetStudentId);
+            if (!hasAccess) {
+                return NextResponse.json({ error: 'غير مصرح لك بتسجيل جلسة لهذا الطالب' }, { status: 403 });
+            }
+        } else if (role !== 'SUPERVISOR') {
+            return NextResponse.json({ error: 'دور غير صالح' }, { status: 403 });
+        }
+
         const session = await prisma.session.create({
             data: {
-                studentId: parseInt(studentId),
+                studentId: targetStudentId,
                 hifzSurah,
                 hifzFromPage: hifzFromPage ? parseInt(hifzFromPage) : null,
                 hifzToPage: hifzToPage ? parseInt(hifzToPage) : null,
@@ -85,7 +149,7 @@ export async function POST(request) {
 
             const todayPlanEntries = await prisma.studyPlanEntry.findMany({
                 where: {
-                    studentId: parseInt(studentId),
+                    studentId: targetStudentId,
                     date: {
                         gte: startOfDay,
                         lte: endOfDay
@@ -123,37 +187,26 @@ export async function POST(request) {
             console.error("Auto-matching plan entry error:", planError);
         }
 
-        /* EXAMS FEATURE DISABLED
-        if (isFinishedSurah) {
-             const student = await prisma.student.findUnique({ where: { id: parseInt(studentId) } });
-            // ... Exam logic commented out ...
-        }
-        */
-
-        // MOVED UPDATE LOGIC OUTSIDE OF COMMENTED EXAM BLOCK
         console.log("Session created. isFinishedSurah:", isFinishedSurah);
 
         if (isFinishedSurah) {
-            const student = await prisma.student.findUnique({ where: { id: parseInt(studentId) } });
+            const student = await prisma.student.findUnique({ where: { id: targetStudentId } });
             if (student) {
                 // Determine Next Surah
                 let currentSurahId = student.currentHifzSurahId;
                 let nextSurahId = null;
 
                 if (currentSurahId === 1) {
-                    // Finished Fatiha (1) -> Start from An-Nas (114)
                     nextSurahId = 114;
                 } else if (currentSurahId === 2) {
-                    // Finished Baqarah (2) -> KHATIM
                     await prisma.student.update({
-                        where: { id: parseInt(studentId) },
+                        where: { id: targetStudentId },
                         data: {
                             juzCount: 30, 
                             hifzProgress: "خاتم للقرآن الكريم"
                         }
                     });
                 } else {
-                    // Normal upward progression (descending order 114 -> 3)
                     nextSurahId = (currentSurahId || 114) - 1;
                 }
 
@@ -161,7 +214,7 @@ export async function POST(request) {
                     const nextSurah = quranData.find(s => s.id === nextSurahId);
                     if (nextSurah) {
                         await prisma.student.update({
-                            where: { id: parseInt(studentId) },
+                            where: { id: targetStudentId },
                             data: {
                                 currentHifzSurahId: nextSurahId,
                                 hifzProgress: nextSurah.name
@@ -181,10 +234,33 @@ export async function POST(request) {
 
 export async function PUT(request) {
     try {
+        const userId = parseInt(request.headers.get('x-user-id'));
+        const role = request.headers.get('x-user-role');
+
         const body = await request.json();
         const { id, ...fields } = body;
 
         if (!id) return NextResponse.json({ error: 'Missing session id' }, { status: 400 });
+
+        const session = await prisma.session.findUnique({
+            where: { id: parseInt(id) }
+        });
+
+        if (!session) {
+            return NextResponse.json({ error: 'الجلسة غير موجودة' }, { status: 44 });
+        }
+
+        // Security Check (HIGH-02): Only TEACHER or SUPERVISOR can edit sessions
+        if (role === 'STUDENT') {
+            return NextResponse.json({ error: 'غير مصرح للطلاب بتعديل الجلسات' }, { status: 403 });
+        } else if (role === 'TEACHER') {
+            const hasAccess = await checkTeacherAccess(userId, session.studentId);
+            if (!hasAccess) {
+                return NextResponse.json({ error: 'غير مصرح لك بتعديل هذه الجلسة' }, { status: 403 });
+            }
+        } else if (role !== 'SUPERVISOR') {
+            return NextResponse.json({ error: 'دور غير صالح' }, { status: 403 });
+        }
 
         const updateData = {};
         if (fields.hifzSurah !== undefined)                updateData.hifzSurah = fields.hifzSurah;
@@ -229,9 +305,32 @@ export async function PUT(request) {
 
 export async function DELETE(request) {
     try {
+        const userId = parseInt(request.headers.get('x-user-id'));
+        const role = request.headers.get('x-user-role');
+
         const { searchParams } = new URL(request.url);
         const id = searchParams.get('id');
         if (!id) return NextResponse.json({ error: 'Missing session id' }, { status: 400 });
+
+        const session = await prisma.session.findUnique({
+            where: { id: parseInt(id) }
+        });
+
+        if (!session) {
+            return NextResponse.json({ error: 'الجلسة غير موجودة' }, { status: 404 });
+        }
+
+        // Security Check (HIGH-02): Only TEACHER or SUPERVISOR can delete sessions
+        if (role === 'STUDENT') {
+            return NextResponse.json({ error: 'غير مصرح للطلاب بحذف الجلسات' }, { status: 403 });
+        } else if (role === 'TEACHER') {
+            const hasAccess = await checkTeacherAccess(userId, session.studentId);
+            if (!hasAccess) {
+                return NextResponse.json({ error: 'غير مصرح لك بحذف هذه الجلسة' }, { status: 403 });
+            }
+        } else if (role !== 'SUPERVISOR') {
+            return NextResponse.json({ error: 'دور غير صالح' }, { status: 403 });
+        }
 
         await prisma.session.delete({ where: { id: parseInt(id) } });
         return NextResponse.json({ success: true });

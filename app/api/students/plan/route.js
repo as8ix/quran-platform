@@ -3,9 +3,40 @@ import { NextResponse } from 'next/server';
 import { quranData } from '@/app/data/quranData';
 import { pageAyahMap } from '@/app/data/pageAyahMap';
 
+// Helper function to verify if a teacher is authorized to manage a student's plan
+async function checkTeacherAccess(teacherId, studentId) {
+    const isStudentInTeacherHalaqa = await prisma.student.findFirst({
+        where: {
+            id: studentId,
+            halaqa: {
+                OR: [
+                    { teacherId: teacherId },
+                    { assistants: { some: { id: teacherId } } }
+                ]
+            }
+        }
+    });
+
+    if (isStudentInTeacherHalaqa) return true;
+
+    const isStudentAssignedInEvent = await prisma.eventAssignment.findFirst({
+        where: {
+            teacherId: teacherId,
+            studentId: studentId
+        }
+    });
+
+    if (isStudentAssignedInEvent) return true;
+
+    return false;
+}
+
 // GET: Fetch student plan entries
 export async function GET(request) {
     try {
+        const userId = parseInt(request.headers.get('x-user-id'));
+        const role = request.headers.get('x-user-role');
+
         const { searchParams } = new URL(request.url);
         const studentId = searchParams.get('studentId');
 
@@ -13,8 +44,24 @@ export async function GET(request) {
             return NextResponse.json({ error: 'studentId required' }, { status: 400 });
         }
 
+        const targetStudentId = parseInt(studentId);
+
+        // Security Check: IDOR validation
+        if (role === 'STUDENT') {
+            if (userId !== targetStudentId) {
+                return NextResponse.json({ error: 'غير مصرح لك بالوصول لخطة هذا الطالب' }, { status: 403 });
+            }
+        } else if (role === 'TEACHER') {
+            const hasAccess = await checkTeacherAccess(userId, targetStudentId);
+            if (!hasAccess) {
+                return NextResponse.json({ error: 'غير مصرح لك بالوصول لخطة هذا الطالب' }, { status: 403 });
+            }
+        } else if (role !== 'SUPERVISOR') {
+            return NextResponse.json({ error: 'دور غير صالح' }, { status: 403 });
+        }
+
         const entries = await prisma.studyPlanEntry.findMany({
-            where: { studentId: parseInt(studentId) },
+            where: { studentId: targetStudentId },
             orderBy: { date: 'asc' }
         });
 
@@ -28,6 +75,14 @@ export async function GET(request) {
 // DELETE: Delete single or clear entire plan
 export async function DELETE(request) {
     try {
+        const userId = parseInt(request.headers.get('x-user-id'));
+        const role = request.headers.get('x-user-role');
+
+        // Security Check: Students cannot delete plan items
+        if (role === 'STUDENT') {
+            return NextResponse.json({ error: 'غير مصرح للطلاب بحذف بنود الخطة' }, { status: 403 });
+        }
+
         const { searchParams } = new URL(request.url);
         const id = searchParams.get('id');
         const studentId = searchParams.get('studentId');
@@ -37,8 +92,18 @@ export async function DELETE(request) {
             if (!studentId) {
                 return NextResponse.json({ error: 'studentId required to clear plan' }, { status: 400 });
             }
+            const targetStudentId = parseInt(studentId);
+
+            // Security Check: Verify teacher access
+            if (role === 'TEACHER') {
+                const hasAccess = await checkTeacherAccess(userId, targetStudentId);
+                if (!hasAccess) {
+                    return NextResponse.json({ error: 'غير مصرح لك بتعديل خطة هذا الطالب' }, { status: 403 });
+                }
+            }
+
             await prisma.studyPlanEntry.deleteMany({
-                where: { studentId: parseInt(studentId) }
+                where: { studentId: targetStudentId }
             });
             return NextResponse.json({ message: 'تم مسح الخطة بالكامل بنجاح' });
         }
@@ -47,8 +112,25 @@ export async function DELETE(request) {
             return NextResponse.json({ error: 'id required' }, { status: 400 });
         }
 
+        const targetId = parseInt(id);
+        const entry = await prisma.studyPlanEntry.findUnique({
+            where: { id: targetId }
+        });
+
+        if (!entry) {
+            return NextResponse.json({ error: 'البند غير موجود' }, { status: 404 });
+        }
+
+        // Security Check: Verify teacher access to the entry's student
+        if (role === 'TEACHER') {
+            const hasAccess = await checkTeacherAccess(userId, entry.studentId);
+            if (!hasAccess) {
+                return NextResponse.json({ error: 'غير مصرح لك بحذف هذا البند' }, { status: 403 });
+            }
+        }
+
         await prisma.studyPlanEntry.delete({
-            where: { id: parseInt(id) }
+            where: { id: targetId }
         });
 
         return NextResponse.json({ message: 'تم حذف البند بنجاح' });
@@ -61,6 +143,14 @@ export async function DELETE(request) {
 // POST: Add custom entry OR Auto-generate plan
 export async function POST(request) {
     try {
+        const userId = parseInt(request.headers.get('x-user-id'));
+        const role = request.headers.get('x-user-role');
+
+        // Security Check: Students cannot create/generate plan items
+        if (role === 'STUDENT') {
+            return NextResponse.json({ error: 'غير مصرح للطلاب بتعديل أو توليد الخطة' }, { status: 403 });
+        }
+
         const body = await request.json();
         const { action, studentId } = body;
 
@@ -68,12 +158,22 @@ export async function POST(request) {
             return NextResponse.json({ error: 'studentId is required' }, { status: 400 });
         }
 
+        const targetStudentId = parseInt(studentId);
+
+        // Security Check: Verify teacher access
+        if (role === 'TEACHER') {
+            const hasAccess = await checkTeacherAccess(userId, targetStudentId);
+            if (!hasAccess) {
+                return NextResponse.json({ error: 'غير مصرح لك بتعديل خطة هذا الطالب' }, { status: 403 });
+            }
+        }
+
         if (action === 'create') {
             const { date, type, surahId, fromAyah, toAyah } = body;
             const newEntry = await prisma.studyPlanEntry.create({
                 data: {
                     Student: {
-                        connect: { id: parseInt(studentId) }
+                        connect: { id: targetStudentId }
                     },
                     date: new Date(date),
                     type,
@@ -101,7 +201,6 @@ export async function POST(request) {
                 return NextResponse.json({ error: 'السورة المحددة غير صالحة' }, { status: 400 });
             }
 
-            // 1. Get page boundaries
             const getSurahEndPage = (sId) => {
                 const nextS = quranData.find(s => s.id === sId + 1);
                 return nextS ? nextS.startPage - 1 : 604;
@@ -110,7 +209,6 @@ export async function POST(request) {
             const startPage = startSurah.startPage;
             const endPage = getSurahEndPage(endSId);
 
-            // 2. Gather list of portions (surah-page portions) to schedule
             const portionsToSchedule = [];
             const isBackward = direction === 'backward';
             
@@ -136,7 +234,6 @@ export async function POST(request) {
                     }
                 });
                 
-                // Sort pages ascending so we memorize this surah from start to end (beginning to end)
                 pages.sort((a, b) => a - b);
                 
                 pages.forEach(p => {
@@ -153,7 +250,6 @@ export async function POST(request) {
                 });
             });
 
-            // Group consecutive portions that share the same page to allow small surahs (like An-Nas, Al-Falaq, Al-Ikhlas) to be memorized together on a single page-day
             const groupedDays = [];
             let currentGroup = [];
             
@@ -181,10 +277,9 @@ export async function POST(request) {
             }
 
             await prisma.studyPlanEntry.deleteMany({
-                where: { studentId: parseInt(studentId) }
+                where: { studentId: targetStudentId }
             });
 
-            // 4. Generate plan entries for active days (Sunday to Wednesday only)
             const allowedPlanDays = [0, 1, 2, 3];
             let currentDate = new Date(startDate || new Date());
             if (isNaN(currentDate.getTime())) {
@@ -205,7 +300,6 @@ export async function POST(request) {
                 return d;
             };
 
-            // Build cumulative memorized pool of pages before starting to simulate real review boundaries
             const cumulativePool = [];
             if (isBackward) {
                 for (let p = startPage + 1; p <= 604; p++) {
@@ -243,7 +337,7 @@ export async function POST(request) {
                 const reviewSurahId = getSurahAtPage(minPage);
 
                 return {
-                    studentId: parseInt(studentId),
+                    studentId: targetStudentId,
                     date: dateToUse,
                     type: 'MURAJAAH',
                     surahId: reviewSurahId,
@@ -267,7 +361,7 @@ export async function POST(request) {
                     }
                     group.portions.forEach(portion => {
                         entriesToCreate.push({
-                            studentId: parseInt(studentId),
+                            studentId: targetStudentId,
                             date: new Date(currentDate),
                             type: 'HIFZ',
                             surahId: portion.surahId,
@@ -284,7 +378,6 @@ export async function POST(request) {
                 } else if (numDailyPages === 0.5) {
                     const group = groupedDays[dayIdx];
 
-                    // Day 1: first half of all portions in the group
                     const scheduledDate1 = new Date(currentDate);
                     const rEntry1 = getReviewEntryForDate(scheduledDate1);
                     if (rEntry1) {
@@ -293,7 +386,7 @@ export async function POST(request) {
                     group.portions.forEach(portion => {
                         const mid = Math.round((portion.start + portion.end) / 2);
                         entriesToCreate.push({
-                            studentId: parseInt(studentId),
+                            studentId: targetStudentId,
                             date: scheduledDate1,
                             type: 'HIFZ',
                             surahId: portion.surahId,
@@ -303,7 +396,6 @@ export async function POST(request) {
                         });
                     });
 
-                    // Day 2: second half of all portions in the group
                     currentDate.setDate(currentDate.getDate() + 1);
                     currentDate = getNextActiveDate(currentDate);
                     const scheduledDate2 = new Date(currentDate);
@@ -314,7 +406,7 @@ export async function POST(request) {
                     group.portions.forEach(portion => {
                         const mid = Math.round((portion.start + portion.end) / 2);
                         entriesToCreate.push({
-                            studentId: parseInt(studentId),
+                            studentId: targetStudentId,
                             date: scheduledDate2,
                             type: 'HIFZ',
                             surahId: portion.surahId,
@@ -333,7 +425,6 @@ export async function POST(request) {
                 currentDate.setDate(currentDate.getDate() + 1);
             }
 
-            // Create all entries in a single high-performance bulk insertion (takes milliseconds)
             if (entriesToCreate.length > 0) {
                 await prisma.studyPlanEntry.createMany({
                     data: entriesToCreate.map(entry => ({
