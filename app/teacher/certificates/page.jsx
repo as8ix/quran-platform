@@ -15,6 +15,7 @@ export default function CertificatesPage() {
     const [user, setUser] = useState(null);
     const [selectedStudent, setSelectedStudent] = useState(null);
     const [showAddModal, setShowAddModal] = useState(false);
+    const [editingCertificate, setEditingCertificate] = useState(null);
     
     // For viewing certificates
     const [certificates, setCertificates] = useState({});
@@ -172,18 +173,30 @@ export default function CertificatesPage() {
                     onClose={() => {
                         setShowAddModal(false);
                         setSelectedStudent(null);
+                        setEditingCertificate(null);
                     }}
                     onSuccess={(newCert) => {
                         // Update state without reloading the page
-                        setCertificates(prev => ({
-                            ...prev,
-                            [selectedStudent.id]: [...(prev[selectedStudent.id] || []), newCert]
-                        }));
+                        setCertificates(prev => {
+                            const certs = prev[selectedStudent.id] || [];
+                            if (editingCertificate) {
+                                return {
+                                    ...prev,
+                                    [selectedStudent.id]: certs.map(c => c.id === newCert.id ? newCert : c)
+                                };
+                            }
+                            return {
+                                ...prev,
+                                [selectedStudent.id]: [...certs, newCert]
+                            };
+                        });
                         setShowAddModal(false);
                         setSelectedStudent(null);
+                        setEditingCertificate(null);
                     }}
                     student={selectedStudent}
                     teacher={user}
+                    editingCertificate={editingCertificate}
                 />
             )}
 
@@ -196,6 +209,12 @@ export default function CertificatesPage() {
                     }}
                     student={studentToView}
                     certificates={certificates[studentToView.id] || []}
+                    onEditClick={(cert) => {
+                        setEditingCertificate(cert);
+                        setSelectedStudent(studentToView);
+                        setShowViewModal(false);
+                        setShowAddModal(true);
+                    }}
                 />
             )}
         </div>
@@ -203,7 +222,7 @@ export default function CertificatesPage() {
 }
 
 // Modal component to view a student's certificates (list format for teacher)
-function TeacherStudentCertificatesModal({ isOpen, onClose, student, certificates }) {
+function TeacherStudentCertificatesModal({ isOpen, onClose, student, certificates, onEditClick }) {
     if (!isOpen) return null;
 
     return (
@@ -234,13 +253,22 @@ function TeacherStudentCertificatesModal({ isOpen, onClose, student, certificate
                                     <p className="text-xs font-bold text-slate-500">الدرجة: {cert.grade}%</p>
                                     <p className="text-xs font-bold text-slate-500">التاريخ: {new Date(cert.examDate).toLocaleDateString('ar-SA')}</p>
                                 </div>
-                                <button 
-                                    onClick={() => window.open(cert.fileUrl, '_blank')}
-                                    className="w-full py-2 bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400 font-bold rounded-xl text-sm hover:bg-sky-200 dark:hover:bg-sky-900/50 transition-colors flex justify-center items-center gap-2"
-                                >
-                                    فتح الشهادة
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
-                                </button>
+                                <div className="flex gap-2">
+                                    <button 
+                                        onClick={() => window.open(cert.fileUrl, '_blank')}
+                                        className="flex-1 py-2 bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400 font-bold rounded-xl text-sm hover:bg-sky-200 dark:hover:bg-sky-900/50 transition-colors flex justify-center items-center gap-2"
+                                    >
+                                        فتح الشهادة
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                                    </button>
+                                    <button 
+                                        onClick={() => onEditClick(cert)}
+                                        className="p-2 bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-emerald-600 rounded-xl hover:bg-emerald-50 transition-colors border border-slate-200 dark:border-slate-700"
+                                        title="تعديل بيانات الشهادة"
+                                    >
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                    </button>
+                                </div>
                             </div>
                         ))}
                     </div>

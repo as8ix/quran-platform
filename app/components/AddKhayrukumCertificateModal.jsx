@@ -10,12 +10,12 @@ const EXAM_TYPES = [
     { value: 'عن بُعد', label: 'عن بُعد', icon: '💻' },
 ];
 
-export default function AddKhayrukumCertificateModal({ isOpen, onClose, onSuccess, student, teacher }) {
-    const [title, setTitle] = useState('');
-    const [branchNumber, setBranchNumber] = useState('');
-    const [examType, setExamType] = useState('حضوري');
-    const [examDate, setExamDate] = useState('');
-    const [grade, setGrade] = useState('');
+export default function AddKhayrukumCertificateModal({ isOpen, onClose, onSuccess, student, teacher, editingCertificate }) {
+    const [title, setTitle] = useState(editingCertificate?.title || '');
+    const [branchNumber, setBranchNumber] = useState(editingCertificate?.branchNumber || '');
+    const [examType, setExamType] = useState(editingCertificate?.examType || 'حضوري');
+    const [examDate, setExamDate] = useState(editingCertificate?.examDate ? new Date(editingCertificate.examDate).toISOString().split('T')[0] : '');
+    const [grade, setGrade] = useState(editingCertificate?.grade || '');
     const [file, setFile] = useState(null);
     const [loading, setLoading] = useState(false);
     const fileInputRef = useRef(null);
@@ -70,20 +70,27 @@ export default function AddKhayrukumCertificateModal({ isOpen, onClose, onSucces
     const handleSubmit = async (e) => {
         e.preventDefault();
         
-        if (!branchNumber || !examType || !examDate || !grade || !file) {
+        if (!branchNumber || !examType || !examDate || !grade || (!file && !editingCertificate)) {
             toast.error('الرجاء تعبئة جميع الحقول وإرفاق الشهادة');
             return;
         }
 
         setLoading(true);
         try {
-            toast.loading('جاري رفع الملف...', { id: 'upload' });
-            const fileUrl = await uploadFile(file);
+            let fileUrl = editingCertificate?.fileUrl;
+            
+            if (file) {
+                toast.loading('جاري رفع الملف...', { id: 'upload' });
+                fileUrl = await uploadFile(file);
+            }
             
             toast.loading('جاري حفظ البيانات...', { id: 'upload' });
             
-            const res = await fetch('/api/certificates', {
-                method: 'POST',
+            const endpoint = editingCertificate ? `/api/certificates/${editingCertificate.id}` : '/api/certificates';
+            const method = editingCertificate ? 'PATCH' : 'POST';
+            
+            const res = await fetch(endpoint, {
+                method: method,
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     studentId: student.id,
@@ -102,7 +109,11 @@ export default function AddKhayrukumCertificateModal({ isOpen, onClose, onSucces
                 throw new Error(data.error || 'حدث خطأ أثناء حفظ الشهادة');
             }
 
-            toast.success('تمت إضافة الشهادة وإشعار الطالب بنجاح!', { id: 'upload' });
+            if (editingCertificate) {
+                toast.success('تم تحديث الشهادة بنجاح!', { id: 'upload' });
+            } else {
+                toast.success('تم حفظ الشهادة وإشعار الطالب!', { id: 'upload' });
+            }
             
             // Reset state
             setTitle('');
@@ -134,10 +145,10 @@ export default function AddKhayrukumCertificateModal({ isOpen, onClose, onSucces
                 {/* Header */}
                 <div className="p-6 border-b border-slate-100 dark:border-slate-800 bg-sky-50/50 dark:bg-sky-900/10 flex justify-between items-center">
                     <div>
-                        <h2 className="text-xl font-black text-slate-800 dark:text-white flex items-center gap-2">
-                            <span>📜</span>
-                            إضافة شهادة لـ {student?.name}
-                        </h2>
+                        <h3 className="text-2xl font-black text-slate-800 dark:text-white">
+                            {editingCertificate ? 'تعديل شهادة الاختبار' : 'إضافة شهادة اختبار جديدة'}
+                        </h3>
+                        <p className="text-sm text-slate-500 font-bold mt-1">الطالب: {student.name}</p>
                     </div>
                     <button onClick={onClose} className="p-2 bg-white dark:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
@@ -245,7 +256,9 @@ export default function AddKhayrukumCertificateModal({ isOpen, onClose, onSucces
                         <div 
                             onClick={() => fileInputRef.current?.click()}
                             className={`w-full border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-colors
-                                ${file ? 'border-sky-500 bg-sky-50 dark:bg-sky-900/20' : 'border-slate-300 dark:border-slate-700 hover:border-sky-400 hover:bg-slate-50 dark:hover:bg-slate-800'}
+                                ${file ? 'border-sky-500 bg-sky-50 dark:bg-sky-900/20' : 
+                                  editingCertificate?.fileUrl ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20' : 
+                                  'border-slate-300 dark:border-slate-700 hover:border-sky-400 hover:bg-slate-50 dark:hover:bg-slate-800'}
                             `}
                         >
                             <input 
@@ -261,11 +274,17 @@ export default function AddKhayrukumCertificateModal({ isOpen, onClose, onSucces
                                     <span className="font-bold text-sm block truncate px-4">{file.name}</span>
                                     <span className="text-xs opacity-75 mt-1">اضغط للتغيير</span>
                                 </div>
+                            ) : editingCertificate?.fileUrl ? (
+                                <div className="text-emerald-600 dark:text-emerald-400">
+                                    <svg className="w-8 h-8 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    <span className="font-bold text-sm block px-4">الشهادة الحالية مرفوعة ومحفوظة</span>
+                                    <span className="text-xs opacity-75 mt-1 text-slate-500 block">اضغط هنا فقط إذا أردت استبدالها بشهادة جديدة</span>
+                                </div>
                             ) : (
                                 <div className="text-slate-500 dark:text-slate-400">
                                     <svg className="w-8 h-8 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
                                     <span className="font-bold text-sm block">اضغط لاختيار ملف</span>
-                                    <span className="text-xs opacity-75 mt-1">الحد الأقصى 5 ميجابايت</span>
+                                    <span className="text-xs text-slate-400 mt-2 block">الحجم الأقصى: 5MB (PDF أو صور)</span>
                                 </div>
                             )}
                         </div>
@@ -283,14 +302,19 @@ export default function AddKhayrukumCertificateModal({ isOpen, onClose, onSucces
                         <button 
                             type="submit"
                             disabled={loading}
-                            className="px-6 py-3 rounded-xl font-bold text-white bg-sky-600 hover:bg-sky-700 shadow-lg shadow-sky-200/50 dark:shadow-none transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed w-2/3 flex items-center justify-center gap-2"
+                            className="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-emerald-500/20 active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2 w-2/3"
                         >
                             {loading ? (
                                 <>
-                                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                    <svg className="animate-spin w-5 h-5" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
                                     جاري الحفظ...
                                 </>
-                            ) : 'إضافة وتوثيق الشهادة'}
+                            ) : (
+                                editingCertificate ? 'حفظ التعديلات' : 'اعتماد وحفظ الشهادة'
+                            )}
                         </button>
                     </div>
                 </form>
