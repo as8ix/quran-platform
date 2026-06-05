@@ -119,7 +119,12 @@ export default function CertificatesPage() {
                                         </div>
                                         <div>
                                             <h3 className="text-lg font-black text-slate-800 dark:text-slate-200">{student.name}</h3>
-                                            <div className="flex items-center gap-3 mt-1">
+                                            {student.nationalId && (
+                                                <p className="text-sm text-slate-500 font-medium mt-0.5">
+                                                    رقم الهوية: {student.nationalId}
+                                                </p>
+                                            )}
+                                            <div className="flex items-center gap-3 mt-1.5">
                                                 <p className="text-xs text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded-md">
                                                     محفوظات: {student.juzCount} جزء
                                                 </p>
