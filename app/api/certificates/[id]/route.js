@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/app/lib/prisma';
 
-export async function PATCH(request, { params }) {
+export async function PATCH(request, context) {
   try {
-    const { id } = params;
+    const params = await context.params;
+    const id = params.id;
     const data = await request.json();
     const { title, branchNumber, examType, examDate, grade, fileUrl } = data;
 
