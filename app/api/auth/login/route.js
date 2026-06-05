@@ -3,14 +3,14 @@ import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { SignJWT } from 'jose';
 
-if (!process.env.JWT_SECRET) {
-  throw new Error('FATAL: JWT_SECRET environment variable is not set.');
-}
-
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
-
 
 export async function POST(request) {
+    if (!process.env.JWT_SECRET) {
+        console.error('FATAL: JWT_SECRET environment variable is not set.');
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    }
+    const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
+
     try {
         const body = await request.json();
         const { username, password, role } = body;

@@ -1,13 +1,6 @@
 import { NextResponse } from 'next/server';
 import { jwtVerify } from 'jose';
 
-if (!process.env.JWT_SECRET) {
-  throw new Error('FATAL: JWT_SECRET environment variable is not set. The application cannot start securely.');
-}
-
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
-
-
 // Simple in-memory rate limiter for Edge
 const rateLimitMap = new Map();
 
@@ -39,6 +32,14 @@ export async function middleware(request) {
         if (!token) {
             return NextResponse.json({ error: 'Unauthorized: No token provided' }, { status: 401 });
         }
+
+        // Security Check: Verify JWT_SECRET is loaded at runtime (avoids crashing build step when not set in CI/CD)
+        if (!process.env.JWT_SECRET) {
+            console.error('FATAL: JWT_SECRET environment variable is not set. The application cannot start securely.');
+            return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+        }
+
+        const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
 
         try {
             const { payload } = await jwtVerify(token, JWT_SECRET);
