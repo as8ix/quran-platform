@@ -59,7 +59,6 @@ export async function GET(request) {
                                 pagesCount: true,
                                 resultString: true,
                                 date: true,
-                                type: true,
                                 hifzSurah: true,
                                 hifzFromAyah: true,
                                 hifzToAyah: true,
