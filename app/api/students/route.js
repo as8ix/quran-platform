@@ -351,10 +351,7 @@ export async function PUT(request) {
 export async function DELETE(request) {
     try {
         const role = request.headers.get('x-user-role');
-        // SECURITY Check: Only SUPERVISOR can delete student records
-        if (role !== 'SUPERVISOR') {
-            return NextResponse.json({ error: 'Unauthorized: Only supervisors can delete student records' }, { status: 403 });
-        }
+        const userId = parseInt(request.headers.get('x-user-id'));
 
         const { searchParams } = new URL(request.url);
         const id = searchParams.get('id');
@@ -362,6 +359,15 @@ export async function DELETE(request) {
         if (!id) return NextResponse.json({ error: 'Student ID required' }, { status: 400 });
 
         const studentId = parseInt(id);
+
+        if (role === 'TEACHER') {
+            const hasAccess = await checkTeacherAccess(userId, studentId);
+            if (!hasAccess) {
+                return NextResponse.json({ error: 'غير مصرح لك بحذف هذا الطالب' }, { status: 403 });
+            }
+        } else if (role !== 'SUPERVISOR') {
+            return NextResponse.json({ error: 'Unauthorized: Only supervisors and authorized teachers can delete student records' }, { status: 403 });
+        }
 
         // Delete all student relations in a transaction to prevent constraint errors and improve performance
         await prisma.$transaction([
