@@ -231,26 +231,36 @@ export default function SupervisorStats() {
                                 <button onClick={() => setKnightTab('mastery')} className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${knightTab === 'mastery' ? 'bg-white dark:bg-slate-700 text-emerald-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>فرسان الإتقان</button>
                             </div>
 
-                            <select 
-                                value={knightTime} 
-                                onChange={(e) => setKnightTime(e.target.value)}
-                                className="bg-white/60 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 rounded-2xl px-5 py-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500/50 cursor-pointer backdrop-blur-md flex-1 sm:flex-none"
-                            >
-                                <option value="week">هذا الأسبوع</option>
-                                <option value="month">هذا الشهر</option>
-                                <option value="all">الدورة كاملة</option>
-                            </select>
+                            <div className="relative flex-1 sm:flex-none">
+                                <select 
+                                    value={knightTime} 
+                                    onChange={(e) => setKnightTime(e.target.value)}
+                                    className="w-full appearance-none bg-white/60 dark:bg-slate-800/60 border border-slate-200/50 dark:border-slate-700/50 text-slate-700 dark:text-slate-200 rounded-2xl pl-10 pr-5 py-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500/50 cursor-pointer backdrop-blur-md shadow-sm transition-all hover:border-amber-300 dark:hover:border-amber-700"
+                                >
+                                    <option value="week" className="bg-white dark:bg-slate-800">هذا الأسبوع</option>
+                                    <option value="month" className="bg-white dark:bg-slate-800">هذا الشهر</option>
+                                    <option value="all" className="bg-white dark:bg-slate-800">الدورة كاملة</option>
+                                </select>
+                                <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                                </div>
+                            </div>
 
-                            <select 
-                                value={knightHalaqa} 
-                                onChange={(e) => setKnightHalaqa(e.target.value)}
-                                className="bg-white/60 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 rounded-2xl px-5 py-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500/50 cursor-pointer backdrop-blur-md flex-1 sm:flex-none"
-                            >
-                                <option value="all">جميع الحلقات</option>
-                                {halaqas.map(h => (
-                                    <option key={h.id} value={h.id}>{h.name}</option>
-                                ))}
-                            </select>
+                            <div className="relative flex-1 sm:flex-none">
+                                <select 
+                                    value={knightHalaqa} 
+                                    onChange={(e) => setKnightHalaqa(e.target.value)}
+                                    className="w-full appearance-none bg-white/60 dark:bg-slate-800/60 border border-slate-200/50 dark:border-slate-700/50 text-slate-700 dark:text-slate-200 rounded-2xl pl-10 pr-5 py-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500/50 cursor-pointer backdrop-blur-md shadow-sm transition-all hover:border-amber-300 dark:hover:border-amber-700"
+                                >
+                                    <option value="all" className="bg-white dark:bg-slate-800">جميع الحلقات</option>
+                                    {halaqas.map(h => (
+                                        <option key={h.id} value={h.id} className="bg-white dark:bg-slate-800">{h.name}</option>
+                                    ))}
+                                </select>
+                                <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
