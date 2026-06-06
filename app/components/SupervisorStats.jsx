@@ -189,7 +189,7 @@ export default function SupervisorStats() {
                         <span className="bg-rose-500 text-white text-[10px] font-black px-4 py-2 rounded-full shadow-lg shadow-rose-200 dark:shadow-none animate-bounce">مطلوب تدخل</span>
                     </div>
 
-                    <div className="space-y-4 relative z-10 shrink min-h-0 overflow-y-auto pr-2 custom-scrollbar">
+                    <div className="space-y-4 relative z-10 flex-1 min-h-0 overflow-y-auto pr-2 custom-scrollbar">
                         {stats?.inactiveStudents?.length > 0 ? stats.inactiveStudents.map((s, idx) => (
                             <div key={idx} className="flex items-center justify-between p-4 sm:p-5 bg-slate-800/50 backdrop-blur-md rounded-3xl border border-slate-700 hover:border-rose-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-rose-500/10 hover:-translate-y-1 group/item cursor-pointer">
                                 <div className="flex items-center gap-3 sm:gap-5 min-w-0">
@@ -285,7 +285,7 @@ export default function SupervisorStats() {
                         </div>
                     </div>
 
-                    <div className="space-y-4 relative z-10 shrink min-h-0 overflow-y-auto px-2 custom-scrollbar">
+                    <div className="space-y-4 relative z-10 flex-1 min-h-0 overflow-y-auto px-2 custom-scrollbar">
                         {knightsLoading ? (
                             <div className="flex justify-center items-center py-20">
                                 <div className="w-10 h-10 border-4 border-amber-200 border-t-amber-500 rounded-full animate-spin"></div>
