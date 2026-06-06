@@ -191,15 +191,25 @@ export default function SupervisorStats() {
 
                     <div className="space-y-4 relative z-10 max-h-[450px] overflow-y-auto pr-2 custom-scrollbar">
                         {stats?.inactiveStudents?.length > 0 ? stats.inactiveStudents.map((s, idx) => (
-                            <div key={idx} className="flex items-center justify-between p-5 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md rounded-[2rem] border border-white dark:border-slate-800 hover:border-rose-300 dark:hover:border-rose-500/30 transition-all duration-500 group/item">
-                                <div className="flex items-center gap-5">
-                                    <div className="w-12 h-12 bg-slate-50 dark:bg-slate-800 rounded-2xl flex items-center justify-center font-black text-slate-400 group-hover/item:bg-rose-500 group-hover/item:text-white transition-all duration-500 shadow-sm">{idx + 1}</div>
-                                    <div>
-                                        <div className="font-black text-slate-800 dark:text-white text-lg group-hover/item:text-rose-600 transition-colors">{s.name}</div>
-                                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{s.halaqaName}</div>
+                            <div key={idx} className="flex items-center justify-between p-4 sm:p-5 bg-slate-800/50 backdrop-blur-md rounded-3xl border border-slate-700 hover:border-rose-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-rose-500/10 hover:-translate-y-1 group/item cursor-pointer">
+                                <div className="flex items-center gap-3 sm:gap-5 min-w-0">
+                                    <div className="relative shrink-0">
+                                        <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-slate-700 flex items-center justify-center text-2xl shadow-inner overflow-hidden border-2 border-slate-600 group-hover/item:border-rose-400 group-hover/item:bg-rose-500/20 transition-colors">
+                                            {s.gender === 'female' ? '🧕' : '👨'}
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col gap-1 min-w-0">
+                                        <h4 className="text-base sm:text-lg font-black text-slate-800 dark:text-white truncate pr-1 group-hover/item:text-rose-400 transition-colors">{s.name}</h4>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-[10px] sm:text-xs font-bold text-slate-400 bg-slate-700/50 px-2 sm:px-3 py-1 rounded-lg border border-slate-600 truncate">
+                                                {s.halaqaName || 'غير محدد'}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
-                                <div className="text-[10px] font-bold text-rose-500 italic opacity-0 group-hover/item:opacity-100 transition-opacity">لم ينجز هذا الأسبوع</div>
+                                <div className="text-[10px] sm:text-xs font-bold text-rose-500/80 bg-rose-500/10 px-3 py-1.5 rounded-xl border border-rose-500/20 whitespace-nowrap">
+                                    لم ينجز
+                                </div>
                             </div>
                         )) : (
                             <div className="text-center py-24 bg-emerald-50/30 dark:bg-emerald-900/10 rounded-[3rem] border-2 border-dashed border-emerald-200 dark:border-emerald-800">
@@ -289,11 +299,11 @@ export default function SupervisorStats() {
                                 <div className="flex items-center justify-between relative z-10">
                                     <div className="flex items-center gap-2 sm:gap-5 min-w-0">
                                         <div className="relative shrink-0">
-                                            <div className={`w-12 h-12 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center text-2xl sm:text-3xl shadow-inner border-2 transition-colors ${
-                                                idx === 0 ? 'bg-amber-100 border-amber-400 text-amber-600' :
-                                                idx === 1 ? 'bg-slate-100 border-slate-400 text-slate-600' :
-                                                idx === 2 ? 'bg-orange-100 border-orange-400 text-orange-600' :
-                                                'bg-slate-50 border-slate-200 text-slate-400'
+                                            <div className={`w-12 h-12 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center text-xl sm:text-2xl font-black shadow-inner border-2 transition-all duration-300 ${
+                                                idx === 0 ? 'bg-amber-100 border-amber-400 text-amber-600 dark:bg-amber-900/30 dark:border-amber-500/50 dark:text-amber-400' :
+                                                idx === 1 ? 'bg-slate-100 border-slate-400 text-slate-600 dark:bg-slate-700/50 dark:border-slate-500 dark:text-slate-300' :
+                                                idx === 2 ? 'bg-orange-100 border-orange-400 text-orange-600 dark:bg-orange-900/30 dark:border-orange-500/50 dark:text-orange-400' :
+                                                'bg-slate-50 border-slate-200 text-slate-400 dark:bg-slate-800/80 dark:border-slate-700 dark:text-slate-500'
                                             }`}>
                                                 {idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : idx + 1}
                                             </div>
