@@ -6,30 +6,29 @@ export const dynamic = 'force-dynamic';
 
 // Helper function to verify if a teacher is authorized to manage a student
 async function checkTeacherAccess(teacherId, studentId) {
-    const isStudentInTeacherHalaqa = await prisma.student.findFirst({
-        where: {
-            id: studentId,
-            halaqa: {
-                OR: [
-                    { teacherId: teacherId },
-                    { assistants: { some: { id: teacherId } } }
-                ]
-            }
-        }
-    });
+    const [halaqaAccess, eventAccess] = await Promise.all([
+        prisma.student.findFirst({
+            where: {
+                id: studentId,
+                halaqa: {
+                    OR: [
+                        { teacherId: teacherId },
+                        { assistants: { some: { id: teacherId } } }
+                    ]
+                }
+            },
+            select: { id: true }
+        }),
+        prisma.eventAssignment.findFirst({
+            where: {
+                teacherId: teacherId,
+                studentId: studentId
+            },
+            select: { id: true }
+        })
+    ]);
 
-    if (isStudentInTeacherHalaqa) return true;
-
-    const isStudentAssignedInEvent = await prisma.eventAssignment.findFirst({
-        where: {
-            teacherId: teacherId,
-            studentId: studentId
-        }
-    });
-
-    if (isStudentAssignedInEvent) return true;
-
-    return false;
+    return !!(halaqaAccess || eventAccess);
 }
 
 export async function GET(request) {
@@ -364,18 +363,17 @@ export async function DELETE(request) {
 
         const studentId = parseInt(id);
 
-        // Delete all student relations to prevent constraint errors
-        await prisma.attendance.deleteMany({ where: { studentId } });
-        await prisma.session.deleteMany({ where: { studentId } });
-        await prisma.exam.deleteMany({ where: { studentId } });
-        await prisma.notification.deleteMany({ where: { studentId } });
-        await prisma.eventAssignment.deleteMany({ where: { studentId } });
-        await prisma.studyPlanEntry.deleteMany({ where: { studentId } });
-        await prisma.point.deleteMany({ where: { studentId } });
-
-        await prisma.student.delete({
-            where: { id: studentId }
-        });
+        // Delete all student relations in a transaction to prevent constraint errors and improve performance
+        await prisma.$transaction([
+            prisma.attendance.deleteMany({ where: { studentId } }),
+            prisma.session.deleteMany({ where: { studentId } }),
+            prisma.exam.deleteMany({ where: { studentId } }),
+            prisma.notification.deleteMany({ where: { studentId } }),
+            prisma.eventAssignment.deleteMany({ where: { studentId } }),
+            prisma.studyPlanEntry.deleteMany({ where: { studentId } }),
+            prisma.point.deleteMany({ where: { studentId } }),
+            prisma.student.delete({ where: { id: studentId } })
+        ]);
 
         return NextResponse.json({ message: 'Deleted successfully' });
     } catch (error) {

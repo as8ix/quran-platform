@@ -26,15 +26,26 @@ export async function GET(request) {
                     { assistants: { some: { id: parseInt(teacherId) } } }
                 ]
             },
-            include: {
+            select: {
+                name: true,
+                logo: true,
                 students: {
-                    include: {
+                    select: {
+                        id: true,
+                        name: true,
+                        displayId: true,
+                        juzCount: true,
+                        hifzProgress: true,
                         attendance: {
                             where: {
                                 date: {
                                     gte: startDate,
                                     lte: endDate
                                 }
+                            },
+                            select: {
+                                status: true,
+                                date: true
                             }
                         },
                         sessions: {
@@ -43,6 +54,22 @@ export async function GET(request) {
                                     gte: startDate,
                                     lte: endDate
                                 }
+                            },
+                            select: {
+                                pagesCount: true,
+                                resultString: true,
+                                date: true,
+                                type: true,
+                                hifzSurah: true,
+                                hifzFromAyah: true,
+                                hifzToAyah: true,
+                                murajaahFromSurah: true,
+                                murajaahToSurah: true,
+                                minorMurajaahFromSurah: true,
+                                minorMurajaahToSurah: true,
+                                errorsCount: true,
+                                alertsCount: true,
+                                notes: true
                             }
                         }
                     }

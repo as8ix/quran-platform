@@ -1,6 +1,8 @@
 import { prisma } from '@/app/lib/prisma';
 import { NextResponse } from 'next/server';
 
+export const revalidate = 60; // Cache for 60 seconds
+
 export async function GET() {
     try {
         const [studentsCount, teachersCount, halaqatCount, totalJuzAgg] = await Promise.all([

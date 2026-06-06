@@ -1,5 +1,6 @@
 import { prisma } from '@/app/lib/prisma';
 import { NextResponse } from 'next/server';
+import { withCache } from '@/app/lib/cache';
 
 export async function GET(request) {
     try {
@@ -8,108 +9,153 @@ export async function GET(request) {
         if (role !== 'SUPERVISOR') {
             return NextResponse.json({ error: 'Unauthorized: Supervisor access required' }, { status: 403 });
         }
-        // Calculate date 7 days ago
-        const sevenDaysAgo = new Date();
-        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-        sevenDaysAgo.setHours(0,0,0,0);
 
-        const [
-            allStudents,
-            weeklySessions,
-            halaqas
-        ] = await Promise.all([
-            prisma.student.findMany({
-                select: { id: true, name: true, halaqaId: true, juzCount: true }
-            }),
-            prisma.session.findMany({
-                where: { date: { gte: sevenDaysAgo } },
-                include: { student: { select: { name: true } } }
-            }),
-            prisma.halaqa.findMany({
-                select: { id: true, name: true }
-            })
-        ]);
+        // Cache the heavy aggregation logic for 5 minutes (300 seconds)
+        const statsData = await withCache('supervisor_weekly_stats', async () => {
+            // Calculate date 7 days ago
+            const sevenDaysAgo = new Date();
+            sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+            sevenDaysAgo.setHours(0,0,0,0);
 
-        // 1. Inactive Students (No sessions in the last 7 days)
-        const studentIdsWithSessions = new Set(weeklySessions.map(s => s.studentId));
-        const inactiveStudents = allStudents
-            .filter(s => !studentIdsWithSessions.has(s.id))
-            .map(s => ({
+            const [
+                inactiveStudentsRaw,
+                halaqaStatsRaw,
+                totalStudents,
+                activeThisWeekCount,
+                totalSessions,
+                totalJuzAgg,
+                juzCountsRaw,
+                recentMilestonesRaw,
+                topAchieversGroup
+            ] = await Promise.all([
+                prisma.student.findMany({
+                    where: { sessions: { none: { date: { gte: sevenDaysAgo } } } },
+                    select: { id: true, name: true, halaqa: { select: { name: true } } },
+                    take: 10
+                }),
+                prisma.halaqa.findMany({
+                    select: {
+                        name: true,
+                        students: {
+                            select: {
+                                sessions: {
+                                    where: { date: { gte: sevenDaysAgo } },
+                                    select: { pagesCount: true }
+                                }
+                            }
+                        }
+                    }
+                }),
+                prisma.student.count(),
+                prisma.student.count({
+                    where: { sessions: { some: { date: { gte: sevenDaysAgo } } } }
+                }),
+                prisma.session.count({
+                    where: { date: { gte: sevenDaysAgo } }
+                }),
+                prisma.student.aggregate({
+                    _sum: { juzCount: true }
+                }),
+                prisma.student.findMany({
+                    select: { juzCount: true }
+                }),
+                prisma.session.findMany({
+                    where: {
+                        date: { gte: sevenDaysAgo },
+                        pagesCount: { gte: 1 },
+                        hifzSurah: { not: null }
+                    },
+                    select: { date: true, student: { select: { name: true } } },
+                    orderBy: { date: 'desc' },
+                    take: 5
+                }),
+                prisma.session.groupBy({
+                    by: ['studentId'],
+                    where: { date: { gte: sevenDaysAgo } },
+                    _sum: { pagesCount: true },
+                    _count: { id: true },
+                    orderBy: { _sum: { pagesCount: 'desc' } },
+                    take: 5
+                })
+            ]);
+
+            // 1. Inactive Students
+            const inactiveStudents = inactiveStudentsRaw.map(s => ({
                 id: s.id,
                 name: s.name,
-                halaqaName: halaqas.find(h => h.id === s.halaqaId)?.name || 'بدون حلقة'
-            }))
-            .slice(0, 10); // Show top 10 inactive
+                halaqaName: s.halaqa?.name || 'بدون حلقة'
+            }));
 
-        // 2. Top Achievers by Pages Count
-        const studentProgress = {};
-        weeklySessions.forEach(s => {
-            if (!studentProgress[s.studentId]) {
-                studentProgress[s.studentId] = { name: s.student?.name, pages: 0, count: 0 };
+            // 2. Top Achievers
+            let topAchievers = [];
+            if (topAchieversGroup.length > 0) {
+                const topStudentIds = topAchieversGroup.map(t => t.studentId);
+                const topStudents = await prisma.student.findMany({
+                    where: { id: { in: topStudentIds } },
+                    select: { id: true, name: true }
+                });
+                topAchievers = topAchieversGroup.map(t => ({
+                    name: topStudents.find(s => s.id === t.studentId)?.name || 'غير معروف',
+                    pages: t._sum.pagesCount || 0,
+                    count: t._count.id
+                }));
             }
-            studentProgress[s.studentId].pages += (s.pagesCount || 0);
-            studentProgress[s.studentId].count += 1;
-        });
 
-        const topAchievers = Object.values(studentProgress)
-            .sort((a, b) => b.pages - a.pages)
-            .slice(0, 5);
+            // 3. Halaqa Efficiency
+            const halaqaStats = halaqaStatsRaw.map(h => {
+                let sessionCount = 0;
+                let totalPages = 0;
+                h.students.forEach(student => {
+                    sessionCount += student.sessions.length;
+                    student.sessions.forEach(session => {
+                        totalPages += (session.pagesCount || 0);
+                    });
+                });
+                return {
+                    name: h.name,
+                    avgPages: sessionCount > 0 ? (totalPages / sessionCount).toFixed(1) : 0,
+                    sessionCount: sessionCount
+                };
+            }).sort((a, b) => b.avgPages - a.avgPages);
 
-        // 3. Halaqa Efficiency (Avg pages per session)
-        const halaqaStats = halaqas.map(h => {
-            const hSessions = weeklySessions.filter(s => {
-                const student = allStudents.find(st => st.id === s.studentId);
-                return student?.halaqaId === h.id;
-            });
-            const totalPages = hSessions.reduce((acc, s) => acc + (s.pagesCount || 0), 0);
-            return {
-                name: h.name,
-                avgPages: hSessions.length > 0 ? (totalPages / hSessions.length).toFixed(1) : 0,
-                sessionCount: hSessions.length
+            // 4. Progress Distribution
+            const juzDistribution = {
+                '0-5': 0,
+                '5-15': 0,
+                '15-29': 0,
+                '30': 0
             };
-        }).sort((a, b) => b.avgPages - a.avgPages);
 
-        // 4. Progress Distribution (Memorization Stats)
-        const juzDistribution = {
-            '0-5': 0,
-            '5-15': 0,
-            '15-29': 0,
-            '30': 0
-        };
+            juzCountsRaw.forEach(s => {
+                if (s.juzCount >= 30) juzDistribution['30']++;
+                else if (s.juzCount >= 15) juzDistribution['15-29']++;
+                else if (s.juzCount >= 5) juzDistribution['5-15']++;
+                else juzDistribution['0-5']++;
+            });
 
-        let totalJuz = 0;
-        allStudents.forEach(s => {
-            totalJuz += s.juzCount;
-            if (s.juzCount >= 30) juzDistribution['30']++;
-            else if (s.juzCount >= 15) juzDistribution['15-29']++;
-            else if (s.juzCount >= 5) juzDistribution['5-15']++;
-            else juzDistribution['0-5']++;
-        });
-
-        // 5. Recent Milestones (Finished a Juz this week)
-        // We assume a milestone is a session where juzCount was updated or just a high-quality session
-        const recentMilestones = weeklySessions
-            .filter(s => s.type === 'MEMORIZATION' && s.pagesCount >= 1) // Simple heuristic
-            .slice(0, 5)
-            .map(s => ({
+            // 5. Recent Milestones
+            const recentMilestones = recentMilestonesRaw.map(s => ({
                 studentName: s.student?.name,
                 date: s.date
             }));
 
-        return NextResponse.json({
-            inactiveStudents,
-            topAchievers,
-            halaqaStats,
-            juzDistribution,
-            recentMilestones,
-            summary: {
-                totalStudents: allStudents.length,
-                activeThisWeek: studentIdsWithSessions.size,
-                inactiveCount: allStudents.length - studentIdsWithSessions.size,
-                totalSessions: weeklySessions.length,
-                totalJuz: totalJuz.toFixed(0)
-            }
-        });
+            return {
+                inactiveStudents,
+                topAchievers,
+                halaqaStats,
+                juzDistribution,
+                recentMilestones,
+                summary: {
+                    totalStudents: totalStudents,
+                    activeThisWeek: activeThisWeekCount,
+                    inactiveCount: totalStudents - activeThisWeekCount,
+                    totalSessions: totalSessions,
+                    totalJuz: (totalJuzAgg._sum.juzCount || 0).toFixed(0)
+                }
+            };
+        }, 300); // 300 seconds = 5 minutes
+
+        return NextResponse.json(statsData);
     } catch (error) {
         console.error("Stats API Error:", error);
         return NextResponse.json({ error: 'Failed to fetch statistics' }, { status: 500 });

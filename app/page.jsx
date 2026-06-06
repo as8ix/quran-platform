@@ -1,42 +1,24 @@
-'use client';
-
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { prisma } from '@/app/lib/prisma';
+import ScrollRevealInit from '@/app/components/ScrollRevealInit';
+import AnimatedCounter from '@/app/components/AnimatedCounter';
 
-export default function LandingPage() {
-  const router = useRouter();
-  const [stats, setStats] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [mounted, setMounted] = useState(false);
+export const dynamic = 'force-dynamic';
 
-  useEffect(() => {
-    setMounted(true);
-    // Fetch public stats
-    fetch('/api/stats')
-      .then(res => res.json())
-      .then(data => {
-        setStats(data);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error('Error fetching stats:', err);
-        setLoading(false);
-      });
+export default async function LandingPage() {
+  const [studentsCount, teachersCount, halaqatCount, totalJuzAgg] = await Promise.all([
+    prisma.student.count(),
+    prisma.user.count({ where: { role: 'TEACHER' } }),
+    prisma.halaqa.count(),
+    prisma.student.aggregate({ _sum: { juzCount: true } })
+  ]);
 
-    // Scroll reveal observer
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('active');
-        }
-      });
-    }, { threshold: 0.1 });
-
-    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-
-    return () => observer.disconnect();
-  }, []);
+  const stats = {
+    studentsCount,
+    teachersCount,
+    halaqatCount,
+    totalJuz: totalJuzAgg._sum.juzCount || 0
+  };
 
   const features = [
     {
@@ -63,6 +45,7 @@ export default function LandingPage() {
 
   return (
     <div id="landing-page-root" className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-white transition-colors duration-300" suppressHydrationWarning>
+      <ScrollRevealInit />
       {/* Navbar */}
       <nav className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg border-b border-slate-200 dark:border-slate-800 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
@@ -125,29 +108,33 @@ export default function LandingPage() {
       <section className="py-16 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm reveal">
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {!loading && (
-              <>
                 <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-3xl p-8 text-center shadow-lg border border-blue-200 dark:border-blue-900/30 hover:shadow-2xl hover:shadow-blue-100 dark:hover:shadow-none transition-all duration-300 transform hover:-translate-y-1">
-                  <div className="text-5xl font-black text-blue-600 dark:text-blue-400 mb-2">{stats?.studentsCount || 0}</div>
+                  <div className="text-5xl font-black text-blue-600 dark:text-blue-400 mb-2">
+                    <AnimatedCounter value={stats?.studentsCount || 0} />
+                  </div>
                   <div className="text-blue-700 dark:text-blue-300 font-bold">طالب</div>
                 </div>
 
                 <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/20 dark:to-emerald-800/20 rounded-3xl p-8 text-center shadow-lg border border-emerald-200 dark:border-emerald-900/30 hover:shadow-2xl hover:shadow-emerald-100 dark:hover:shadow-none transition-all duration-300 transform hover:-translate-y-1">
-                  <div className="text-5xl font-black text-emerald-600 dark:text-emerald-400 mb-2">{stats?.teachersCount || 0}</div>
+                  <div className="text-5xl font-black text-emerald-600 dark:text-emerald-400 mb-2">
+                    <AnimatedCounter value={stats?.teachersCount || 0} />
+                  </div>
                   <div className="text-emerald-700 dark:text-emerald-300 font-bold">معلم</div>
                 </div>
 
                 <div className="bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-800/20 rounded-3xl p-8 text-center shadow-lg border border-amber-200 dark:border-amber-900/30 hover:shadow-2xl hover:shadow-amber-100 dark:hover:shadow-none transition-all duration-300 transform hover:-translate-y-1">
-                  <div className="text-5xl font-black text-amber-600 dark:text-amber-400 mb-2">{stats?.totalJuz || 0}</div>
+                  <div className="text-5xl font-black text-amber-600 dark:text-amber-400 mb-2">
+                    <AnimatedCounter value={stats?.totalJuz || 0} />
+                  </div>
                   <div className="text-amber-700 dark:text-amber-300 font-bold">جزء محفوظ</div>
                 </div>
 
                 <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-3xl p-8 text-center shadow-lg border border-purple-200 dark:border-purple-900/30 hover:shadow-2xl hover:shadow-purple-100 dark:hover:shadow-none transition-all duration-300 transform hover:-translate-y-1">
-                  <div className="text-5xl font-black text-purple-600 dark:text-purple-400 mb-2">{stats?.halaqatCount || 0}</div>
+                  <div className="text-5xl font-black text-purple-600 dark:text-purple-400 mb-2">
+                    <AnimatedCounter value={stats?.halaqatCount || 0} />
+                  </div>
                   <div className="text-purple-700 dark:text-purple-300 font-bold">حلقة نشطة</div>
                 </div>
-              </>
-            )}
           </div>
         </div>
       </section>

@@ -6,7 +6,6 @@ import Navbar from '../../../components/Navbar';
 import { useTheme } from '../../../components/ThemeProvider';
 import LoadingScreen from '../../../components/LoadingScreen';
 import BackButton from '../../../components/BackButton';
-import { toPng } from 'html-to-image';
 import { toast } from 'react-hot-toast';
 
 export default function LeaderboardPage() {
@@ -103,6 +102,7 @@ export default function LeaderboardPage() {
         
         try {
             await new Promise(resolve => setTimeout(resolve, 1000));
+            const { toPng } = await import('html-to-image');
             const dataUrl = await toPng(topThreeRef.current, {
                 cacheBust: true,
                 backgroundColor: '#0f172a',

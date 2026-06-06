@@ -19,8 +19,15 @@ export async function middleware(request) {
         }
         rateLimitMap.set(key, count + 1);
         
-        // Prevent memory leak
-        if (rateLimitMap.size > 1000) rateLimitMap.clear(); 
+        // Prevent memory leak by removing old keys
+        if (rateLimitMap.size > 1000) {
+            for (const [k] of rateLimitMap) {
+                const limitWindow = parseInt(k.split('-').pop(), 10);
+                if (limitWindow < currentWindow) {
+                    rateLimitMap.delete(k);
+                }
+            }
+        }
         
         return NextResponse.next();
     }

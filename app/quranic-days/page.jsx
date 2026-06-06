@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import Navbar from '../components/Navbar';
 import { useTheme } from '../components/ThemeProvider';
 import { toast } from 'react-hot-toast';
-import * as htmlToImage from 'html-to-image';
 
 export default function QuranicDaysDashboard() {
     const router = useRouter();
@@ -87,6 +86,7 @@ export default function QuranicDaysDashboard() {
         const toastId = toast.loading('جاري تجهيز الصورة...');
         
         try {
+            const htmlToImage = await import('html-to-image');
             const dataUrl = await htmlToImage.toPng(statsContainerRef.current, {
                 quality: 1,
                 pixelRatio: 2,

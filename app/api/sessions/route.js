@@ -4,30 +4,29 @@ import { quranData } from '@/app/data/quranData';
 
 // Helper function to verify if a teacher is authorized to manage a student's sessions
 async function checkTeacherAccess(teacherId, studentId) {
-    const isStudentInTeacherHalaqa = await prisma.student.findFirst({
-        where: {
-            id: studentId,
-            halaqa: {
-                OR: [
-                    { teacherId: teacherId },
-                    { assistants: { some: { id: teacherId } } }
-                ]
-            }
-        }
-    });
+    const [halaqaAccess, eventAccess] = await Promise.all([
+        prisma.student.findFirst({
+            where: {
+                id: studentId,
+                halaqa: {
+                    OR: [
+                        { teacherId: teacherId },
+                        { assistants: { some: { id: teacherId } } }
+                    ]
+                }
+            },
+            select: { id: true }
+        }),
+        prisma.eventAssignment.findFirst({
+            where: {
+                teacherId: teacherId,
+                studentId: studentId
+            },
+            select: { id: true }
+        })
+    ]);
 
-    if (isStudentInTeacherHalaqa) return true;
-
-    const isStudentAssignedInEvent = await prisma.eventAssignment.findFirst({
-        where: {
-            teacherId: teacherId,
-            studentId: studentId
-        }
-    });
-
-    if (isStudentAssignedInEvent) return true;
-
-    return false;
+    return !!(halaqaAccess || eventAccess);
 }
 
 export async function GET(request) {
@@ -58,13 +57,18 @@ export async function GET(request) {
             return NextResponse.json({ error: 'دور غير صالح' }, { status: 403 });
         }
 
+        const page = parseInt(searchParams.get('page') || '1');
+        const limit = parseInt(searchParams.get('limit') || '50');
+
         const sessions = await prisma.session.findMany({
             where: {
                 studentId: targetStudentId
             },
             orderBy: {
                 date: 'desc'
-            }
+            },
+            take: limit,
+            skip: (page - 1) * limit
         });
 
         return NextResponse.json(sessions);
@@ -187,7 +191,7 @@ export async function POST(request) {
             console.error("Auto-matching plan entry error:", planError);
         }
 
-        console.log("Session created. isFinishedSurah:", isFinishedSurah);
+        // Console log removed for performance
 
         if (isFinishedSurah) {
             const student = await prisma.student.findUnique({ where: { id: targetStudentId } });

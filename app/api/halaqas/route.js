@@ -1,7 +1,5 @@
 import { prisma } from '@/app/lib/prisma';
 import { NextResponse } from 'next/server';
-import { db } from '@/app/lib/firebase';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 export async function GET(request) {
     try {
@@ -123,6 +121,9 @@ export async function PUT(request) {
         // --- Firebase Real-time Trigger for Points Status ---
         if (pointsEnabled !== undefined) {
             try {
+                const { db } = await import('@/app/lib/firebase');
+                const { doc, setDoc, serverTimestamp } = await import('firebase/firestore');
+                
                 // Trigger for the main teacher
                 if (halaqa.teacherId) {
                     await setDoc(doc(db, "notification_triggers", `user_${halaqa.teacherId}`), {

@@ -1,6 +1,3 @@
-import { PutObjectCommand } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { r2Client } from "@/app/lib/r2";
 import { NextResponse } from "next/server";
 
 export async function POST(request) {
@@ -45,6 +42,10 @@ export async function POST(request) {
 
     // Organize uploads inside a notifications folder with unique timestamp
     const key = `notifications/${Date.now()}_${sanitizedFilename}`;
+
+    const { PutObjectCommand } = await import("@aws-sdk/client-s3");
+    const { getSignedUrl } = await import("@aws-sdk/s3-request-presigner");
+    const { r2Client } = await import("@/app/lib/r2");
 
     const command = new PutObjectCommand({
       Bucket: bucketName,

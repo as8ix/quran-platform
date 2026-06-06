@@ -1,5 +1,8 @@
 import { prisma } from '@/app/lib/prisma';
 import { NextResponse } from 'next/server';
+import { withCache } from '@/app/lib/cache';
+
+export const revalidate = 30; // Next.js cache
 
 export async function GET(request) {
     try {
@@ -30,7 +33,9 @@ export async function GET(request) {
             if (!activeEvent) {
                 return NextResponse.json({ error: 'No active event found' }, { status: 404 });
             }
-            return calculateStats(activeEvent);
+            
+            const stats = await withCache(`quranic_event_stats_${activeEvent.id}`, () => calculateStats(activeEvent), 300);
+            return NextResponse.json(stats);
         }
 
         const event = await prisma.quranicEvent.findUnique({
@@ -40,7 +45,8 @@ export async function GET(request) {
 
         if (!event) return NextResponse.json({ error: 'Event not found' }, { status: 404 });
 
-        return calculateStats(event);
+        const stats = await withCache(`quranic_event_stats_${event.id}`, () => calculateStats(event), 300);
+        return NextResponse.json(stats);
     } catch (error) {
         console.error("GET Quranic Stats Error:", error);
         return NextResponse.json({ error: error.message }, { status: 500 });
@@ -184,7 +190,7 @@ async function calculateStats(event) {
     const mostReciting = [...studentStats].sort((a, b) => b.pages - a.pages).slice(0, 5);
     const bestQuality = [...studentStats].filter(s => s.pages >= 5).sort((a, b) => b.quality - a.quality).slice(0, 5);
 
-    return NextResponse.json({
+    return {
         eventName: event.name,
         general: {
             teachersCount,
@@ -211,5 +217,5 @@ async function calculateStats(event) {
             students: studentStats,
             sessions: sessionDetails
         }
-    });
+    };
 }

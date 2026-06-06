@@ -169,47 +169,60 @@ export default function TeacherDashboard() {
     const teacherName = user ? `أهلًا ${getFirstName(user.name)} 👋` : 'أهلًا 👋';
 
     useEffect(() => {
-        // Get user from localStorage
-        const storedUser = localStorage.getItem('user');
-        if (storedUser) {
-            setUser(JSON.parse(storedUser));
-        }
-    }, []);
+        const init = async () => {
+            const storedUserStr = localStorage.getItem('user');
+            if (!storedUserStr) {
+                setLoading(false);
+                return;
+            }
+            const storedUser = JSON.parse(storedUserStr);
+            setUser(storedUser);
 
-    useEffect(() => {
-        const fetchTeacherData = async () => {
-            if (!user) return;
             try {
-                const halaqasRes = await fetch(`/api/halaqas?teacherId=${user.id}`);
+                const params = new URLSearchParams();
+                if (juzFilter !== 'all') params.append('juzFilter', juzFilter);
+                params.append('teacherId', storedUser.id);
+
+                const [halaqasRes, studentsRes] = await Promise.all([
+                    fetch(`/api/halaqas?teacherId=${storedUser.id}`),
+                    fetch(`/api/students?${params.toString()}`, { cache: 'no-store' })
+                ]);
+
                 if (halaqasRes.ok) {
                     const myHalaqas = await halaqasRes.json();
                     setTeacherHalaqas(myHalaqas);
                     setPointsEnabled(myHalaqas.some(h => h.pointsEnabled));
                 }
+
+                const data = await studentsRes.json();
+                if (studentsRes.ok && Array.isArray(data)) {
+                    setStudents(data);
+                } else {
+                    setStudents([]);
+                    toast.error(data?.error || 'حدث خطأ أثناء تحميل الطلاب');
+                }
             } catch (error) {
-                console.error("Error fetching teacher data:", error);
+                console.error("Error fetching data:", error);
+                setStudents([]);
+                toast.error('حدث خطأ في الاتصال بالخادم');
+            } finally {
+                setLoading(false);
             }
         };
-        fetchTeacherData();
-    }, [user]);
+
+        init();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const fetchStudents = async () => {
+        if (!user) return;
         setLoading(true);
         try {
             let url = '/api/students';
             const params = new URLSearchParams();
-
-            if (juzFilter !== 'all') {
-                params.append('juzFilter', juzFilter);
-            }
-
-            if (user) {
-                params.append('teacherId', user.id);
-            }
-
-            if (params.toString()) {
-                url += `?${params.toString()}`;
-            }
+            if (juzFilter !== 'all') params.append('juzFilter', juzFilter);
+            params.append('teacherId', user.id);
+            if (params.toString()) url += `?${params.toString()}`;
 
             const response = await fetch(url, { cache: 'no-store' });
             const data = await response.json();
@@ -232,7 +245,8 @@ export default function TeacherDashboard() {
         if (user) {
             fetchStudents();
         }
-    }, [user, juzFilter]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [juzFilter]);
 
     const normalizeText = (text) => {
         if (!text) return '';
