@@ -264,11 +264,12 @@ export default function SupervisorStats() {
                                     >
                                         <option value="all" className="bg-white dark:bg-slate-800">جميع الحلقات</option>
                                         {halaqas.map(h => (
-                                        <option key={h.id} value={h.id} className="bg-white dark:bg-slate-800">{h.name}</option>
-                                    ))}
-                                </select>
-                                <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                                            <option key={h.id} value={h.id} className="bg-white dark:bg-slate-800">{h.name}</option>
+                                        ))}
+                                    </select>
+                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                                    </div>
                                 </div>
                             </div>
                         </div>
