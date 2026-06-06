@@ -2,19 +2,36 @@
 
 import { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
+import { useRouter } from 'next/navigation';
 
 export default function SupervisorStats() {
+    const router = useRouter();
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
     const [showInfo, setShowInfo] = useState(false);
+    const [halaqas, setHalaqas] = useState([]);
+
+    // Knights specific state
+    const [knights, setKnights] = useState([]);
+    const [knightsLoading, setKnightsLoading] = useState(true);
+    const [knightTab, setKnightTab] = useState('pages'); // 'pages', 'mastery'
+    const [knightTime, setKnightTime] = useState('week'); // 'week', 'month', 'all'
+    const [knightHalaqa, setKnightHalaqa] = useState('all'); // 'all', or halaqa ID
 
     const fetchStats = async () => {
         setLoading(true);
         try {
-            const res = await fetch('/api/supervisor/stats');
+            const [res, hRes] = await Promise.all([
+                fetch('/api/supervisor/stats'),
+                fetch('/api/halaqas')
+            ]);
             if (res.ok) {
                 const data = await res.json();
                 setStats(data);
+            }
+            if (hRes.ok) {
+                const hData = await hRes.json();
+                setHalaqas(hData);
             }
         } catch (error) {
             console.error("Error fetching stats:", error);
@@ -24,9 +41,28 @@ export default function SupervisorStats() {
         }
     };
 
+    const fetchKnights = async () => {
+        setKnightsLoading(true);
+        try {
+            const res = await fetch(`/api/supervisor/knights?timeRange=${knightTime}&type=${knightTab}&halaqaId=${knightHalaqa}`);
+            if (res.ok) {
+                const data = await res.json();
+                setKnights(data.topAchievers || []);
+            }
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setKnightsLoading(false);
+        }
+    };
+
     useEffect(() => {
         fetchStats();
     }, []);
+
+    useEffect(() => {
+        fetchKnights();
+    }, [knightTab, knightTime, knightHalaqa]);
 
     if (loading) {
         return (
@@ -175,38 +211,89 @@ export default function SupervisorStats() {
                     </div>
                 </div>
 
-                {/* 3. Top Achievers - "Weekly Knights" */}
-                <div className="premium-glass rounded-[3.5rem] p-10 border border-emerald-500/10 dark:border-emerald-500/5 shadow-2xl relative group overflow-hidden">
-                    <div className="hidden md:block absolute top-0 left-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl -ml-32 -mt-32 group-hover:bg-emerald-500/10 transition-colors"></div>
+                {/* 3. Top Achievers - "Knights 2.0" */}
+                <div className="premium-glass rounded-[4rem] p-8 md:p-12 border border-amber-500/10 dark:border-amber-500/5 shadow-2xl relative group overflow-hidden">
+                    <div className="hidden md:block absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-amber-400/10 to-orange-500/10 rounded-full blur-[80px] -ml-48 -mt-48 group-hover:from-amber-400/20 transition-colors duration-700"></div>
                     
-                    <div className="flex justify-between items-center mb-10 relative z-10">
-                        <h3 className="text-2xl font-black text-slate-800 dark:text-white flex items-center gap-4">
-                            <span className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-2xl flex items-center justify-center text-2xl shadow-inner">🏆</span>
-                            فرسان الإنجاز (أكثر الصفحات)
-                        </h3>
+                    <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-10 relative z-10 gap-6">
+                        <div>
+                            <h3 className="text-3xl font-black text-slate-800 dark:text-white flex items-center gap-4 mb-3">
+                                <span className="w-14 h-14 bg-gradient-to-br from-amber-300 to-orange-500 text-white rounded-[1.5rem] flex items-center justify-center text-3xl shadow-lg shadow-amber-200 dark:shadow-none">🏆</span>
+                                فرسان الإنجاز
+                            </h3>
+                            <p className="text-slate-500 dark:text-slate-400 font-medium text-sm">لوحة الشرف لأفضل الطلاب أداءً في المنصة</p>
+                        </div>
+
+                        {/* Filters */}
+                        <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
+                            <div className="flex bg-slate-100/50 dark:bg-slate-800/50 p-1.5 rounded-2xl border border-slate-200/50 dark:border-slate-700/50 backdrop-blur-sm w-full sm:w-auto">
+                                <button onClick={() => setKnightTab('pages')} className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${knightTab === 'pages' ? 'bg-white dark:bg-slate-700 text-amber-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>فرسان الحفظ</button>
+                                <button onClick={() => setKnightTab('mastery')} className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${knightTab === 'mastery' ? 'bg-white dark:bg-slate-700 text-emerald-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>فرسان الإتقان</button>
+                            </div>
+
+                            <select 
+                                value={knightTime} 
+                                onChange={(e) => setKnightTime(e.target.value)}
+                                className="bg-white/60 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 rounded-2xl px-5 py-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500/50 cursor-pointer backdrop-blur-md flex-1 sm:flex-none"
+                            >
+                                <option value="week">هذا الأسبوع</option>
+                                <option value="month">هذا الشهر</option>
+                                <option value="all">الدورة كاملة</option>
+                            </select>
+
+                            <select 
+                                value={knightHalaqa} 
+                                onChange={(e) => setKnightHalaqa(e.target.value)}
+                                className="bg-white/60 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 rounded-2xl px-5 py-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500/50 cursor-pointer backdrop-blur-md flex-1 sm:flex-none"
+                            >
+                                <option value="all">جميع الحلقات</option>
+                                {halaqas.map(h => (
+                                    <option key={h.id} value={h.id}>{h.name}</option>
+                                ))}
+                            </select>
+                        </div>
                     </div>
 
-                    <div className="space-y-5 relative z-10 max-h-[450px] overflow-y-auto pr-2 custom-scrollbar">
-                        {stats?.topAchievers?.map((s, idx) => (
-                            <div key={idx} className="group/knight relative overflow-hidden p-6 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md rounded-[2.5rem] border border-white dark:border-slate-800 hover:scale-[1.02] transition-all duration-500">
-                                {idx === 0 && <div className="absolute top-0 right-0 w-24 h-24 bg-amber-400/10 rounded-full -mr-12 -mt-12 blur-2xl"></div>}
+                    <div className="space-y-4 relative z-10 max-h-[500px] overflow-y-auto pr-3 custom-scrollbar">
+                        {knightsLoading ? (
+                            <div className="flex justify-center items-center py-20">
+                                <div className="w-10 h-10 border-4 border-amber-200 border-t-amber-500 rounded-full animate-spin"></div>
+                            </div>
+                        ) : knights.length > 0 ? knights.map((s, idx) => (
+                            <div 
+                                key={idx} 
+                                onClick={() => router.push(`/teacher/student/${s.id}`)}
+                                className="group/knight relative overflow-hidden p-5 bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl rounded-[2rem] border border-white dark:border-slate-800 hover:border-amber-300 dark:hover:border-amber-500/50 hover:scale-[1.01] transition-all duration-300 cursor-pointer shadow-sm hover:shadow-xl hover:shadow-amber-500/10"
+                            >
+                                {idx === 0 && <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-amber-400/20 to-transparent rounded-full -mr-16 -mt-16 blur-xl"></div>}
+                                {idx === 1 && <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-slate-400/10 to-transparent rounded-full -mr-8 -mt-8 blur-xl"></div>}
+                                {idx === 2 && <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-orange-400/10 to-transparent rounded-full -mr-8 -mt-8 blur-xl"></div>}
+                                
                                 <div className="flex items-center justify-between relative z-10">
                                     <div className="flex items-center gap-5">
-                                        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl font-black shadow-lg ${idx === 0 ? 'bg-gradient-to-br from-amber-300 to-amber-500 text-white rotate-6' : idx === 1 ? 'bg-slate-200 text-slate-600' : 'bg-orange-100 text-orange-600'}`}>
+                                        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl font-black shadow-lg transition-transform duration-500 group-hover/knight:scale-110 group-hover/knight:rotate-3 ${idx === 0 ? 'bg-gradient-to-br from-amber-300 to-amber-500 text-white' : idx === 1 ? 'bg-gradient-to-br from-slate-200 to-slate-400 text-white' : idx === 2 ? 'bg-gradient-to-br from-orange-300 to-orange-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>
                                             {idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : idx + 1}
                                         </div>
                                         <div>
-                                            <div className="font-black text-slate-800 dark:text-white text-xl">{s.name}</div>
-                                            <div className="text-[10px] font-bold text-slate-400 tracking-widest">{s.count} جلسات تسميع</div>
+                                            <div className="font-black text-slate-800 dark:text-white text-lg sm:text-xl group-hover/knight:text-amber-600 dark:group-hover/knight:text-amber-400 transition-colors">{s.name}</div>
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <span className="text-[11px] font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-lg border border-slate-200 dark:border-slate-700">{s.halaqaName}</span>
+                                                <span className="text-[10px] font-bold text-slate-400 tracking-widest">{s.count} جلسات</span>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div className="text-center bg-slate-50 dark:bg-slate-800/80 px-6 py-3 rounded-3xl border border-slate-100 dark:border-slate-700">
-                                        <div className="text-3xl font-black text-emerald-600 dark:text-emerald-400">{s.pages}</div>
-                                        <div className="text-[9px] font-black text-slate-400 uppercase">صفحة منجزة</div>
+                                    <div className={`text-center px-6 py-3 rounded-2xl border ${knightTab === 'mastery' ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800' : 'bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800'}`}>
+                                        <div className={`text-2xl font-black ${knightTab === 'mastery' ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>{s.pages}</div>
+                                        <div className={`text-[10px] font-black uppercase mt-0.5 ${knightTab === 'mastery' ? 'text-emerald-500/70 dark:text-emerald-500/50' : 'text-amber-500/70 dark:text-amber-500/50'}`}>صفحة</div>
                                     </div>
                                 </div>
                             </div>
-                        ))}
+                        )) : (
+                            <div className="text-center py-20 bg-slate-50/50 dark:bg-slate-900/30 rounded-[3rem] border border-dashed border-slate-200 dark:border-slate-800">
+                                <div className="text-4xl mb-3 opacity-50">📭</div>
+                                <div className="text-lg font-bold text-slate-500">لا يوجد إنجازات تطابق الفلتر الحالي</div>
+                            </div>
+                        )}
                     </div>
                 </div>
 
