@@ -178,7 +178,7 @@ export default function SupervisorStats() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                 
                 {/* 2. Action Needed - Inactive Students */}
-                <div className="premium-glass rounded-[3.5rem] p-10 border border-rose-500/10 dark:border-rose-500/5 shadow-2xl relative group overflow-hidden flex flex-col h-full">
+                <div className="premium-glass rounded-[3.5rem] p-10 border border-rose-500/10 dark:border-rose-500/5 shadow-2xl relative group overflow-hidden flex flex-col h-[550px] lg:h-[650px]">
                     <div className="hidden md:block absolute top-0 right-0 w-64 h-64 bg-rose-500/5 rounded-full blur-3xl -mr-32 -mt-32 group-hover:bg-rose-500/10 transition-colors"></div>
                     
                     <div className="flex justify-between items-center mb-10 relative z-10 shrink-0">
@@ -222,7 +222,7 @@ export default function SupervisorStats() {
                 </div>
 
                 {/* 3. Top Achievers - "Knights 2.0" */}
-                <div className="premium-glass rounded-[4rem] p-8 md:p-12 border border-amber-500/10 dark:border-amber-500/5 shadow-2xl relative group overflow-hidden flex flex-col h-full">
+                <div className="premium-glass rounded-[4rem] p-8 md:p-12 border border-amber-500/10 dark:border-amber-500/5 shadow-2xl relative group overflow-hidden flex flex-col h-[550px] lg:h-[650px]">
                     <div className="hidden md:block absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-amber-400/10 to-orange-500/10 rounded-full blur-[80px] -ml-48 -mt-48 group-hover:from-amber-400/20 transition-colors duration-700"></div>
                     
                     <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-10 relative z-10 gap-6 shrink-0">
