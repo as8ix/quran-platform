@@ -218,10 +218,19 @@ export default function SupervisorStats() {
                     <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-10 relative z-10 gap-6">
                         <div>
                             <h3 className="text-3xl font-black text-slate-800 dark:text-white flex items-center gap-4 mb-3">
-                                <span className="w-14 h-14 bg-gradient-to-br from-amber-300 to-orange-500 text-white rounded-[1.5rem] flex items-center justify-center text-3xl shadow-lg shadow-amber-200 dark:shadow-none">🏆</span>
-                                فرسان الإنجاز
+                                <span className={`w-14 h-14 text-white rounded-[1.5rem] flex items-center justify-center text-3xl shadow-lg dark:shadow-none transition-colors duration-500 ${knightTab === 'mastery' ? 'bg-gradient-to-br from-emerald-400 to-teal-500 shadow-emerald-200' : 'bg-gradient-to-br from-amber-300 to-orange-500 shadow-amber-200'}`}>
+                                    {knightTab === 'mastery' ? '💎' : '🏆'}
+                                </span>
+                                {knightTab === 'mastery' ? 'فرسان الإتقان' : 'فرسان الإنجاز'}
                             </h3>
-                            <p className="text-slate-500 dark:text-slate-400 font-medium text-sm">لوحة الشرف لأفضل الطلاب أداءً في المنصة</p>
+                            <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 font-medium text-sm bg-slate-50 dark:bg-slate-800/50 px-4 py-2 rounded-xl border border-slate-100 dark:border-slate-700 w-fit">
+                                <span className="text-amber-500 dark:text-amber-400">💡</span> 
+                                <span>
+                                    {knightTab === 'mastery' 
+                                        ? 'المعيار: إجمالي الصفحات المقروءة بـ (صفر أخطاء وصفر تنبيهات) 💯' 
+                                        : 'المعيار: إجمالي عدد الصفحات المنجزة (حفظ ومراجعة) 📖'}
+                                </span>
+                            </div>
                         </div>
 
                         {/* Filters */}
