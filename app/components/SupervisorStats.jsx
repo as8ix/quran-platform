@@ -223,9 +223,9 @@ export default function SupervisorStats() {
                                 </span>
                                 {knightTab === 'mastery' ? 'فرسان الإتقان' : 'فرسان الإنجاز'}
                             </h3>
-                            <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 font-medium text-sm bg-slate-50 dark:bg-slate-800/50 px-4 py-2 rounded-xl border border-slate-100 dark:border-slate-700 w-fit">
-                                <span className="text-amber-500 dark:text-amber-400">💡</span> 
-                                <span>
+                            <div className="flex items-start sm:items-center gap-2 text-slate-500 dark:text-slate-400 font-medium text-sm bg-slate-50 dark:bg-slate-800/50 px-4 py-3 rounded-xl border border-slate-100 dark:border-slate-700 w-full xl:w-fit">
+                                <span className="text-amber-500 dark:text-amber-400 shrink-0 mt-0.5 sm:mt-0">💡</span> 
+                                <span className="leading-relaxed">
                                     {knightTab === 'mastery' 
                                         ? 'المعيار: إجمالي عدد الصفحات النقية المتقنة (الخالية من أي خطأ أو تنبيه) ✨' 
                                         : 'المعيار: إجمالي عدد الصفحات المنجزة (حفظ ومراجعة) 📖'}
@@ -234,35 +234,36 @@ export default function SupervisorStats() {
                         </div>
 
                         {/* Filters */}
-                        <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
-                            <div className="flex bg-slate-100/50 dark:bg-slate-800/50 p-1.5 rounded-2xl border border-slate-200/50 dark:border-slate-700/50 backdrop-blur-sm w-full sm:w-auto">
-                                <button onClick={() => setKnightTab('pages')} className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${knightTab === 'pages' ? 'bg-white dark:bg-slate-700 text-amber-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>فرسان الإنجاز</button>
-                                <button onClick={() => setKnightTab('mastery')} className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${knightTab === 'mastery' ? 'bg-white dark:bg-slate-700 text-emerald-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>فرسان الإتقان</button>
+                        <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 w-full xl:w-auto">
+                            <div className="flex bg-slate-100/50 dark:bg-slate-800/50 p-1.5 rounded-2xl border border-slate-200/50 dark:border-slate-700/50 backdrop-blur-sm w-full sm:w-auto shrink-0">
+                                <button onClick={() => setKnightTab('pages')} className={`flex-1 sm:flex-none px-4 sm:px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${knightTab === 'pages' ? 'bg-white dark:bg-slate-700 text-amber-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>فرسان الإنجاز</button>
+                                <button onClick={() => setKnightTab('mastery')} className={`flex-1 sm:flex-none px-4 sm:px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${knightTab === 'mastery' ? 'bg-white dark:bg-slate-700 text-emerald-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>فرسان الإتقان</button>
                             </div>
 
-                            <div className="relative flex-1 sm:flex-none">
-                                <select 
-                                    value={knightTime} 
-                                    onChange={(e) => setKnightTime(e.target.value)}
-                                    className="w-full appearance-none bg-white/60 dark:bg-slate-800/60 border border-slate-200/50 dark:border-slate-700/50 text-slate-700 dark:text-slate-200 rounded-2xl pl-10 pr-5 py-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500/50 cursor-pointer backdrop-blur-md shadow-sm transition-all hover:border-amber-300 dark:hover:border-amber-700"
-                                >
-                                    <option value="week" className="bg-white dark:bg-slate-800">هذا الأسبوع</option>
-                                    <option value="month" className="bg-white dark:bg-slate-800">هذا الشهر</option>
-                                    <option value="all" className="bg-white dark:bg-slate-800">الدورة كاملة</option>
-                                </select>
-                                <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto flex-1 min-w-[200px]">
+                                <div className="relative flex-1">
+                                    <select 
+                                        value={knightTime} 
+                                        onChange={(e) => setKnightTime(e.target.value)}
+                                        className="w-full appearance-none bg-white/60 dark:bg-slate-800/60 border border-slate-200/50 dark:border-slate-700/50 text-slate-700 dark:text-slate-200 rounded-2xl pl-10 pr-5 py-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500/50 cursor-pointer backdrop-blur-md shadow-sm transition-all hover:border-amber-300 dark:hover:border-amber-700"
+                                    >
+                                        <option value="week" className="bg-white dark:bg-slate-800">هذا الأسبوع</option>
+                                        <option value="month" className="bg-white dark:bg-slate-800">هذا الشهر</option>
+                                        <option value="all" className="bg-white dark:bg-slate-800">الدورة كاملة</option>
+                                    </select>
+                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div className="relative flex-1 sm:flex-none">
-                                <select 
-                                    value={knightHalaqa} 
-                                    onChange={(e) => setKnightHalaqa(e.target.value)}
-                                    className="w-full appearance-none bg-white/60 dark:bg-slate-800/60 border border-slate-200/50 dark:border-slate-700/50 text-slate-700 dark:text-slate-200 rounded-2xl pl-10 pr-5 py-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500/50 cursor-pointer backdrop-blur-md shadow-sm transition-all hover:border-amber-300 dark:hover:border-amber-700"
-                                >
-                                    <option value="all" className="bg-white dark:bg-slate-800">جميع الحلقات</option>
-                                    {halaqas.map(h => (
+                                <div className="relative flex-1">
+                                    <select 
+                                        value={knightHalaqa} 
+                                        onChange={(e) => setKnightHalaqa(e.target.value)}
+                                        className="w-full appearance-none bg-white/60 dark:bg-slate-800/60 border border-slate-200/50 dark:border-slate-700/50 text-slate-700 dark:text-slate-200 rounded-2xl pl-10 pr-5 py-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500/50 cursor-pointer backdrop-blur-md shadow-sm transition-all hover:border-amber-300 dark:hover:border-amber-700"
+                                    >
+                                        <option value="all" className="bg-white dark:bg-slate-800">جميع الحلقات</option>
+                                        {halaqas.map(h => (
                                         <option key={h.id} value={h.id} className="bg-white dark:bg-slate-800">{h.name}</option>
                                     ))}
                                 </select>
