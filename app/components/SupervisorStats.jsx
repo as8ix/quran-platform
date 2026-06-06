@@ -227,7 +227,7 @@ export default function SupervisorStats() {
                                 <span className="text-amber-500 dark:text-amber-400">💡</span> 
                                 <span>
                                     {knightTab === 'mastery' 
-                                        ? 'المعيار: إجمالي الصفحات المقروءة بـ (صفر أخطاء وصفر تنبيهات) 💯' 
+                                        ? 'المعيار: إجمالي عدد الصفحات النقية المتقنة (الخالية من أي خطأ أو تنبيه) ✨' 
                                         : 'المعيار: إجمالي عدد الصفحات المنجزة (حفظ ومراجعة) 📖'}
                                 </span>
                             </div>

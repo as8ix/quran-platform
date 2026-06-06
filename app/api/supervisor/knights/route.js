@@ -13,7 +13,7 @@ export async function GET(request) {
         const halaqaId = searchParams.get('halaqaId');
         const type = searchParams.get('type') || 'pages'; // pages, mastery
 
-        const sessionsWhere = { pagesCount: { gte: 1 } };
+        const sessionsWhere = {};
 
         if (timeRange === 'week') {
             const d = new Date(); d.setDate(d.getDate() - 7); d.setHours(0,0,0,0);
@@ -31,35 +31,52 @@ export async function GET(request) {
             sessionsWhere.studentId = { in: students.map(s => s.id) };
         }
 
-        if (type === 'mastery') {
-            sessionsWhere.errorsCount = 0;
-            sessionsWhere.alertsCount = 0;
-        }
-
-        const topAchieversGroup = await prisma.session.groupBy({
-            by: ['studentId'],
+        // Fetch all matching sessions
+        const sessions = await prisma.session.findMany({
             where: sessionsWhere,
-            _sum: { pagesCount: true },
-            _count: { id: true },
-            orderBy: { _sum: { pagesCount: 'desc' } },
-            take: 10
+            select: {
+                studentId: true,
+                pagesCount: true,
+                hifzCleanPages: true,
+                cleanPagesCount: true,
+                minorCleanPagesCount: true,
+            }
         });
 
+        // Group by student in JS to allow complex summing
+        const studentStats = {};
+        sessions.forEach(s => {
+            if (!studentStats[s.studentId]) {
+                studentStats[s.studentId] = { studentId: s.studentId, totalPages: 0, totalCleanPages: 0, sessionCount: 0 };
+            }
+            studentStats[s.studentId].sessionCount += 1;
+            studentStats[s.studentId].totalPages += (s.pagesCount || 0);
+            studentStats[s.studentId].totalCleanPages += ((s.hifzCleanPages || 0) + (s.cleanPagesCount || 0) + (s.minorCleanPagesCount || 0));
+        });
+
+        let sortedAchievers = Object.values(studentStats);
+
+        if (type === 'mastery') {
+            sortedAchievers = sortedAchievers.filter(s => s.totalCleanPages > 0).sort((a, b) => b.totalCleanPages - a.totalCleanPages).slice(0, 10);
+        } else {
+            sortedAchievers = sortedAchievers.filter(s => s.totalPages > 0).sort((a, b) => b.totalPages - a.totalPages).slice(0, 10);
+        }
+
         let topAchievers = [];
-        if (topAchieversGroup.length > 0) {
-            const topStudentIds = topAchieversGroup.map(t => t.studentId);
+        if (sortedAchievers.length > 0) {
+            const topStudentIds = sortedAchievers.map(t => t.studentId);
             const topStudents = await prisma.student.findMany({
                 where: { id: { in: topStudentIds } },
                 select: { id: true, name: true, halaqa: { select: { name: true } } }
             });
-            topAchievers = topAchieversGroup.map(t => {
-                const s = topStudents.find(s => s.id === t.studentId);
+            topAchievers = sortedAchievers.map(t => {
+                const s = topStudents.find(st => st.id === t.studentId);
                 return {
                     id: t.studentId,
                     name: s?.name || 'غير معروف',
                     halaqaName: s?.halaqa?.name || 'بدون حلقة',
-                    pages: t._sum.pagesCount || 0,
-                    count: t._count.id
+                    pages: parseFloat((type === 'mastery' ? t.totalCleanPages : t.totalPages).toFixed(1)),
+                    count: t.sessionCount
                 };
             });
         }
