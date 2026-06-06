@@ -178,10 +178,10 @@ export default function SupervisorStats() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                 
                 {/* 2. Action Needed - Inactive Students */}
-                <div className="premium-glass rounded-[3.5rem] p-10 border border-rose-500/10 dark:border-rose-500/5 shadow-2xl relative group overflow-hidden">
+                <div className="premium-glass rounded-[3.5rem] p-10 border border-rose-500/10 dark:border-rose-500/5 shadow-2xl relative group overflow-hidden flex flex-col h-full">
                     <div className="hidden md:block absolute top-0 right-0 w-64 h-64 bg-rose-500/5 rounded-full blur-3xl -mr-32 -mt-32 group-hover:bg-rose-500/10 transition-colors"></div>
                     
-                    <div className="flex justify-between items-center mb-10 relative z-10">
+                    <div className="flex justify-between items-center mb-10 relative z-10 shrink-0">
                         <h3 className="text-2xl font-black text-slate-800 dark:text-white flex items-center gap-4">
                             <span className="w-12 h-12 bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-2xl flex items-center justify-center text-2xl shadow-inner">🚨</span>
                             تنبيه المتابعة الأسبوعي
@@ -189,13 +189,13 @@ export default function SupervisorStats() {
                         <span className="bg-rose-500 text-white text-[10px] font-black px-4 py-2 rounded-full shadow-lg shadow-rose-200 dark:shadow-none animate-bounce">مطلوب تدخل</span>
                     </div>
 
-                    <div className="space-y-4 relative z-10 max-h-[450px] overflow-y-auto pr-2 custom-scrollbar">
+                    <div className="space-y-4 relative z-10 shrink min-h-0 overflow-y-auto pr-2 custom-scrollbar">
                         {stats?.inactiveStudents?.length > 0 ? stats.inactiveStudents.map((s, idx) => (
                             <div key={idx} className="flex items-center justify-between p-4 sm:p-5 bg-slate-800/50 backdrop-blur-md rounded-3xl border border-slate-700 hover:border-rose-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-rose-500/10 hover:-translate-y-1 group/item cursor-pointer">
                                 <div className="flex items-center gap-3 sm:gap-5 min-w-0">
                                     <div className="relative shrink-0">
-                                        <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-slate-700 flex items-center justify-center text-2xl shadow-inner overflow-hidden border-2 border-slate-600 group-hover/item:border-rose-400 group-hover/item:bg-rose-500/20 transition-colors">
-                                            {s.gender === 'female' ? '🧕' : '👨'}
+                                        <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-slate-700 flex items-center justify-center text-xl font-black text-slate-300 shadow-inner overflow-hidden border-2 border-slate-600 group-hover/item:border-rose-400 group-hover/item:bg-rose-500/20 group-hover/item:text-rose-400 transition-colors">
+                                            {s.name.charAt(0)}
                                         </div>
                                     </div>
                                     <div className="flex flex-col gap-1 min-w-0">
@@ -222,10 +222,10 @@ export default function SupervisorStats() {
                 </div>
 
                 {/* 3. Top Achievers - "Knights 2.0" */}
-                <div className="premium-glass rounded-[4rem] p-8 md:p-12 border border-amber-500/10 dark:border-amber-500/5 shadow-2xl relative group overflow-hidden">
+                <div className="premium-glass rounded-[4rem] p-8 md:p-12 border border-amber-500/10 dark:border-amber-500/5 shadow-2xl relative group overflow-hidden flex flex-col h-full">
                     <div className="hidden md:block absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-amber-400/10 to-orange-500/10 rounded-full blur-[80px] -ml-48 -mt-48 group-hover:from-amber-400/20 transition-colors duration-700"></div>
                     
-                    <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-10 relative z-10 gap-6">
+                    <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-10 relative z-10 gap-6 shrink-0">
                         <div>
                             <h3 className="text-3xl font-black text-slate-800 dark:text-white flex items-center gap-4 mb-3">
                                 <span className={`w-14 h-14 text-white rounded-[1.5rem] flex items-center justify-center text-3xl shadow-lg dark:shadow-none transition-colors duration-500 ${knightTab === 'mastery' ? 'bg-gradient-to-br from-emerald-400 to-teal-500 shadow-emerald-200' : 'bg-gradient-to-br from-amber-300 to-orange-500 shadow-amber-200'}`}>
@@ -285,7 +285,7 @@ export default function SupervisorStats() {
                         </div>
                     </div>
 
-                    <div className="space-y-4 relative z-10 max-h-[500px] overflow-y-auto px-2 custom-scrollbar">
+                    <div className="space-y-4 relative z-10 shrink min-h-0 overflow-y-auto px-2 custom-scrollbar">
                         {knightsLoading ? (
                             <div className="flex justify-center items-center py-20">
                                 <div className="w-10 h-10 border-4 border-amber-200 border-t-amber-500 rounded-full animate-spin"></div>
