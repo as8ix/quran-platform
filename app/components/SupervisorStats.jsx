@@ -234,18 +234,18 @@ export default function SupervisorStats() {
                         </div>
 
                         {/* Filters */}
-                        <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 w-full xl:w-auto">
-                            <div className="flex bg-slate-100/50 dark:bg-slate-800/50 p-1.5 rounded-2xl border border-slate-200/50 dark:border-slate-700/50 backdrop-blur-sm w-full sm:w-auto shrink-0">
-                                <button onClick={() => setKnightTab('pages')} className={`flex-1 sm:flex-none px-4 sm:px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${knightTab === 'pages' ? 'bg-white dark:bg-slate-700 text-amber-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>فرسان الإنجاز</button>
-                                <button onClick={() => setKnightTab('mastery')} className={`flex-1 sm:flex-none px-4 sm:px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${knightTab === 'mastery' ? 'bg-white dark:bg-slate-700 text-emerald-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>فرسان الإتقان</button>
+                        <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-3 w-full xl:w-fit">
+                            <div className="flex bg-slate-100/50 dark:bg-slate-800/50 p-1.5 rounded-2xl border border-slate-200/50 dark:border-slate-700/50 backdrop-blur-sm w-fit shrink-0">
+                                <button onClick={() => setKnightTab('pages')} className={`px-4 sm:px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${knightTab === 'pages' ? 'bg-white dark:bg-slate-700 text-amber-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>فرسان الإنجاز</button>
+                                <button onClick={() => setKnightTab('mastery')} className={`px-4 sm:px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${knightTab === 'mastery' ? 'bg-white dark:bg-slate-700 text-emerald-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>فرسان الإتقان</button>
                             </div>
 
-                            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto flex-1 min-w-[200px]">
-                                <div className="relative flex-1">
+                            <div className="flex flex-row flex-wrap gap-3 w-fit shrink-0">
+                                <div className="relative">
                                     <select 
                                         value={knightTime} 
                                         onChange={(e) => setKnightTime(e.target.value)}
-                                        className="w-full appearance-none bg-white/60 dark:bg-slate-800/60 border border-slate-200/50 dark:border-slate-700/50 text-slate-700 dark:text-slate-200 rounded-2xl pl-10 pr-5 py-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500/50 cursor-pointer backdrop-blur-md shadow-sm transition-all hover:border-amber-300 dark:hover:border-amber-700"
+                                        className="w-full appearance-none bg-white/60 dark:bg-slate-800/60 border border-slate-200/50 dark:border-slate-700/50 text-slate-700 dark:text-slate-200 rounded-2xl pl-10 pr-5 py-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500/50 cursor-pointer backdrop-blur-md shadow-sm transition-all hover:border-amber-300 dark:hover:border-amber-700 min-w-[140px]"
                                     >
                                         <option value="week" className="bg-white dark:bg-slate-800">هذا الأسبوع</option>
                                         <option value="month" className="bg-white dark:bg-slate-800">هذا الشهر</option>
@@ -256,11 +256,11 @@ export default function SupervisorStats() {
                                     </div>
                                 </div>
 
-                                <div className="relative flex-1">
+                                <div className="relative">
                                     <select 
                                         value={knightHalaqa} 
                                         onChange={(e) => setKnightHalaqa(e.target.value)}
-                                        className="w-full appearance-none bg-white/60 dark:bg-slate-800/60 border border-slate-200/50 dark:border-slate-700/50 text-slate-700 dark:text-slate-200 rounded-2xl pl-10 pr-5 py-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500/50 cursor-pointer backdrop-blur-md shadow-sm transition-all hover:border-amber-300 dark:hover:border-amber-700"
+                                        className="w-full appearance-none bg-white/60 dark:bg-slate-800/60 border border-slate-200/50 dark:border-slate-700/50 text-slate-700 dark:text-slate-200 rounded-2xl pl-10 pr-5 py-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500/50 cursor-pointer backdrop-blur-md shadow-sm transition-all hover:border-amber-300 dark:hover:border-amber-700 min-w-[160px]"
                                     >
                                         <option value="all" className="bg-white dark:bg-slate-800">جميع الحلقات</option>
                                         {halaqas.map(h => (
@@ -275,7 +275,7 @@ export default function SupervisorStats() {
                         </div>
                     </div>
 
-                    <div className="space-y-4 relative z-10 max-h-[500px] overflow-y-auto pr-3 custom-scrollbar">
+                    <div className="space-y-4 relative z-10 max-h-[500px] overflow-y-auto px-2 custom-scrollbar">
                         {knightsLoading ? (
                             <div className="flex justify-center items-center py-20">
                                 <div className="w-10 h-10 border-4 border-amber-200 border-t-amber-500 rounded-full animate-spin"></div>
@@ -283,29 +283,55 @@ export default function SupervisorStats() {
                         ) : knights.length > 0 ? knights.map((s, idx) => (
                             <div 
                                 key={idx} 
-                                onClick={() => router.push(`/teacher/student/${s.id}`)}
-                                className="group/knight relative overflow-hidden p-5 bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl rounded-[2rem] border border-white dark:border-slate-800 hover:border-amber-300 dark:hover:border-amber-500/50 hover:scale-[1.01] transition-all duration-300 cursor-pointer shadow-sm hover:shadow-xl hover:shadow-amber-500/10"
+                                className="group relative bg-slate-800/80 backdrop-blur-md rounded-3xl p-4 sm:p-5 border border-slate-700 hover:border-amber-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-amber-500/10 hover:-translate-y-1"
                             >
-                                {idx === 0 && <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-amber-400/20 to-transparent rounded-full -mr-16 -mt-16 blur-xl"></div>}
-                                {idx === 1 && <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-slate-400/10 to-transparent rounded-full -mr-8 -mt-8 blur-xl"></div>}
-                                {idx === 2 && <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-orange-400/10 to-transparent rounded-full -mr-8 -mt-8 blur-xl"></div>}
-                                
+                                <div className="absolute inset-0 bg-gradient-to-r from-amber-500/5 to-transparent opacity-0 group-hover:opacity-100 rounded-3xl transition-opacity"></div>
                                 <div className="flex items-center justify-between relative z-10">
-                                    <div className="flex items-center gap-5">
-                                        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl font-black shadow-lg transition-transform duration-500 group-hover/knight:scale-110 group-hover/knight:rotate-3 ${idx === 0 ? 'bg-gradient-to-br from-amber-300 to-amber-500 text-white' : idx === 1 ? 'bg-gradient-to-br from-slate-200 to-slate-400 text-white' : idx === 2 ? 'bg-gradient-to-br from-orange-300 to-orange-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>
-                                            {idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : idx + 1}
+                                    <div className="flex items-center gap-2 sm:gap-5 min-w-0">
+                                        <div className="relative shrink-0">
+                                            <div className={`w-12 h-12 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center text-2xl sm:text-3xl shadow-inner border-2 transition-colors ${
+                                                idx === 0 ? 'bg-amber-100 border-amber-400 text-amber-600' :
+                                                idx === 1 ? 'bg-slate-100 border-slate-400 text-slate-600' :
+                                                idx === 2 ? 'bg-orange-100 border-orange-400 text-orange-600' :
+                                                'bg-slate-50 border-slate-200 text-slate-400'
+                                            }`}>
+                                                {idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : idx + 1}
+                                            </div>
                                         </div>
-                                        <div>
-                                            <div className="font-black text-slate-800 dark:text-white text-lg sm:text-xl group-hover/knight:text-amber-600 dark:group-hover/knight:text-amber-400 transition-colors">{s.name}</div>
-                                            <div className="flex items-center gap-2 mt-1">
-                                                <span className="text-[11px] font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-lg border border-slate-200 dark:border-slate-700">{s.halaqaName}</span>
-                                                <span className="text-[10px] font-bold text-slate-400 tracking-widest">{s.count} جلسات</span>
+                                        <div className="flex flex-col gap-1 min-w-0">
+                                            <h4 className="text-base sm:text-xl font-black text-slate-800 dark:text-white truncate pr-1">{s.name}</h4>
+                                            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
+                                                <span className="text-[10px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 sm:px-3 py-1 rounded-lg border border-slate-200 dark:border-slate-700 truncate">
+                                                    {s.halaqaName || 'غير محدد'}
+                                                </span>
+                                                <span className="text-[10px] sm:text-xs text-slate-400 font-medium whitespace-nowrap">
+                                                    {s.count} جلسات
+                                                </span>
                                             </div>
                                         </div>
                                     </div>
-                                    <div className={`text-center px-6 py-3 rounded-2xl border ${knightTab === 'mastery' ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800' : 'bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800'}`}>
-                                        <div className={`text-2xl font-black ${knightTab === 'mastery' ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>{s.pages}</div>
-                                        <div className={`text-[10px] font-black uppercase mt-0.5 ${knightTab === 'mastery' ? 'text-emerald-500/70 dark:text-emerald-500/50' : 'text-amber-500/70 dark:text-amber-500/50'}`}>صفحة</div>
+                                    
+                                    <div className={`text-center px-3 sm:px-6 py-2 sm:py-3 rounded-2xl border transition-all duration-300 shrink-0 ${
+                                        idx === 0 
+                                            ? 'bg-gradient-to-br from-amber-400/20 to-orange-500/20 border-amber-500/30 group-hover:bg-amber-400/30 shadow-lg shadow-amber-500/10' 
+                                            : idx === 1
+                                            ? 'bg-slate-700/50 border-slate-600 group-hover:bg-slate-700 shadow-lg'
+                                            : idx === 2
+                                            ? 'bg-amber-900/30 border-amber-800/50 group-hover:bg-amber-900/50 shadow-lg'
+                                            : 'bg-slate-800 border-slate-700 group-hover:bg-slate-700'
+                                    }`}>
+                                        <div className={`text-xl sm:text-3xl font-black mb-0.5 ${
+                                            idx === 0 ? 'text-amber-400 drop-shadow-md' : 
+                                            idx === 1 ? 'text-slate-300' : 
+                                            idx === 2 ? 'text-amber-600' : 'text-emerald-400'
+                                        }`}>
+                                            {s.pages}
+                                        </div>
+                                        <div className={`text-[10px] sm:text-sm font-bold ${
+                                            idx === 0 ? 'text-amber-500/80' : 
+                                            idx === 1 ? 'text-slate-400' : 
+                                            idx === 2 ? 'text-amber-700/80' : 'text-emerald-500/80'
+                                        }`}>صفحة</div>
                                     </div>
                                 </div>
                             </div>

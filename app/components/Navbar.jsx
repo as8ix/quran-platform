@@ -179,10 +179,10 @@ export default function Navbar({ userType, userName, onLogout, displayId }) {
 
     return (
         <nav className="fixed top-2 sm:top-4 left-2 sm:left-4 right-2 sm:right-4 z-50 transition-all duration-500">
-            <div className="max-w-7xl mx-auto premium-glass !overflow-visible rounded-[1.5rem] sm:rounded-[2.5rem] px-4 sm:px-6 py-2.5 sm:py-4 border-white/30 dark:border-slate-800/50 shadow-2xl shadow-slate-200/50 dark:shadow-none">
-                <div className="flex justify-between items-center gap-2">
+            <div className="max-w-7xl mx-auto premium-glass !overflow-visible rounded-[1.5rem] sm:rounded-[2.5rem] px-2 sm:px-6 py-2.5 sm:py-4 border-white/30 dark:border-slate-800/50 shadow-2xl shadow-slate-200/50 dark:shadow-none">
+                <div className="flex justify-between items-center gap-1 sm:gap-2">
                     <div
-                        className="flex items-center gap-2 sm:gap-3 shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+                        className="flex items-center gap-1.5 sm:gap-3 shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
                         onClick={() => {
                             if (userType === 'teacher') router.push('/teacher');
                             else if (userType === 'supervisor') router.push('/supervisor');
@@ -191,20 +191,19 @@ export default function Navbar({ userType, userName, onLogout, displayId }) {
                     >
                         <div className="relative group">
                             <div className="absolute inset-0 bg-green-500/20 rounded-full blur-lg group-hover:bg-green-500/40 transition-all duration-500 opacity-0 group-hover:opacity-100"></div>
-                            <img src="/logo.svg" alt="Logo" decoding="async" className="w-8 h-8 sm:w-10 sm:h-10 object-contain dark:hidden relative z-10" />
-                            <img src="/logo-dark.png" alt="Logo" decoding="async" className="w-8 h-8 sm:w-10 sm:h-10 object-contain hidden dark:block relative z-10" />
+                            <img src="/logo.svg" alt="Logo" decoding="async" className="w-7 h-7 sm:w-10 sm:h-10 object-contain dark:hidden relative z-10 shrink-0" />
+                            <img src="/logo-dark.png" alt="Logo" decoding="async" className="w-7 h-7 sm:w-10 sm:h-10 object-contain hidden dark:block relative z-10 shrink-0" />
                         </div>
-                        <span className="font-amiri text-lg sm:text-2xl font-bold text-green-600 dark:text-green-500 whitespace-nowrap leading-tight">
+                        <span className="font-amiri text-base sm:text-2xl font-bold text-green-600 dark:text-green-500 whitespace-nowrap leading-tight shrink-0">
                             {titles[userType] || 'المنصة'}
                         </span>
                     </div>
 
-                    <div className="flex items-center gap-2 sm:gap-6">
-                        {/* Theme Toggle */}
+                    <div className="flex items-center gap-1.5 sm:gap-6 shrink-0">
                         {/* Theme Toggle */}
                         <button
                             onClick={toggleDarkMode}
-                            className="p-2 sm:p-2.5 rounded-xl sm:rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-amber-400 hover:scale-110 transition-all duration-300 min-w-[36px] sm:min-w-[40px] flex items-center justify-center border border-black/5 dark:border-white/5 shadow-sm"
+                            className="p-1.5 sm:p-2.5 rounded-xl sm:rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-amber-400 hover:scale-110 transition-all duration-300 min-w-[32px] sm:min-w-[40px] flex items-center justify-center border border-black/5 dark:border-white/5 shadow-sm shrink-0"
                             title={isDarkMode ? 'الوضع الفاتح' : 'الوضع الداكن'}
                         >
                             {!mounted ? (
@@ -221,10 +220,10 @@ export default function Navbar({ userType, userName, onLogout, displayId }) {
                         </button>
 
                         {/* Notifications Bell */}
-                        <div className="relative" ref={notificationRef}>
+                        <div className="relative shrink-0" ref={notificationRef}>
                             <button
                                 onClick={toggleNotifications}
-                                className={`relative p-2 text-xl sm:text-2xl hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl sm:rounded-full transition-all duration-300 ${unreadCount > 0 ? 'animate-pulse' : ''}`}
+                                className={`relative p-1.5 sm:p-2 text-xl sm:text-2xl hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl sm:rounded-full transition-all duration-300 ${unreadCount > 0 ? 'animate-pulse' : ''}`}
                             >
                                 <span className="relative z-10">🔔</span>
                                 {unreadCount > 0 && (
@@ -236,7 +235,7 @@ export default function Navbar({ userType, userName, onLogout, displayId }) {
 
                             {/* Dropdown */}
                             {(showNotifications || isClosing) && (
-                                <div className={`fixed md:absolute inset-x-4 md:inset-x-auto md:left-0 top-[75px] md:top-full mt-2 md:mt-4 md:w-80 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.2)] dark:shadow-none border border-slate-100 dark:border-slate-800 overflow-hidden z-[100] ${isClosing ? 'animate-slideDown' : 'animate-slideUp'}`}>
+                                <div className={`fixed md:absolute inset-x-2 md:inset-x-auto md:left-0 top-[75px] md:top-full mt-2 md:mt-4 md:w-80 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.2)] dark:shadow-none border border-slate-100 dark:border-slate-800 overflow-hidden z-[100] ${isClosing ? 'animate-slideDown' : 'animate-slideUp'}`}>
                                     <div className="p-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 flex justify-between items-center">
                                         <h3 className="font-black text-slate-800 dark:text-white uppercase tracking-tight">الإشعارات</h3>
                                         <div className="flex items-center gap-2">
@@ -297,7 +296,7 @@ export default function Navbar({ userType, userName, onLogout, displayId }) {
                             )}
                         </div>
 
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
                             <div className="flex flex-col items-end">
                                 <span className="font-black text-slate-700 dark:text-slate-200 hidden md:block text-sm">{userName}</span>
                                 {displayId && (
@@ -308,7 +307,7 @@ export default function Navbar({ userType, userName, onLogout, displayId }) {
                             {(userType === 'teacher' || userType === 'supervisor') && (
                                 <button
                                     onClick={() => router.push(`/${userType}/profile`)}
-                                    className="p-2 sm:p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-emerald-600 transition-all shadow-sm border border-black/5 dark:border-white/5"
+                                    className="p-1.5 sm:p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-emerald-600 transition-all shadow-sm border border-black/5 dark:border-white/5 shrink-0"
                                     title="إعدادات الحساب"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
@@ -323,7 +322,7 @@ export default function Navbar({ userType, userName, onLogout, displayId }) {
                                     if (onLogout) onLogout();
                                     router.push('/login');
                                 }}
-                                className="px-3 py-2.5 sm:px-4 sm:py-2 bg-gradient-to-br from-rose-500 to-red-600 text-white rounded-xl sm:rounded-2xl hover:shadow-xl hover:shadow-red-500/20 transition-all duration-300 transform active:scale-95 group/logout"
+                                className="px-2.5 py-2 sm:px-4 sm:py-2 bg-gradient-to-br from-rose-500 to-red-600 text-white rounded-xl sm:rounded-2xl hover:shadow-xl hover:shadow-red-500/20 transition-all duration-300 transform active:scale-95 group/logout shrink-0"
                                 aria-label="خروج"
                             >
                                 <span className="hidden md:inline font-black">تسجيل الخروج</span>
