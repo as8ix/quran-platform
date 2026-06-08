@@ -44,7 +44,11 @@ export default function TeacherPointsPage() {
         if (user) {
             fetchTestData(true);
             checkPointsStatus();
-            
+        }
+    }, [user]);
+
+    useEffect(() => {
+        if (user) {
             // Polling for instant updates from other assistants
             const interval = setInterval(() => {
                 if (isScanning || isProcessingRef.current) return;
@@ -103,7 +107,8 @@ export default function TeacherPointsPage() {
             }
 
             if (!document.getElementById("reader")) {
-                throw new Error("لم يتم العثور على عنصر قارئ الباركود (id=reader) في الصفحة.");
+                const hasReader = document.body.innerHTML.includes('id="reader"') || document.body.innerHTML.includes("id='reader'") || document.body.innerHTML.includes('id=reader');
+                throw new Error(`لم يتم العثور على عنصر قارئ الباركود (id=reader) في الصفحة. (موجود في كود HTML: ${hasReader ? 'نعم' : 'لا'})`);
             }
 
             const config = { 
