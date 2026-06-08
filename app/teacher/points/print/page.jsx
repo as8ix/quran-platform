@@ -22,7 +22,15 @@ export default function PrintCardsPage() {
 
     const fetchStudents = async (halaqaId) => {
         try {
-            const res = await fetch('/api/students');
+            const user = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || '{}') : {};
+            let url = '/api/students';
+            if (halaqaId) {
+                url = `/api/students?halaqaId=${halaqaId}`;
+            } else if (user.role === 'TEACHER' && user.id) {
+                url = `/api/students?teacherId=${user.id}`;
+            }
+            
+            const res = await fetch(url);
             if (res.ok) {
                 const allStudents = await res.json();
                 let filtered = allStudents;
@@ -78,7 +86,7 @@ export default function PrintCardsPage() {
                             <div className="bg-slate-900 p-2 flex items-center justify-between">
                                 <div className="flex items-center gap-1.5">
                                     <div className="w-7 h-7 flex items-center justify-center flex-shrink-0">
-                                        <img src="/mosque-logo-white.png" className="max-w-full max-h-full object-contain" alt="logo" />
+                                        <img src="/logo.svg" className="max-w-full max-h-full object-contain" alt="logo" />
                                     </div>
                                     <div className="text-[7px] text-white font-bold leading-tight">
                                         جامع الحديقة<br/>
@@ -113,7 +121,14 @@ export default function PrintCardsPage() {
 
                                 <div className="flex items-center justify-between w-full mt-1 px-1">
                                     <div className="text-[6px] font-black text-slate-300">#STU-{student.id}</div>
-                                    <div className="text-[6px] font-black text-slate-300">QURAN 2026</div>
+                                    <div className="text-left flex flex-col items-end">
+                                        <div className="text-[6px] font-black text-slate-300">QURAN 2026</div>
+                                        {student.family?.name && (
+                                            <div className="text-[5px] font-black text-emerald-500 mt-0.5 leading-none">
+                                                أسرة {student.family.name}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         </div>

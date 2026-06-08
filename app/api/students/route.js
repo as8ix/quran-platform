@@ -210,7 +210,7 @@ export async function GET(request) {
         let students = await prisma.student.findMany({
             where,
             select: selectFields,
-            include: isFull ? { halaqa: true, khayrukumCertificates: true } : undefined,
+            include: isFull ? { halaqa: true, khayrukumCertificates: true, family: { select: { id: true, name: true } } } : undefined,
             orderBy: { name: 'asc' }
         });
 

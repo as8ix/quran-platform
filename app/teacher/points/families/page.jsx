@@ -8,6 +8,13 @@ import BackButton from '../../../components/BackButton';
 import { useTheme } from '../../../components/ThemeProvider';
 import LoadingScreen from '../../../components/LoadingScreen';
 
+const getFirstAndLastName = (name) => {
+    if (!name) return '';
+    const parts = name.trim().split(/\s+/);
+    if (parts.length <= 2) return name;
+    return `${parts[0]} ${parts[parts.length - 1]}`;
+};
+
 export default function FamiliesPage() {
     const router = useRouter();
     const { isDarkMode, mounted } = useTheme();
@@ -495,7 +502,7 @@ export default function FamiliesPage() {
                                                             }}
                                                             title="اضغط للفصل"
                                                         >
-                                                            {student.name} ✕
+                                                            {getFirstAndLastName(student.name)} ✕
                                                         </span>
                                                     ))}
                                                 </div>

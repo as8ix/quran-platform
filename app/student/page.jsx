@@ -807,7 +807,7 @@ export default function StudentDashboard() {
                             <div className="bg-slate-900 p-3 flex items-center justify-between">
                                 <div className="flex items-center gap-2">
                                     <div className="w-8 h-8 flex items-center justify-center flex-shrink-0 bg-white/10 rounded-lg p-1">
-                                        <img src="/mosque-logo-white.png" className="max-w-full max-h-full object-contain" alt="logo" />
+                                        <img src="/logo.svg" className="max-w-full max-h-full object-contain" alt="logo" />
                                     </div>
                                     <div className="text-[9px] text-white font-bold leading-tight">
                                         جامع الحديقة<br/>
@@ -844,7 +844,14 @@ export default function StudentDashboard() {
 
                                 <div className="flex items-center justify-between w-full mt-2 px-2">
                                     <div className="text-[10px] font-black text-slate-400">#STU-{student.id}</div>
-                                    <div className="text-[10px] font-black text-slate-400">QURAN {new Date().getFullYear()}</div>
+                                    <div className="text-left flex flex-col items-end">
+                                        <div className="text-[10px] font-black text-slate-400">QURAN {new Date().getFullYear()}</div>
+                                        {student.family?.name && (
+                                            <div className="text-[8px] font-black text-emerald-500 mt-0.5 leading-none">
+                                                أسرة {student.family.name}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         </div>
