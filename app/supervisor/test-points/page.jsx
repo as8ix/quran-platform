@@ -72,45 +72,122 @@ export default function TestPointsPage() {
                 await html5QrCode.start(cameraConfig, config, onScanSuccess);
             };
 
-            let envError, userError;
+            // 1. Check if camera permission is already granted
+            let permissionGranted = false;
             try {
-                // Force permission prompt natively first
+                const permissionStatus = await navigator.permissions.query({ name: 'camera' });
+                if (permissionStatus.state === 'granted') {
+                    permissionGranted = true;
+                }
+            } catch (e) {
+                // Fallback check: if we can enumerate devices and see non-empty labels, permission is already granted
+                try {
+                    const devices = await navigator.mediaDevices.enumerateDevices();
+                    if (devices.some(d => d.kind === 'videoinput' && d.label)) {
+                        permissionGranted = true;
+                    }
+                } catch (err) {}
+            }
+
+            // 2. If permission is not granted, trigger the browser prompt natively
+            if (!permissionGranted) {
                 try {
                     const stream = await navigator.mediaDevices.getUserMedia({ video: true });
                     stream.getTracks().forEach(track => track.stop());
-                    // Wait briefly to ensure hardware releases the lock
-                    await new Promise(resolve => setTimeout(resolve, 500));
+                    // Wait a bit longer to ensure the hardware lock is fully released by the system
+                    await new Promise(resolve => setTimeout(resolve, 800));
                 } catch (permErr) {
-                    throw new Error(`لم يتم منح صلاحية الكاميرا (${permErr.name})`);
-                }
-
-                // Try back camera first
-                await tryCamera({ facingMode: "environment" }, "environment");
-            } catch (err) {
-                envError = err;
-                console.warn("Environment camera failed, trying user camera...", err);
-                try {
-                    // Try front camera
-                    await tryCamera({ facingMode: "user" }, "user");
-                } catch (err2) {
-                    userError = err2;
-                    console.warn("User camera failed, trying fallback to device list...", err2);
-                    try {
-                        // Try getting raw device IDs directly from browser (no flash)
-                        const devices = await navigator.mediaDevices.enumerateDevices();
-                        const videoDevices = devices.filter(d => d.kind === 'videoinput');
-                        if (videoDevices.length > 0) {
-                            // Avoid virtual cameras
-                            const realCamera = videoDevices.find(c => !c.label.toLowerCase().includes('virtual') && !c.label.toLowerCase().includes('obs')) || videoDevices[0];
-                            await tryCamera(realCamera.deviceId, "deviceId_fallback");
-                        } else {
-                            throw new Error("No cameras found in browser devices");
-                        }
-                    } catch (err3) {
-                        throw new Error(`[Env: ${envError?.message || envError?.name}] [User: ${userError?.message || userError?.name}] [Fallback: ${err3?.message || err3?.name}]`);
-                    }
+                    throw new Error(`لم يتم منح صلاحية الكاميرا (${permErr.name || permErr.message || permErr})`);
                 }
             }
+
+            // 3. Enumerate all available camera devices
+            let devices = [];
+            try {
+                devices = await navigator.mediaDevices.enumerateDevices();
+            } catch (enumErr) {
+                console.warn("Failed to enumerate devices:", enumErr);
+            }
+
+            const videoDevices = devices.filter(d => d.kind === 'videoinput');
+            if (videoDevices.length === 0) {
+                console.warn("No video devices listed, falling back to facingMode constraints");
+            }
+
+            // 4. Determine the best camera to try first
+            let bestCamera = null;
+            if (videoDevices.length > 0) {
+                // Look for back/rear/environment cameras
+                const backKeywords = ['back', 'rear', 'environment', 'خلفية', 'خلفي', 'main'];
+                const backCamera = videoDevices.find(device => {
+                    const label = device.label.toLowerCase();
+                    return backKeywords.some(keyword => label.includes(keyword));
+                });
+
+                if (backCamera) {
+                    bestCamera = backCamera;
+                } else {
+                    // Avoid virtual cameras if possible
+                    const virtualKeywords = ['virtual', 'obs', 'snap', 'iria', 'droid', 'logi virtual', 'manycam'];
+                    const realCamera = videoDevices.find(device => {
+                        const label = device.label.toLowerCase();
+                        return !virtualKeywords.some(keyword => label.includes(keyword));
+                    });
+                    bestCamera = realCamera || videoDevices[0];
+                }
+            }
+
+            // 5. Build an ordered list of attempts to start the camera
+            const attempts = [];
+
+            // Attempt 1: best selected camera deviceId
+            if (bestCamera) {
+                attempts.push({
+                    config: bestCamera.deviceId,
+                    name: `Device: ${bestCamera.label || 'Default Camera'}`
+                });
+            }
+
+            // Attempt 2: facingMode environment (especially for mobile back camera)
+            attempts.push({
+                config: { facingMode: "environment" },
+                name: "facingMode: environment"
+            });
+
+            // Attempt 3: facingMode user (front camera fallback)
+            attempts.push({
+                config: { facingMode: "user" },
+                name: "facingMode: user"
+            });
+
+            // Attempt 4: any other camera devices not tried yet
+            videoDevices.forEach((device, index) => {
+                if (!bestCamera || device.deviceId !== bestCamera.deviceId) {
+                    attempts.push({
+                        config: device.deviceId,
+                        name: `Backup Device ${index}: ${device.label || 'Camera'}`
+                    });
+                }
+            });
+
+            // Run through attempts until one succeeds
+            let lastError = null;
+            for (const attempt of attempts) {
+                try {
+                    console.log(`Starting scanner attempt: ${attempt.name}`);
+                    await tryCamera(attempt.config, attempt.name);
+                    console.log(`Scanner successfully started with: ${attempt.name}`);
+                    return; // Success!
+                } catch (err) {
+                    console.warn(`Scanner attempt failed (${attempt.name}):`, err);
+                    lastError = err;
+                    // Wait briefly before retrying next configuration to let device state settle
+                    await new Promise(resolve => setTimeout(resolve, 300));
+                }
+            }
+
+            // If we got here, all attempts failed
+            throw lastError || new Error("فشلت جميع محاولات تشغيل الكاميرا");
 
         } catch (err) {
             if (!containerRef.current) return; // Silently ignore if component unmounted
