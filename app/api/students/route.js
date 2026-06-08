@@ -183,6 +183,13 @@ export async function GET(request) {
             feeStatusTerm1: true,
             feeStatusTerm2: true,
             joinDate: true,
+            familyId: true,
+            family: {
+                select: {
+                    id: true,
+                    name: true
+                }
+            },
             halaqa: {
                 select: {
                     id: true,

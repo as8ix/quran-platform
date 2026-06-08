@@ -12,6 +12,7 @@ export default function LeaderboardPage() {
     const router = useRouter();
     const { isDarkMode, mounted } = useTheme();
     const [leaderboard, setLeaderboard] = useState([]);
+    const [leaderboardType, setLeaderboardType] = useState('student'); // 'student' | 'family'
     const [loading, setLoading] = useState(true);
     const [isSharing, setIsSharing] = useState(false);
     const topThreeRef = useRef(null);
@@ -29,7 +30,7 @@ export default function LeaderboardPage() {
 
         const params = new URLSearchParams(window.location.search);
         const hId = params.get('halaqaId');
-        fetchLeaderboard(true, hId);
+        fetchLeaderboard(true, hId, 'student');
         
         if (hId) {
             fetchHalaqaName(hId);
@@ -46,12 +47,13 @@ export default function LeaderboardPage() {
         } catch (e) { console.error(e); }
     };
 
-    const fetchLeaderboard = useCallback(async (isInitial = false, hId) => {
+    const fetchLeaderboard = useCallback(async (isInitial = false, hId, type = leaderboardType) => {
         if (isInitial) setLoading(true);
         try {
             const params = new URLSearchParams();
             if (hId) params.append('halaqaId', hId);
             params.append('aggregate', 'true');
+            if (type === 'family') params.append('groupBy', 'family');
             
             const res = await fetch(`/api/points?${params.toString()}`);
             if (res.ok) {
@@ -63,16 +65,23 @@ export default function LeaderboardPage() {
         } finally {
             if (isInitial) setLoading(false);
         }
-    }, []);
+    }, [leaderboardType]);
+
+    const handleToggleType = (type) => {
+        setLeaderboardType(type);
+        const params = new URLSearchParams(window.location.search);
+        const hId = params.get('halaqaId');
+        fetchLeaderboard(true, hId, type);
+    };
 
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
         const hId = params.get('halaqaId');
         
         // Refresh every 30 seconds instead of 5
-        const interval = setInterval(() => fetchLeaderboard(false, hId), 30000);
+        const interval = setInterval(() => fetchLeaderboard(false, hId, leaderboardType), 30000);
         return () => clearInterval(interval);
-    }, [fetchLeaderboard]);
+    }, [fetchLeaderboard, leaderboardType]);
 
     const handleShare = async () => {
         if (!topThreeRef.current) return;
@@ -134,6 +143,24 @@ export default function LeaderboardPage() {
                     </h1>
                 </div>
 
+                {/* Leaderboard Type Toggle */}
+                <div className="flex justify-center mb-12 max-w-xs mx-auto relative z-20">
+                    <div className="flex bg-slate-200/50 dark:bg-slate-900/60 p-1 rounded-2xl border border-slate-300/30 dark:border-slate-800/80 text-sm w-full">
+                        <button 
+                            onClick={() => handleToggleType('student')}
+                            className={`flex-1 py-2.5 rounded-xl font-black transition-all ${leaderboardType === 'student' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'}`}
+                        >
+                            🏆 الطلاب
+                        </button>
+                        <button 
+                            onClick={() => handleToggleType('family')}
+                            className={`flex-1 py-2.5 rounded-xl font-black transition-all ${leaderboardType === 'family' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'}`}
+                        >
+                            👥 الأسر والمجموعات
+                        </button>
+                    </div>
+                </div>
+
                 {topThree.length > 0 && (
                     <div className="mb-24">
                         <div className="flex justify-between items-center mb-8 px-4">
@@ -167,6 +194,11 @@ export default function LeaderboardPage() {
                                             <div className="text-4xl font-black text-slate-300">
                                                 {topThree[1].totalPoints} <span className="text-lg opacity-60">نقطة</span>
                                             </div>
+                                            {leaderboardType === 'family' && topThree[1].students && (
+                                                <div className="text-[10px] text-slate-400 font-bold mt-2">
+                                                    {topThree[1].students.map(s => s.name).join('، ')}
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 )}
@@ -180,6 +212,11 @@ export default function LeaderboardPage() {
                                             <div className="text-6xl font-black text-amber-500 mb-8">
                                                 {topThree[0].totalPoints} <span className="text-xl text-amber-500/60">نقطة</span>
                                             </div>
+                                            {leaderboardType === 'family' && topThree[0].students && (
+                                                <div className="text-xs text-amber-500/80 font-bold mb-4">
+                                                    {topThree[0].students.map(s => s.name).join('، ')}
+                                                </div>
+                                            )}
                                             <div className="px-10 py-4 bg-amber-500 text-white rounded-full text-sm font-black uppercase tracking-widest shadow-xl">بطل الأسبوع</div>
                                         </div>
                                     </div>
@@ -194,6 +231,11 @@ export default function LeaderboardPage() {
                                             <div className="text-4xl font-black text-amber-700">
                                                 {topThree[2].totalPoints} <span className="text-lg opacity-60">نقطة</span>
                                             </div>
+                                            {leaderboardType === 'family' && topThree[2].students && (
+                                                <div className="text-[10px] text-amber-700/80 font-bold mt-2">
+                                                    {topThree[2].students.map(s => s.name).join('، ')}
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 )}
@@ -213,13 +255,22 @@ export default function LeaderboardPage() {
                             </div>
                             <div className="flex-1">
                                 <h3 className="text-lg font-black text-slate-800 dark:text-white">{student.name}</h3>
-                                <div className="flex gap-2 mt-1">
+                                <div className="flex gap-2 mt-1 flex-wrap">
                                     {Object.entries(student.categories).map(([cat, pts]) => (
                                         <span key={cat} className="text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 px-2 py-0.5 rounded-lg">
                                             {cat === 'QURAN' ? '📖' : cat === 'ATTENDANCE' ? '⏰' : '⭐'} {pts}
                                         </span>
                                     ))}
                                 </div>
+                                {leaderboardType === 'family' && student.students && student.students.length > 0 && (
+                                    <div className="flex flex-wrap gap-1.5 mt-2.5 pt-2 border-t border-slate-100/50 dark:border-slate-800/40">
+                                        {student.students.map(s => (
+                                            <span key={s.id} className="text-[9px] font-black bg-slate-100 dark:bg-slate-900 text-slate-500 dark:text-slate-400 px-2 py-0.5 rounded-md">
+                                                👤 {s.name} ({s.totalPoints} ن)
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                             <div className="text-right">
                                 <div className="text-xl font-black text-emerald-600 dark:text-emerald-400">{student.totalPoints}</div>

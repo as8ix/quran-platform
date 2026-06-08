@@ -37,6 +37,7 @@ model Halaqa {
   holidays      Holiday[]
   students      Student[]
   assistants    User[]    @relation("AssistantTeachers")
+  families      Family[]
 
   @@index([teacherId])
 }
@@ -72,6 +73,8 @@ model Student {
   notifications      Notification[]
   points             Point[]
   sessions           Session[]
+  familyId           Int?
+  family             Family?           @relation(fields: [familyId], references: [id])
   halaqa             Halaqa?           @relation(fields: [halaqaId], references: [id])
   StudyPlanEntry     StudyPlanEntry[]
   khayrukumCertificates KhayrukumCertificate[]
@@ -258,5 +261,16 @@ model KhayrukumCertificate {
 
   @@index([studentId])
   @@index([teacherId])
+}
+
+model Family {
+  id        Int       @id @default(autoincrement())
+  name      String
+  halaqaId  Int?
+  halaqa    Halaqa?   @relation(fields: [halaqaId], references: [id])
+  students  Student[]
+  createdAt DateTime  @default(now())
+
+  @@index([halaqaId])
 }
 

@@ -46,6 +46,83 @@ export async function GET(request) {
         const isAggregate = searchParams.get('aggregate') === 'true';
 
         if (isAggregate) {
+            const groupBy = searchParams.get('groupBy');
+
+            if (groupBy === 'family') {
+                let familyWhere = {};
+                if (halaqaId) {
+                    familyWhere.halaqaId = parseInt(halaqaId);
+                } else if (teacherId) {
+                    const myHalaqas = await prisma.halaqa.findMany({
+                        where: {
+                            OR: [
+                                { teacherId: parseInt(teacherId) },
+                                { assistants: { some: { id: parseInt(teacherId) } } }
+                            ]
+                        },
+                        select: { id: true }
+                    });
+                    const myHalaqaIds = myHalaqas.map(h => h.id);
+                    familyWhere.halaqaId = { in: myHalaqaIds };
+                }
+
+                const families = await prisma.family.findMany({
+                    where: familyWhere,
+                    include: {
+                        students: {
+                            select: { id: true, name: true }
+                        }
+                    }
+                });
+
+                const summary = await prisma.point.groupBy({
+                    by: ['studentId', 'category'],
+                    where,
+                    _sum: { amount: true },
+                    _count: { id: true }
+                });
+
+                const studentPoints = {};
+                summary.forEach(item => {
+                    if (!studentPoints[item.studentId]) {
+                        studentPoints[item.studentId] = { totalPoints: 0, categories: {} };
+                    }
+                    studentPoints[item.studentId].totalPoints += item._sum.amount;
+                    if (!studentPoints[item.studentId].categories[item.category]) {
+                        studentPoints[item.studentId].categories[item.category] = 0;
+                    }
+                    studentPoints[item.studentId].categories[item.category] += item._sum.amount;
+                });
+
+                const familyLeaderboard = families.map(f => {
+                    let totalPoints = 0;
+                    const categories = {};
+                    f.students.forEach(s => {
+                        const pts = studentPoints[s.id];
+                        if (pts) {
+                            totalPoints += pts.totalPoints;
+                            Object.entries(pts.categories).forEach(([cat, amt]) => {
+                                categories[cat] = (categories[cat] || 0) + amt;
+                            });
+                        }
+                    });
+
+                    return {
+                        id: f.id,
+                        name: f.name,
+                        totalPoints,
+                        categories,
+                        students: f.students.map(s => ({
+                            id: s.id,
+                            name: s.name,
+                            totalPoints: studentPoints[s.id]?.totalPoints || 0
+                        }))
+                    };
+                }).sort((a, b) => b.totalPoints - a.totalPoints);
+
+                return NextResponse.json(familyLeaderboard);
+            }
+
             // Server-side aggregation for leaderboard
             const summary = await prisma.point.groupBy({
                 by: ['studentId', 'category'],

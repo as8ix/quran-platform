@@ -336,6 +336,13 @@ export default function TeacherPointsPage() {
                                         لوحة الصدارة
                                     </button>
                                     <button 
+                                        onClick={() => window.location.href = `/teacher/points/families${hId ? `?halaqaId=${hId}` : ''}`}
+                                        className="flex items-center gap-3 px-6 py-4 bg-indigo-600 text-white rounded-2xl font-black shadow-lg shadow-indigo-200 transition-all active:scale-95"
+                                    >
+                                        <span>👥</span>
+                                        المجموعات والأسر
+                                    </button>
+                                    <button 
                                         onClick={() => {
                                             if (hId) {
                                                 window.location.href = `/teacher/points/print?halaqaId=${hId}`;
