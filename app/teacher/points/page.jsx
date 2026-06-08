@@ -97,25 +97,29 @@ export default function TeacherPointsPage() {
                 qrbox: { width: 280, height: 280 }
             };
 
+            const startWithCamera = async (cameraIdOrConfig) => {
+                await html5QrCode.start(cameraIdOrConfig, config, onScanSuccess);
+            };
+
             try {
                 // First try to use the environment (back) camera
-                await html5QrCode.start(
-                    { facingMode: "environment" },
-                    config,
-                    onScanSuccess
-                );
+                await startWithCamera({ facingMode: "environment" });
             } catch (err) {
-                console.warn("Failed to start environment camera, trying fallback...", err);
-                // Fallback: get all cameras and use the first one available
-                const cameras = await Html5Qrcode.getCameras();
-                if (cameras && cameras.length > 0) {
-                    await html5QrCode.start(
-                        cameras[0].id,
-                        config,
-                        onScanSuccess
-                    );
-                } else {
-                    throw new Error("No cameras found");
+                console.warn("Failed to start environment camera, trying user camera...", err);
+                try {
+                    // Fallback 1: try user (front) camera
+                    await startWithCamera({ facingMode: "user" });
+                } catch (err2) {
+                    console.warn("Failed front camera, trying first available...", err2);
+                    // Fallback 2: get all cameras and use the first one available
+                    const cameras = await Html5Qrcode.getCameras();
+                    if (cameras && cameras.length > 0) {
+                        // Avoid virtual cameras if possible
+                        const realCamera = cameras.find(c => !c.label.toLowerCase().includes('virtual') && !c.label.toLowerCase().includes('obs')) || cameras[0];
+                        await startWithCamera(realCamera.id);
+                    } else {
+                        throw new Error("No cameras found");
+                    }
                 }
             }
         } catch (err) {
@@ -369,7 +373,7 @@ export default function TeacherPointsPage() {
                             </button>
                         )}
                         <div className={`premium-glass rounded-[3rem] border-4 ${mode === 'deduct' ? 'border-rose-500' : 'border-emerald-500'} relative overflow-hidden bg-black ${isScanning ? 'h-full md:h-auto md:min-h-[400px]' : 'p-8'}`}>
-                            <div id="reader" className={`w-full h-full min-h-[300px] flex flex-col items-center justify-center overflow-hidden ${isScanning ? 'scale-110' : ''}`}></div>
+                            <div id="reader" className={`w-full h-full min-h-[300px] overflow-hidden ${isScanning ? 'scale-110' : ''}`}></div>
                             {!isScanning && (
                                 <div className="text-center py-20 opacity-40">
                                     <div className="text-6xl mb-4">📷</div>
