@@ -74,6 +74,16 @@ export default function TestPointsPage() {
 
             let envError, userError;
             try {
+                // Force permission prompt natively first
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    stream.getTracks().forEach(track => track.stop());
+                    // Wait briefly to ensure hardware releases the lock
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                } catch (permErr) {
+                    throw new Error(`لم يتم منح صلاحية الكاميرا (${permErr.name})`);
+                }
+
                 // Try back camera first
                 await tryCamera({ facingMode: "environment" }, "environment");
             } catch (err) {
