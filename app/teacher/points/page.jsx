@@ -21,6 +21,7 @@ export default function TeacherPointsPage() {
     const [user, setUser] = useState(null);
     const html5QrCodeRef = useRef(null);
     const isProcessingRef = useRef(false);
+    const containerRef = useRef(null);
     const successAudioRef = useRef(null);
 
     // Preload audio for faster feedback
@@ -103,8 +104,8 @@ export default function TeacherPointsPage() {
             };
 
             const tryCamera = async (cameraConfig, attemptName) => {
-                const container = document.getElementById("reader-container");
-                if (!container) throw new Error(`Reader container not found on attempt: ${attemptName}`);
+                const container = containerRef.current;
+                if (!container) throw new Error(`Reader container Ref is null on attempt: ${attemptName}`);
                 
                 // Safe cleanup of previous instance's active stream if any
                 if (html5QrCodeRef.current) {
@@ -155,7 +156,7 @@ export default function TeacherPointsPage() {
             }
 
         } catch (err) {
-            if (!document.getElementById("reader-container")) return; // Silently ignore if component unmounted
+            if (!containerRef.current) return; // Silently ignore if component unmounted
             console.error("Scanner start error:", err);
             toast.error(`فشل الكاميرا: ${err?.message || err?.name || String(err)}`);
             setIsScanning(false);
@@ -406,7 +407,7 @@ export default function TeacherPointsPage() {
                             </button>
                         )}
                         <div className={`premium-glass rounded-[3rem] border-4 ${mode === 'deduct' ? 'border-rose-500' : 'border-emerald-500'} relative overflow-hidden bg-black ${isScanning ? 'min-h-[400px]' : 'p-8'}`}>
-                            <div id="reader-container" className="w-full min-h-[300px]"></div>
+                            <div ref={containerRef} id="reader-container" className="w-full min-h-[300px]"></div>
                             {!isScanning && (
                                 <div className="text-center py-20 opacity-40">
                                     <div className="text-6xl mb-4">📷</div>
