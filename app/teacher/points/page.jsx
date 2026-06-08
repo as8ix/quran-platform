@@ -127,7 +127,8 @@ export default function TeacherPointsPage() {
             
             const config = { 
                 fps: 10, 
-                qrbox: { width: 280, height: 280 }
+                qrbox: { width: 280, height: 280 },
+                aspectRatio: 1.0
             };
 
             await html5QrCode.start(selectedCameraId, config, onScanSuccess);
@@ -426,6 +427,18 @@ export default function TeacherPointsPage() {
                 </div>
             </main>
 
+            <style jsx global>{`
+                #reader video {
+                    display: block !important;
+                    width: 100% !important;
+                    height: 100% !important;
+                    object-fit: cover !important;
+                    min-height: 300px !important;
+                }
+                #reader {
+                    border: none !important;
+                }
+            `}</style>
         </div>
     );
 }

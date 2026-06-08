@@ -74,7 +74,8 @@ export default function TestPointsPage() {
             
             const config = { 
                 fps: 20, 
-                qrbox: { width: 300, height: 300 }
+                qrbox: { width: 300, height: 300 },
+                aspectRatio: 1.0
             };
 
             await html5QrCode.start(selectedCameraId, config, onScanSuccess);
@@ -323,6 +324,18 @@ export default function TestPointsPage() {
                 </div>
             </main>
 
+            <style jsx global>{`
+                #reader video {
+                    display: block !important;
+                    width: 100% !important;
+                    height: 100% !important;
+                    object-fit: cover !important;
+                    min-height: 300px !important;
+                }
+                #reader {
+                    border: none !important;
+                }
+            `}</style>
         </div>
     );
 }
