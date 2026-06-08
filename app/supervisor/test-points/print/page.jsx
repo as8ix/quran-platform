@@ -13,9 +13,23 @@ export default function PrintCardsPage() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        // Force light mode on this page
+        const html = document.documentElement;
+        const hadDark = html.classList.contains('dark');
+        if (hadDark) {
+            html.classList.remove('dark');
+        }
+
         const params = new URLSearchParams(window.location.search);
         const halaqaId = params.get('halaqaId');
         fetchStudents(halaqaId);
+
+        return () => {
+            // Restore dark mode on unmount if it was active
+            if (hadDark) {
+                html.classList.add('dark');
+            }
+        };
     }, []);
 
     const fetchStudents = async (halaqaId) => {
@@ -54,7 +68,7 @@ export default function PrintCardsPage() {
     const studentPages = chunkArray(students, 9);
 
     return (
-        <div className="min-h-screen bg-white dark:bg-slate-900 rtl font-noto" dir="rtl">
+        <div className="min-h-screen bg-slate-50 text-slate-900 rtl font-noto" dir="rtl">
             <div className="no-print">
                 <Navbar userType={user.role?.toLowerCase() || 'supervisor'} userName="طباعة البطاقات" />
                 <div className="max-w-4xl mx-auto pt-28 px-4 mb-6">
