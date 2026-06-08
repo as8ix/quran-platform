@@ -25,13 +25,19 @@ export default function TestPointsPage() {
     }, []);
 
     useEffect(() => {
+        let timeoutId;
         if (isScanning) {
             isProcessingRef.current = false;
-            startScanner();
+            timeoutId = setTimeout(() => {
+                startScanner();
+            }, 250);
         } else {
             stopScanner();
         }
-        return () => stopScanner();
+        return () => {
+            if (timeoutId) clearTimeout(timeoutId);
+            stopScanner();
+        };
     }, [isScanning]);
 
     const startScanner = async () => {
