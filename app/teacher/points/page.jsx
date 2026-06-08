@@ -78,16 +78,20 @@ export default function TeacherPointsPage() {
     };
 
     useEffect(() => {
+        let timeoutId;
         if (isScanning) {
             isProcessingRef.current = false;
             // Delay to allow the DOM to render the container with proper dimensions
-            setTimeout(() => {
+            timeoutId = setTimeout(() => {
                 startScanner();
             }, 300);
         } else {
             stopScanner();
         }
-        return () => stopScanner();
+        return () => {
+            if (timeoutId) clearTimeout(timeoutId);
+            stopScanner();
+        };
     }, [isScanning]);
 
     const startScanner = async () => {
@@ -111,6 +115,11 @@ export default function TeacherPointsPage() {
                 if (realCamera) {
                     selectedCameraId = realCamera.id;
                 }
+            }
+
+            if (!document.getElementById("reader")) {
+                console.warn("Reader element not found, aborting scanner start.");
+                return;
             }
 
             const html5QrCode = new Html5Qrcode("reader");
