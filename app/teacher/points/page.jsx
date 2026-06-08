@@ -98,14 +98,30 @@ export default function TeacherPointsPage() {
                 aspectRatio: 1.0
             };
 
-            await html5QrCode.start(
-                { facingMode: "environment" },
-                config,
-                onScanSuccess
-            );
+            try {
+                // First try to use the environment (back) camera
+                await html5QrCode.start(
+                    { facingMode: "environment" },
+                    config,
+                    onScanSuccess
+                );
+            } catch (err) {
+                console.warn("Failed to start environment camera, trying fallback...", err);
+                // Fallback: get all cameras and use the first one available
+                const cameras = await Html5Qrcode.getCameras();
+                if (cameras && cameras.length > 0) {
+                    await html5QrCode.start(
+                        cameras[0].id,
+                        config,
+                        onScanSuccess
+                    );
+                } else {
+                    throw new Error("No cameras found");
+                }
+            }
         } catch (err) {
             console.error("Scanner start error:", err);
-            toast.error('فشل في تشغيل الكاميرا');
+            toast.error('فشل في تشغيل الكاميرا، تأكد من إعطاء الصلاحيات.');
             setIsScanning(false);
         }
     };
