@@ -844,7 +844,7 @@ export default function StudentDashboard() {
                                 <div className="flex items-center justify-between w-full mt-2 px-2">
                                     <div className="text-[10px] font-black text-slate-400">#STU-{student.id}</div>
                                     <div className="text-[10px] font-black text-emerald-500">
-                                        {student.family?.name ? `أسرة ${student.family.name}` : ''}
+                                        {student.family?.name ? `مجموعة: ${student.family.name}` : ''}
                                     </div>
                                 </div>
                             </div>

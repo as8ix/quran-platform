@@ -121,7 +121,7 @@ export default function PrintCardsPage() {
                                 <div className="flex items-center justify-between w-full mt-1 px-1">
                                     <div className="text-[6px] font-black text-slate-300">#STU-{student.id}</div>
                                     <div className="text-[6px] font-black text-emerald-500">
-                                        {student.family?.name ? `أسرة ${student.family.name}` : ''}
+                                        {student.family?.name ? `مجموعة: ${student.family.name}` : ''}
                                     </div>
                                 </div>
                             </div>
