@@ -95,36 +95,65 @@ export default function TeacherPointsPage() {
                 aspectRatio: 1.0
             };
 
-            const tryStart = async (cameraConfig) => {
-                if (html5QrCodeRef.current) {
-                    try {
-                        if (html5QrCodeRef.current.isScanning) {
-                            await html5QrCodeRef.current.stop();
-                        }
-                    } catch (e) {}
-                    try {
-                        html5QrCodeRef.current.clear();
-                    } catch (e) {}
-                    html5QrCodeRef.current = null;
-                }
-                const html5QrCode = new Html5Qrcode("reader");
-                html5QrCodeRef.current = html5QrCode;
-                await html5QrCode.start(cameraConfig, config, onScanSuccess);
-            };
-
-            try {
-                // Attempt 1: back camera
-                await tryStart({ facingMode: "environment" });
-            } catch (envErr) {
-                console.warn("Environment camera failed, trying front camera...", envErr);
-                // Wait briefly for camera release
-                await new Promise(resolve => setTimeout(resolve, 300));
-                // Attempt 2: front camera
-                await tryStart({ facingMode: "user" });
+            // 1. Get all available cameras
+            const devices = await Html5Qrcode.getCameras();
+            if (!devices || devices.length === 0) {
+                throw new Error("لم يتم العثور على أي كاميرا في الجهاز.");
             }
+
+            console.log("Found cameras:", devices);
+
+            // Wait briefly to let the hardware release the camera from the getCameras check
+            await new Promise(resolve => setTimeout(resolve, 250));
+
+            // 2. Select the best camera
+            let selectedCamera = null;
+
+            // Prioritize back camera if on mobile/devices
+            const backKeywords = ['back', 'rear', 'environment', 'خلفية', 'خلفي', 'main'];
+            const backCamera = devices.find(device => {
+                const label = (device.label || '').toLowerCase();
+                return backKeywords.some(keyword => label.includes(keyword));
+            });
+
+            if (backCamera) {
+                selectedCamera = backCamera;
+            } else {
+                // Filter out virtual cameras (OBS, Snap Camera, etc.)
+                const virtualKeywords = ['virtual', 'obs', 'snap', 'iria', 'droid', 'logi virtual', 'manycam'];
+                const realCamera = devices.find(device => {
+                    const label = (device.label || '').toLowerCase();
+                    return !virtualKeywords.some(keyword => label.includes(keyword));
+                });
+                selectedCamera = realCamera || devices[0];
+            }
+
+            console.log("Selected camera:", selectedCamera);
+
+            // 3. Start scanning with the selected camera
+            if (html5QrCodeRef.current) {
+                try {
+                    if (html5QrCodeRef.current.isScanning) {
+                        await html5QrCodeRef.current.stop();
+                    }
+                } catch (e) {}
+                try {
+                    html5QrCodeRef.current.clear();
+                } catch (e) {}
+                html5QrCodeRef.current = null;
+            }
+
+            const html5QrCode = new Html5Qrcode("reader");
+            html5QrCodeRef.current = html5QrCode;
+            await html5QrCode.start(
+                selectedCamera.id,
+                config,
+                onScanSuccess
+            );
+
         } catch (err) {
             console.error("Scanner start error:", err);
-            toast.error('فشل في تشغيل الكاميرا. يرجى التحقق من إعطاء الصلاحيات.');
+            toast.error(`فشل في تشغيل الكاميرا: ${err?.message || err || 'تأكد من إعطاء الصلاحيات الكافية'}`);
             setIsScanning(false);
         }
     };
