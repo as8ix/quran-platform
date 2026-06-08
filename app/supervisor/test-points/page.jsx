@@ -272,8 +272,8 @@ export default function TestPointsPage() {
                                 ✕
                             </button>
                         )}
-                        <div className={`premium-glass rounded-[3rem] border-4 border-emerald-500 relative overflow-hidden bg-black ${isScanning ? 'h-full md:h-auto' : 'p-8'}`}>
-                            <div id="reader" className={`w-full h-full overflow-hidden ${isScanning ? 'scale-110' : ''}`}></div>
+                        <div className={`premium-glass rounded-[3rem] border-4 border-emerald-500 relative overflow-hidden bg-black ${isScanning ? 'h-full md:h-auto min-h-[350px]' : 'p-8'}`}>
+                            <div id="reader" className={`w-full h-full min-h-[350px] overflow-hidden ${isScanning ? 'scale-110' : ''}`}></div>
                             {!isScanning && (
                                 <div className="text-center py-20 opacity-40">
                                     <div className="text-6xl mb-4">📷</div>
@@ -316,6 +316,7 @@ export default function TestPointsPage() {
             <style jsx global>{`
                 #reader {
                     width: 100% !important;
+                    min-height: 350px !important;
                     border: none !important;
                 }
                 #reader video {
