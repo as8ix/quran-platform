@@ -383,8 +383,8 @@ export default function TeacherPointsPage() {
                                 ✕
                             </button>
                         )}
-                        <div className={`premium-glass rounded-[3rem] border-4 ${mode === 'deduct' ? 'border-rose-500' : 'border-emerald-500'} relative overflow-hidden bg-black ${isScanning ? 'h-full md:h-auto md:min-h-[400px]' : 'p-8'}`}>
-                            <div id="reader" className={`w-full h-full min-h-[300px] overflow-hidden ${isScanning ? 'scale-110' : ''}`}></div>
+                        <div className={`premium-glass rounded-[3rem] border-4 ${mode === 'deduct' ? 'border-rose-500' : 'border-emerald-500'} relative overflow-hidden bg-black ${isScanning ? 'min-h-[400px]' : 'p-8'}`}>
+                            <div id="reader" className="w-full min-h-[300px]"></div>
                             {!isScanning && (
                                 <div className="text-center py-20 opacity-40">
                                     <div className="text-6xl mb-4">📷</div>
@@ -428,15 +428,21 @@ export default function TeacherPointsPage() {
             </main>
 
             <style jsx global>{`
+                #reader {
+                    width: 100% !important;
+                    border: none !important;
+                }
                 #reader video {
                     display: block !important;
                     width: 100% !important;
-                    height: 100% !important;
-                    object-fit: cover !important;
+                    height: auto !important;
                     min-height: 300px !important;
+                    object-fit: cover !important;
+                    position: relative !important;
+                    z-index: 10 !important;
                 }
-                #reader {
-                    border: none !important;
+                #reader canvas {
+                    display: none !important;
                 }
             `}</style>
         </div>
