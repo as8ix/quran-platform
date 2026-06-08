@@ -27,7 +27,10 @@ export default function TestPointsPage() {
     useEffect(() => {
         if (isScanning) {
             isProcessingRef.current = false;
-            startScanner();
+            // Delay to allow the DOM to render the container with proper dimensions
+            setTimeout(() => {
+                startScanner();
+            }, 300);
         } else {
             stopScanner();
         }
@@ -313,16 +316,6 @@ export default function TestPointsPage() {
                 </div>
             </main>
 
-            <style jsx global>{`
-                #reader video {
-                    width: 100% !important;
-                    height: 100% !important;
-                    object-fit: cover !important;
-                }
-                #reader {
-                    border: none !important;
-                }
-            `}</style>
         </div>
     );
 }
