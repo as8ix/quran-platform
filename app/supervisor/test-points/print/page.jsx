@@ -132,30 +132,38 @@ export default function PrintCardsPage() {
                 @media print {
                     @page { 
                         size: A4 portrait;
-                        margin: 1cm;
+                        margin: 0;
                     }
                     .no-print { display: none !important; }
-                    body { background: white !important; margin: 0; padding: 0 !important; }
+                    html, body, body > div { 
+                        background: white !important; 
+                        margin: 0 !important; 
+                        padding: 0 !important; 
+                        width: 21cm !important;
+                        height: 29.7cm !important;
+                        box-sizing: border-box;
+                    }
                     main { 
-                        width: 100% !important; 
+                        width: 21cm !important; 
+                        height: 29.7cm !important;
                         margin: 0 !important; 
                         padding: 0 !important;
-                        display: flex !important;
-                        justify-content: center !important;
+                        display: block !important;
+                        box-sizing: border-box;
                     }
                     .print-page {
                         page-break-after: always;
                         break-after: page;
-                        width: 19cm !important;
-                        height: 27.7cm !important;
+                        width: 21cm !important;
+                        height: 29.7cm !important;
                         display: grid !important;
-                        grid-template-columns: 6cm 6cm 6cm !important;
-                        grid-template-rows: 8.5cm 8.5cm 8.5cm !important;
-                        gap: 0.5cm !important;
+                        grid-template-columns: 6.2cm 6.2cm 6.2cm !important;
+                        grid-template-rows: 8.8cm 8.8cm 8.8cm !important;
+                        gap: 0.4cm !important;
                         justify-content: center !important;
-                        align-content: start;
+                        align-content: center !important;
                         box-sizing: border-box;
-                        margin: 0 auto !important;
+                        margin: 0 !important;
                         padding: 0 !important;
                     }
                     .print-page:last-child {
@@ -163,8 +171,8 @@ export default function PrintCardsPage() {
                         break-after: avoid;
                     }
                     .card-container { 
-                        width: 6cm !important;
-                        height: 8.5cm !important;
+                        width: 6.2cm !important;
+                        height: 8.8cm !important;
                         display: flex;
                         flex-direction: column;
                         border: 1px solid #ddd !important;
