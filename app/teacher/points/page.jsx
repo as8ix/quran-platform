@@ -94,8 +94,7 @@ export default function TeacherPointsPage() {
             
             const config = { 
                 fps: 10, 
-                qrbox: { width: 280, height: 280 },
-                aspectRatio: 1.0
+                qrbox: { width: 280, height: 280 }
             };
 
             try {
@@ -369,8 +368,8 @@ export default function TeacherPointsPage() {
                                 ✕
                             </button>
                         )}
-                        <div className={`premium-glass rounded-[3rem] border-4 ${mode === 'deduct' ? 'border-rose-500' : 'border-emerald-500'} relative overflow-hidden bg-black ${isScanning ? 'h-full md:h-auto' : 'p-8'}`}>
-                            <div id="reader" className={`w-full h-full overflow-hidden ${isScanning ? 'scale-110' : ''}`}></div>
+                        <div className={`premium-glass rounded-[3rem] border-4 ${mode === 'deduct' ? 'border-rose-500' : 'border-emerald-500'} relative overflow-hidden bg-black ${isScanning ? 'h-full md:h-auto md:min-h-[400px]' : 'p-8'}`}>
+                            <div id="reader" className={`w-full h-full min-h-[300px] flex flex-col items-center justify-center overflow-hidden ${isScanning ? 'scale-110' : ''}`}></div>
                             {!isScanning && (
                                 <div className="text-center py-20 opacity-40">
                                     <div className="text-6xl mb-4">📷</div>
