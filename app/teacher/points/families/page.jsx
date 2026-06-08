@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import Navbar from '../../../components/Navbar';
@@ -18,7 +18,6 @@ export default function FamiliesPage() {
     const [students, setStudents] = useState([]);
     const [families, setFamilies] = useState([]);
     const [assignments, setAssignments] = useState({}); // { studentId: familyId | null }
-    const [lines, setLines] = useState([]);
 
     const [loading, setLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
@@ -28,10 +27,6 @@ export default function FamiliesPage() {
 
     // Connection interaction states
     const [selectedStudentId, setSelectedStudentId] = useState(null);
-    const [hoveredFamilyId, setHoveredFamilyId] = useState(null);
-    const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-
-    const containerRef = useRef(null);
 
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
@@ -99,69 +94,8 @@ export default function FamiliesPage() {
         }
     };
 
-    // Calculate line coordinates
-    const updateLineCoords = useCallback(() => {
-        if (!containerRef.current) return;
-        const containerRect = containerRef.current.getBoundingClientRect();
-        
-        const newLines = [];
-        Object.entries(assignments).forEach(([sId, fId]) => {
-            if (!fId) return;
-            const sEl = document.getElementById(`student-dot-${sId}`);
-            const fEl = document.getElementById(`family-dot-${fId}`);
-            if (sEl && fEl) {
-                const sRect = sEl.getBoundingClientRect();
-                const fRect = fEl.getBoundingClientRect();
-                
-                const x1 = sRect.left + sRect.width / 2 - containerRect.left;
-                const y1 = sRect.top + sRect.height / 2 - containerRect.top;
-                const x2 = fRect.left + fRect.width / 2 - containerRect.left;
-                const y2 = fRect.top + fRect.height / 2 - containerRect.top;
-                
-                const familyIndex = families.findIndex(f => f.id === fId);
-                const colors = ['#6366f1', '#10b981', '#f59e0b', '#f43f5e', '#8b5cf6', '#06b6d4', '#ec4899', '#14b8a6', '#f97316'];
-                const color = colors[familyIndex % colors.length] || '#6366f1';
-
-                newLines.push({
-                    studentId: parseInt(sId),
-                    familyId: fId,
-                    x1, y1, x2, y2, color
-                });
-            }
-        });
-        setLines(newLines);
-    }, [assignments, families]);
-
-    // Track layout changes
-    useEffect(() => {
-        updateLineCoords();
-        const t1 = setTimeout(updateLineCoords, 100);
-        const t2 = setTimeout(updateLineCoords, 400);
-        
-        window.addEventListener('resize', updateLineCoords);
-        window.addEventListener('scroll', updateLineCoords, true);
-        
-        return () => {
-            clearTimeout(t1);
-            clearTimeout(t2);
-            window.removeEventListener('resize', updateLineCoords);
-            window.removeEventListener('scroll', updateLineCoords, true);
-        };
-    }, [assignments, students, families, searchTerm, filterType, updateLineCoords]);
-
-    // Handle mouse move for drawing line active state
-    const handleMouseMove = (e) => {
-        if (!selectedStudentId || !containerRef.current) return;
-        const containerRect = containerRef.current.getBoundingClientRect();
-        setMousePos({
-            x: e.clientX - containerRect.left,
-            y: e.clientY - containerRect.top
-        });
-    };
-
     // Connection Click logic
-    const handleStudentDotClick = (studentId, e) => {
-        e.stopPropagation();
+    const handleStudentClick = (studentId) => {
         if (selectedStudentId === studentId) {
             setSelectedStudentId(null);
         } else {
@@ -169,17 +103,14 @@ export default function FamiliesPage() {
         }
     };
 
-    const handleFamilyDotClick = (familyId, e) => {
-        e.stopPropagation();
+    const handleFamilyClick = (familyId) => {
         if (selectedStudentId) {
             setAssignments(prev => ({
                 ...prev,
                 [selectedStudentId]: familyId
             }));
             setSelectedStudentId(null);
-            toast.success('تم التوصيل بنجاح!', { duration: 800 });
-        } else {
-            toast.error('الرجاء اختيار طالب أولاً لتوصيله');
+            toast.success('تم التوزيع بنجاح! 🎉', { duration: 800 });
         }
     };
 
@@ -309,35 +240,6 @@ export default function FamiliesPage() {
         }
     };
 
-    // Compute active line being drawn
-    const getActiveLine = () => {
-        if (!selectedStudentId || !containerRef.current) return null;
-        const sEl = document.getElementById(`student-dot-${selectedStudentId}`);
-        if (!sEl) return null;
-        
-        const containerRect = containerRef.current.getBoundingClientRect();
-        const sRect = sEl.getBoundingClientRect();
-        
-        const x1 = sRect.left + sRect.width / 2 - containerRect.left;
-        const y1 = sRect.top + sRect.height / 2 - containerRect.top;
-        
-        let x2 = mousePos.x;
-        let y2 = mousePos.y;
-        
-        if (hoveredFamilyId) {
-            const fEl = document.getElementById(`family-dot-${hoveredFamilyId}`);
-            if (fEl) {
-                const fRect = fEl.getBoundingClientRect();
-                x2 = fRect.left + fRect.width / 2 - containerRect.left;
-                y2 = fRect.top + fRect.height / 2 - containerRect.top;
-            }
-        }
-        
-        return { x1, y1, x2, y2 };
-    };
-
-    const activeLine = getActiveLine();
-
     // Filter students
     const filteredStudents = students.filter(s => {
         const matchesSearch = s.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -373,10 +275,12 @@ export default function FamiliesPage() {
                         <p className="text-slate-500 dark:text-slate-400 font-bold text-lg">
                             حلقة: <span className="text-indigo-600 dark:text-indigo-400 font-black">{halaqaName}</span>
                         </p>
-                        <p className="text-xs text-slate-400 font-bold mt-1">اضغط على النقطة بجانب الطالب، ثم اضغط على النقطة بجانب الأسرة لتوصيلهما. اضغط على الخط لفصل الطالب.</p>
+                        <p className="text-xs text-indigo-600 dark:text-indigo-400 font-black mt-2 bg-indigo-500/10 px-3 py-1.5 rounded-xl border border-indigo-500/15 w-fit animate-pulse">
+                            💡 طريقة التوزيع: اختر طالباً من اليمين، ثم اضغط على الأسرة المطلوبة من اليسار لتوزيعه مباشرة.
+                        </p>
                     </div>
 
-                    <div className="flex flex-wrap gap-3 w-full md:w-auto">
+                    <div className="flex flex-wrap gap-3 w-full md:w-auto shrink-0">
                         <button 
                             onClick={handleAutoDistribute}
                             className="flex-1 md:flex-none flex items-center justify-center gap-2 px-5 py-3.5 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl font-black shadow-lg shadow-amber-200 dark:shadow-none transition-all active:scale-95 text-sm"
@@ -402,64 +306,10 @@ export default function FamiliesPage() {
                     </div>
                 </div>
 
-                <div 
-                    ref={containerRef}
-                    onMouseMove={handleMouseMove}
-                    className="relative grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 min-h-[600px] rounded-[3rem] p-6 lg:p-8 bg-white/40 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 shadow-2xl backdrop-blur-md connection-grid-bg"
-                >
-                    {/* SVG Connections Canvas */}
-                    <svg className="absolute inset-0 w-full h-full pointer-events-none z-20">
-                        <defs>
-                            <linearGradient id="activeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                                <stop offset="0%" stopColor="#6366f1" />
-                                <stop offset="100%" stopColor="#10b981" />
-                            </linearGradient>
-                            <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-                                <feGaussianBlur stdDeviation="3" result="blur" />
-                                <feComposite in="SourceGraphic" in2="blur" operator="over" />
-                            </filter>
-                        </defs>
-
-                        {/* Connection lines */}
-                        {lines.map((line) => (
-                            <g key={`group-line-${line.studentId}`} className="pointer-events-auto">
-                                {/* Invisible wide path for easier hovering/clicking */}
-                                <path
-                                    d={`M ${line.x1} ${line.y1} C ${(line.x1 + line.x2) / 2} ${line.y1}, ${(line.x1 + line.x2) / 2} ${line.y2}, ${line.x2} ${line.y2}`}
-                                    fill="none"
-                                    stroke="transparent"
-                                    strokeWidth="15"
-                                    className="cursor-pointer"
-                                    onClick={() => disconnectStudent(line.studentId)}
-                                />
-                                {/* Visible path */}
-                                <path
-                                    d={`M ${line.x1} ${line.y1} C ${(line.x1 + line.x2) / 2} ${line.y1}, ${(line.x1 + line.x2) / 2} ${line.y2}, ${line.x2} ${line.y2}`}
-                                    fill="none"
-                                    stroke={line.color}
-                                    strokeWidth="4"
-                                    className="connection-line transition-all duration-300"
-                                    filter="url(#glow)"
-                                />
-                            </g>
-                        ))}
-
-                        {/* Active path drawing */}
-                        {activeLine && (
-                            <path
-                                d={`M ${activeLine.x1} ${activeLine.y1} C ${(activeLine.x1 + activeLine.x2) / 2} ${activeLine.y1}, ${(activeLine.x1 + activeLine.x2) / 2} ${activeLine.y2}, ${activeLine.x2} ${activeLine.y2}`}
-                                fill="none"
-                                stroke="url(#activeGrad)"
-                                strokeWidth="4"
-                                strokeDasharray="6,6"
-                                className="animate-dash-flow"
-                                filter="url(#glow)"
-                            />
-                        )}
-                    </svg>
-
-                    {/* Column 1: Students (lg:span-5) */}
-                    <div className="lg:col-span-5 flex flex-col space-y-6 z-30">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 min-h-[600px]">
+                    
+                    {/* Column 1: Students */}
+                    <div className="flex flex-col space-y-6 z-30">
                         <div className="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2rem] shadow-xl">
                             <h2 className="text-xl font-black text-slate-800 dark:text-white mb-4 flex items-center gap-2">
                                 <span>📖</span> طلاب الحلقة
@@ -500,7 +350,7 @@ export default function FamiliesPage() {
                             </div>
                         </div>
 
-                        <div className="flex-1 overflow-y-auto max-h-[550px] custom-scrollbar space-y-3 pr-1">
+                        <div className="flex-1 overflow-y-auto max-h-[600px] custom-scrollbar space-y-3 pr-1">
                             {filteredStudents.map((student) => {
                                 const selectedFamilyId = assignments[student.id];
                                 const isAssigned = !!selectedFamilyId;
@@ -510,10 +360,10 @@ export default function FamiliesPage() {
                                 return (
                                     <div 
                                         key={student.id}
-                                        onClick={() => handleStudentDotClick(student.id, { stopPropagation: () => {} })}
+                                        onClick={() => handleStudentClick(student.id)}
                                         className={`p-4 rounded-2xl border-2 transition-all duration-300 flex items-center justify-between cursor-pointer ${
                                             isSelected 
-                                                ? 'bg-indigo-50 border-indigo-500 shadow-indigo-100 dark:bg-indigo-950/20 dark:border-indigo-500 dark:shadow-none' 
+                                                ? 'bg-indigo-50 border-indigo-500 shadow-indigo-100 dark:bg-indigo-950/20 dark:border-indigo-500 dark:shadow-none scale-[1.01]' 
                                                 : isAssigned 
                                                     ? 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-slate-300' 
                                                     : 'bg-white dark:bg-slate-900 border-dashed border-slate-300 dark:border-slate-800 hover:border-indigo-200/50'
@@ -549,21 +399,11 @@ export default function FamiliesPage() {
                                             </div>
                                         </div>
 
-                                        {/* Anchor Dot */}
-                                        <div 
-                                            id={`student-dot-${student.id}`}
-                                            onClick={(e) => handleStudentDotClick(student.id, e)}
-                                            className={`w-6 h-6 rounded-full border-4 shadow-md transition-all duration-300 shrink-0 mr-4 flex items-center justify-center ${
-                                                isSelected 
-                                                    ? 'bg-emerald-500 border-indigo-500 scale-125 ring-4 ring-indigo-500/20' 
-                                                    : isAssigned 
-                                                        ? 'bg-indigo-600 border-white dark:border-slate-800' 
-                                                        : 'bg-slate-300 dark:bg-slate-700 border-white dark:border-slate-800 hover:bg-indigo-400'
-                                            }`}
-                                            title="اضغط للتوصيل"
-                                        >
-                                            {isSelected && <div className="w-1.5 h-1.5 bg-white rounded-full"></div>}
-                                        </div>
+                                        {isSelected && (
+                                            <span className="text-xs font-black text-indigo-600 dark:text-indigo-400 animate-pulse bg-indigo-500/10 px-3 py-1 rounded-lg border border-indigo-500/15 mr-4 shrink-0">
+                                                📍 جاري التحديد...
+                                            </span>
+                                        )}
                                     </div>
                                 );
                             })}
@@ -576,11 +416,8 @@ export default function FamiliesPage() {
                         </div>
                     </div>
 
-                    {/* Column 2: SVG Space Spacer (lg:span-2) */}
-                    <div className="hidden lg:block lg:col-span-2 pointer-events-none"></div>
-
-                    {/* Column 3: Families (lg:span-5) */}
-                    <div className="lg:col-span-5 flex flex-col space-y-6 z-30">
+                    {/* Column 2: Families */}
+                    <div className="flex flex-col space-y-6 z-30">
                         {/* Add Family Box */}
                         <div className="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2rem] shadow-xl">
                             <h2 className="text-xl font-black text-slate-800 dark:text-white mb-4 flex items-center gap-2">
@@ -604,44 +441,26 @@ export default function FamiliesPage() {
                         </div>
 
                         {/* Families List */}
-                        <div className="flex-1 overflow-y-auto max-h-[550px] custom-scrollbar space-y-3 pl-1">
+                        <div className="flex-1 overflow-y-auto max-h-[600px] custom-scrollbar space-y-3 pl-1">
                             {families.map((family) => {
                                 // Find students locally assigned to this family
                                 const assignedStudents = students.filter(s => assignments[s.id] === family.id);
                                 const totalPoints = assignedStudents.reduce((sum, s) => {
-                                    // S.points could be fetched initial or calculated
                                     return sum + (s.totalPoints || 0); 
                                 }, 0);
                                 
-                                const isTargetHover = hoveredFamilyId === family.id;
                                 const hasSelectedStudent = selectedStudentId !== null;
 
                                 return (
                                     <div 
                                         key={family.id}
-                                        onClick={(e) => handleFamilyDotClick(family.id, e)}
-                                        onMouseEnter={() => hasSelectedStudent && setHoveredFamilyId(family.id)}
-                                        onMouseLeave={() => setHoveredFamilyId(null)}
+                                        onClick={() => handleFamilyClick(family.id)}
                                         className={`p-5 rounded-2xl border-2 transition-all duration-300 flex items-start gap-4 cursor-pointer relative ${
-                                            isTargetHover 
-                                                ? 'bg-emerald-50 border-emerald-500 shadow-emerald-100 dark:bg-emerald-950/20 dark:border-emerald-500 dark:shadow-none' 
+                                            hasSelectedStudent 
+                                                ? 'hover:border-emerald-500 dark:hover:border-emerald-500 hover:bg-emerald-50/10 dark:hover:bg-emerald-950/10 border-slate-200 dark:border-slate-800' 
                                                 : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-indigo-200'
                                         }`}
                                     >
-                                        {/* Anchor Dot on the left */}
-                                        <div 
-                                            id={`family-dot-${family.id}`}
-                                            onClick={(e) => handleFamilyDotClick(family.id, e)}
-                                            className={`w-6 h-6 rounded-full border-4 shadow-md transition-all duration-300 shrink-0 ml-1 flex items-center justify-center ${
-                                                isTargetHover 
-                                                    ? 'bg-emerald-500 border-white dark:border-slate-800 scale-125 ring-4 ring-emerald-500/20' 
-                                                    : 'bg-emerald-600 border-white dark:border-slate-800 hover:bg-emerald-500'
-                                            }`}
-                                            title="اضغط للتوصيل"
-                                        >
-                                            {isTargetHover && <div className="w-1.5 h-1.5 bg-white rounded-full"></div>}
-                                        </div>
-
                                         <div className="flex-1">
                                             <div className="flex justify-between items-start">
                                                 <div>
@@ -697,32 +516,6 @@ export default function FamiliesPage() {
             </main>
 
             <style jsx global>{`
-                .connection-grid-bg {
-                    background-size: 24px 24px;
-                    background-image: radial-gradient(circle, rgba(99, 102, 241, 0.04) 1px, transparent 1px);
-                }
-                .dark .connection-grid-bg {
-                    background-image: radial-gradient(circle, rgba(99, 102, 241, 0.06) 1px, transparent 1px);
-                }
-                .connection-line {
-                    stroke-dasharray: 1000;
-                    stroke-dashoffset: 1000;
-                    animation: draw 0.8s ease-out forwards;
-                }
-                @keyframes draw {
-                    to {
-                        stroke-dashoffset: 0;
-                    }
-                }
-                .animate-dash-flow {
-                    stroke-dasharray: 8, 8;
-                    animation: dash-flow 0.5s linear infinite;
-                }
-                @keyframes dash-flow {
-                    to {
-                        stroke-dashoffset: -16;
-                    }
-                }
                 .custom-scrollbar::-webkit-scrollbar {
                     width: 5px;
                 }
