@@ -454,10 +454,19 @@ export default function TeacherPointsPage() {
                                             <div className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-2xl">
                                                 {categories.find(c => c.id === log.category)?.icon || '⭐'}
                                             </div>
-                                            <div className="flex-1">
-                                                <div className="flex justify-between items-center">
-                                                    <span className="text-lg font-black text-slate-800 dark:text-slate-200">{log.student.name}</span>
-                                                    <span className={log.amount < 0 ? "text-rose-600 font-black" : "text-emerald-600 font-black"}>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex justify-between items-center gap-4">
+                                                    <div className="text-right flex-1 min-w-0">
+                                                        <span className="text-lg font-black text-slate-800 dark:text-slate-200 leading-tight inline">
+                                                            {log.student.name}
+                                                        </span>
+                                                        {log.student.family?.name && (
+                                                            <span className="text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 px-2.5 py-1 rounded-lg ms-2 inline-flex items-center align-middle">
+                                                                {log.student.family.name}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <span className={log.amount < 0 ? "text-rose-600 font-black shrink-0" : "text-emerald-600 font-black shrink-0"}>
                                                         {log.amount > 0 ? '+' : ''}{log.amount}
                                                     </span>
                                                 </div>

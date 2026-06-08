@@ -166,6 +166,12 @@ export async function GET(request) {
                 student: {
                     select: { 
                         name: true,
+                        family: {
+                            select: {
+                                id: true,
+                                name: true
+                            }
+                        },
                         halaqa: {
                             select: {
                                 id: true,
