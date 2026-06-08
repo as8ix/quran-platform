@@ -92,6 +92,27 @@ export default function TeacherPointsPage() {
 
     const startScanner = async () => {
         try {
+            // Get permissions and list of cameras FIRST
+            const cameras = await Html5Qrcode.getCameras();
+            if (!cameras || cameras.length === 0) {
+                throw new Error("No cameras found");
+            }
+
+            // Determine the best camera to use
+            let selectedCameraId = cameras[0].id;
+            
+            // Try to find back camera
+            const backCamera = cameras.find(c => c.label.toLowerCase().includes('back') || c.label.toLowerCase().includes('environment'));
+            if (backCamera) {
+                selectedCameraId = backCamera.id;
+            } else {
+                // Try to find front/real camera, avoiding virtual ones
+                const realCamera = cameras.find(c => !c.label.toLowerCase().includes('virtual') && !c.label.toLowerCase().includes('obs'));
+                if (realCamera) {
+                    selectedCameraId = realCamera.id;
+                }
+            }
+
             const html5QrCode = new Html5Qrcode("reader");
             html5QrCodeRef.current = html5QrCode;
             
@@ -100,31 +121,8 @@ export default function TeacherPointsPage() {
                 qrbox: { width: 280, height: 280 }
             };
 
-            const startWithCamera = async (cameraIdOrConfig) => {
-                await html5QrCode.start(cameraIdOrConfig, config, onScanSuccess);
-            };
+            await html5QrCode.start(selectedCameraId, config, onScanSuccess);
 
-            try {
-                // First try to use the environment (back) camera
-                await startWithCamera({ facingMode: "environment" });
-            } catch (err) {
-                console.warn("Failed to start environment camera, trying user camera...", err);
-                try {
-                    // Fallback 1: try user (front) camera
-                    await startWithCamera({ facingMode: "user" });
-                } catch (err2) {
-                    console.warn("Failed front camera, trying first available...", err2);
-                    // Fallback 2: get all cameras and use the first one available
-                    const cameras = await Html5Qrcode.getCameras();
-                    if (cameras && cameras.length > 0) {
-                        // Avoid virtual cameras if possible
-                        const realCamera = cameras.find(c => !c.label.toLowerCase().includes('virtual') && !c.label.toLowerCase().includes('obs')) || cameras[0];
-                        await startWithCamera(realCamera.id);
-                    } else {
-                        throw new Error("No cameras found");
-                    }
-                }
-            }
         } catch (err) {
             console.error("Scanner start error:", err);
             toast.error('فشل في تشغيل الكاميرا، تأكد من إعطاء الصلاحيات.');
