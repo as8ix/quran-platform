@@ -71,32 +71,40 @@ export default function TestPointsPage() {
                 await html5QrCode.start(cameraConfig, config, onScanSuccess);
             };
 
+            let envError, userError;
             try {
                 // Try back camera first
                 await tryCamera({ facingMode: "environment" }, "environment");
             } catch (err) {
+                envError = err;
                 console.warn("Environment camera failed, trying user camera...", err);
                 try {
                     // Try front camera
                     await tryCamera({ facingMode: "user" }, "user");
                 } catch (err2) {
+                    userError = err2;
                     console.warn("User camera failed, trying fallback to device list...", err2);
-                    // Try getting raw device IDs directly from browser (no flash)
-                    const devices = await navigator.mediaDevices.enumerateDevices();
-                    const videoDevices = devices.filter(d => d.kind === 'videoinput');
-                    if (videoDevices.length > 0) {
-                        // Avoid virtual cameras
-                        const realCamera = videoDevices.find(c => !c.label.toLowerCase().includes('virtual') && !c.label.toLowerCase().includes('obs')) || videoDevices[0];
-                        await tryCamera(realCamera.deviceId, "deviceId_fallback");
-                    } else {
-                        throw new Error("No cameras found in browser devices");
+                    try {
+                        // Try getting raw device IDs directly from browser (no flash)
+                        const devices = await navigator.mediaDevices.enumerateDevices();
+                        const videoDevices = devices.filter(d => d.kind === 'videoinput');
+                        if (videoDevices.length > 0) {
+                            // Avoid virtual cameras
+                            const realCamera = videoDevices.find(c => !c.label.toLowerCase().includes('virtual') && !c.label.toLowerCase().includes('obs')) || videoDevices[0];
+                            await tryCamera(realCamera.deviceId, "deviceId_fallback");
+                        } else {
+                            throw new Error("No cameras found in browser devices");
+                        }
+                    } catch (err3) {
+                        throw new Error(`[Env: ${envError?.message || envError?.name}] [User: ${userError?.message || userError?.name}] [Fallback: ${err3?.message || err3?.name}]`);
                     }
                 }
             }
 
         } catch (err) {
+            if (!document.getElementById("reader-container")) return; // Silently ignore if component unmounted
             console.error("Scanner start error:", err);
-            toast.error(`فشل: ${err?.message || err?.name || String(err)}`);
+            toast.error(`فشل الكاميرا: ${err?.message || err?.name || String(err)}`);
             setIsScanning(false);
         }
     };
