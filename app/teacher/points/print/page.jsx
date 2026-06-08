@@ -55,6 +55,14 @@ export default function PrintCardsPage() {
 
     const user = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('user') || '{}') : {};
 
+    // Chunk students into pages of exactly 9 cards (3x3 grid)
+    const chunkArray = (arr, size) => {
+        return Array.from({ length: Math.ceil(arr.length / size) }, (v, i) =>
+            arr.slice(i * size, i * size + size)
+        );
+    };
+    const studentPages = chunkArray(students, 9);
+
     return (
         <div className="min-h-screen bg-white dark:bg-slate-900 rtl font-noto" dir="rtl">
             <div className="no-print">
@@ -78,56 +86,58 @@ export default function PrintCardsPage() {
                 </div>
             </div>
 
-            <main className="max-w-6xl mx-auto px-4 pb-20">
-                <div className="grid-container grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 print:gap-0">
-                    {students.map(student => (
-                        <div key={student.id} className="card-container relative overflow-hidden bg-white border border-slate-200 rounded-2xl shadow-sm print:shadow-none">
-                            {/* Card Header */}
-                            <div className="bg-slate-900 p-2 flex items-center justify-between">
-                                <div className="flex items-center gap-1.5">
-                                    <div className="w-7 h-7 flex items-center justify-center flex-shrink-0">
-                                        <img src="/logo.svg" className="max-w-full max-h-full object-contain" alt="logo" />
+            <main className="max-w-6xl mx-auto px-4 pb-20 print:p-0">
+                {studentPages.map((pageStudents, pageIndex) => (
+                    <div key={pageIndex} className="print-page grid-container grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 print:gap-x-[0.5cm] print:gap-y-[0.5cm] mb-8 print:mb-0">
+                        {pageStudents.map(student => (
+                            <div key={student.id} className="card-container relative overflow-hidden bg-white border border-slate-200 rounded-2xl shadow-sm print:shadow-none">
+                                {/* Card Header */}
+                                <div className="bg-slate-900 p-2 flex items-center justify-between">
+                                    <div className="flex items-center gap-1.5">
+                                        <div className="w-7 h-7 flex items-center justify-center flex-shrink-0">
+                                            <img src="/logo.svg" className="max-w-full max-h-full object-contain" alt="logo" />
+                                        </div>
+                                        <div className="h-4 flex items-center">
+                                            <img src="/logo-text-dark.png" className="h-full object-contain" alt="logo-text" />
+                                        </div>
                                     </div>
-                                    <div className="h-4 flex items-center">
-                                        <img src="/logo-text-dark.png" className="h-full object-contain" alt="logo-text" />
+                                    <div className="text-emerald-400 font-black text-[9px] uppercase tracking-tighter">
+                                        بطاقة الطالب
                                     </div>
                                 </div>
-                                <div className="text-emerald-400 font-black text-[9px] uppercase tracking-tighter">
-                                    بطاقة الطالب
+
+                                {/* Card Body */}
+                                <div className="p-3 flex-1 flex flex-col items-center justify-center text-center">
+                                    {student.halaqa?.logo ? (
+                                        <div className="w-16 h-16 flex items-center justify-center mb-1">
+                                            <img 
+                                                src={student.halaqa.logo} 
+                                                decoding="async"
+                                                className="max-w-full max-h-full object-contain rounded-xl transform scale-110" 
+                                                alt="halaqa-logo" 
+                                            />
+                                        </div>
+                                    ) : (
+                                        <div className="w-16 h-16 mb-1"></div>
+                                    )}
+                                    <h3 className="text-sm font-black text-slate-800 mb-0.5">{student.name}</h3>
+                                    <p className="text-[8px] font-bold text-slate-400 mb-0.5">الحلقة: {student.halaqa?.name}</p>
+
+                                    <div className="p-2 bg-white rounded-2xl shadow-inner border border-slate-50 mb-2">
+                                        <QRCodeSVG value={student.id.toString()} size={85} level="H" includeMargin={true} />
+                                    </div>
+
+                                    <div className="flex items-center justify-between w-full mt-1 px-1">
+                                        <div className="text-[6px] font-black text-slate-300">#STU-{student.id}</div>
+                                        <div className="text-[6px] font-black text-emerald-500">
+                                            {student.family?.name ? `مجموعة: ${student.family.name}` : ''}
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-
-                            {/* Card Body */}
-                            <div className="p-3 flex-1 flex flex-col items-center justify-center text-center">
-                                {student.halaqa?.logo ? (
-                                    <div className="w-16 h-16 flex items-center justify-center mb-1">
-                                        <img 
-                                            src={student.halaqa.logo} 
-                                            decoding="async"
-                                            className="max-w-full max-h-full object-contain rounded-xl transform scale-110" 
-                                            alt="halaqa-logo" 
-                                        />
-                                    </div>
-                                ) : (
-                                    <div className="w-16 h-16 mb-1"></div>
-                                )}
-                                <h3 className="text-sm font-black text-slate-800 mb-0.5">{student.name}</h3>
-                                <p className="text-[8px] font-bold text-slate-400 mb-0.5">الحلقة: {student.halaqa?.name}</p>
-
-                                <div className="p-2 bg-white rounded-2xl shadow-inner border border-slate-50 mb-2">
-                                    <QRCodeSVG value={student.id.toString()} size={85} level="H" includeMargin={true} />
-                                </div>
-
-                                <div className="flex items-center justify-between w-full mt-1 px-1">
-                                    <div className="text-[6px] font-black text-slate-300">#STU-{student.id}</div>
-                                    <div className="text-[6px] font-black text-emerald-500">
-                                        {student.family?.name ? `مجموعة: ${student.family.name}` : ''}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
+                        ))}
+                    </div>
+                ))}
             </main>
 
             <style jsx>{`
@@ -145,23 +155,34 @@ export default function PrintCardsPage() {
                         display: flex !important;
                         justify-content: center !important;
                     }
-                    .grid-container {
+                    .print-page {
+                        page-break-after: always;
+                        break-after: page;
                         width: 19cm !important;
+                        height: 27.7cm !important;
                         display: grid !important;
                         grid-template-columns: 6cm 6cm 6cm !important;
+                        grid-template-rows: 8.5cm 8.5cm 8.5cm !important;
                         gap: 0.5cm !important;
                         justify-content: center !important;
+                        align-content: start;
+                        box-sizing: border-box;
+                        margin: 0 auto !important;
+                        padding: 0 !important;
+                    }
+                    .print-page:last-child {
+                        page-break-after: avoid;
+                        break-after: avoid;
                     }
                     .card-container { 
-                        break-inside: avoid;
-                        page-break-inside: avoid;
                         width: 6cm !important;
-                        height: 300px;
+                        height: 8.5cm !important;
                         display: flex;
                         flex-direction: column;
                         border: 1px solid #ddd !important;
                         background: white !important;
                         margin: 0 !important;
+                        box-sizing: border-box;
                     }
                 }
             `}</style>
