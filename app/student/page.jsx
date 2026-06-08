@@ -843,13 +843,8 @@ export default function StudentDashboard() {
 
                                 <div className="flex items-center justify-between w-full mt-2 px-2">
                                     <div className="text-[10px] font-black text-slate-400">#STU-{student.id}</div>
-                                    <div className="text-left flex flex-col items-end">
-                                        <div className="text-[10px] font-black text-slate-400">QURAN {new Date().getFullYear()}</div>
-                                        {student.family?.name && (
-                                            <div className="text-[8px] font-black text-emerald-500 mt-0.5 leading-none">
-                                                أسرة {student.family.name}
-                                            </div>
-                                        )}
+                                    <div className="text-[10px] font-black text-emerald-500">
+                                        {student.family?.name ? `أسرة ${student.family.name}` : ''}
                                     </div>
                                 </div>
                             </div>

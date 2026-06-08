@@ -108,13 +108,8 @@ export default function PrintCardsPage() {
 
                                 <div className="flex items-center justify-between w-full mt-1 px-1">
                                     <div className="text-[6px] font-black text-slate-300">#STU-{student.id}</div>
-                                    <div className="text-left flex flex-col items-end">
-                                        <div className="text-[6px] font-black text-slate-300">QURAN 2026</div>
-                                        {student.family?.name && (
-                                            <div className="text-[5px] font-black text-emerald-500 mt-0.5 leading-none">
-                                                أسرة {student.family.name}
-                                            </div>
-                                        )}
+                                    <div className="text-[6px] font-black text-emerald-500">
+                                        {student.family?.name ? `أسرة ${student.family.name}` : ''}
                                     </div>
                                 </div>
                             </div>
