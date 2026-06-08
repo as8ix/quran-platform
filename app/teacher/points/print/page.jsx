@@ -88,9 +88,8 @@ export default function PrintCardsPage() {
                                     <div className="w-7 h-7 flex items-center justify-center flex-shrink-0">
                                         <img src="/logo.svg" className="max-w-full max-h-full object-contain" alt="logo" />
                                     </div>
-                                    <div className="text-[7px] text-white font-bold leading-tight">
-                                        جامع الحديقة<br/>
-                                        <span className="text-slate-400">حي السلامة</span>
+                                    <div className="h-4 flex items-center">
+                                        <img src="/logo-text-dark.png" className="h-full object-contain" alt="logo-text" />
                                     </div>
                                 </div>
                                 <div className="text-emerald-400 font-black text-[9px] uppercase tracking-tighter">

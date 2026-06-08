@@ -809,9 +809,8 @@ export default function StudentDashboard() {
                                     <div className="w-8 h-8 flex items-center justify-center flex-shrink-0 bg-white/10 rounded-lg p-1">
                                         <img src="/logo.svg" className="max-w-full max-h-full object-contain" alt="logo" />
                                     </div>
-                                    <div className="text-[9px] text-white font-bold leading-tight">
-                                        جامع الحديقة<br/>
-                                        <span className="text-slate-400">حي السلامة</span>
+                                    <div className="h-5 flex items-center">
+                                        <img src="/logo-text-dark.png" className="h-full object-contain" alt="logo-text" />
                                     </div>
                                 </div>
                                 <div className="text-emerald-400 font-black text-[10px] uppercase tracking-tighter">
