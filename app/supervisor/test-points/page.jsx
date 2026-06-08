@@ -43,42 +43,53 @@ export default function TestPointsPage() {
 
     const startScanner = async () => {
         try {
-            // Get permissions and list of cameras FIRST
-            const cameras = await Html5Qrcode.getCameras();
-            if (!cameras || cameras.length === 0) {
-                throw new Error("No cameras found");
-            }
-
-            // Determine the best camera to use
-            let selectedCameraId = cameras[0].id;
-            
-            // Try to find back camera
-            const backCamera = cameras.find(c => c.label.toLowerCase().includes('back') || c.label.toLowerCase().includes('environment'));
-            if (backCamera) {
-                selectedCameraId = backCamera.id;
-            } else {
-                // Try to find front/real camera, avoiding virtual ones
-                const realCamera = cameras.find(c => !c.label.toLowerCase().includes('virtual') && !c.label.toLowerCase().includes('obs'));
-                if (realCamera) {
-                    selectedCameraId = realCamera.id;
-                }
-            }
-
-            if (!document.getElementById("reader")) {
-                console.warn("Reader element not found, aborting scanner start.");
-                return;
-            }
-
-            const html5QrCode = new Html5Qrcode("reader");
-            html5QrCodeRef.current = html5QrCode;
-            
             const config = { 
                 fps: 20, 
                 qrbox: { width: 300, height: 300 },
                 aspectRatio: 1.0
             };
 
-            await html5QrCode.start(selectedCameraId, config, onScanSuccess);
+            const tryCamera = async (cameraConfig) => {
+                if (!document.getElementById("reader")) throw new Error("Reader not found");
+                
+                // Safe cleanup of previous instance
+                if (html5QrCodeRef.current) {
+                    try {
+                        if (html5QrCodeRef.current.isScanning) {
+                            await html5QrCodeRef.current.stop();
+                        }
+                    } catch (e) {}
+                    try { html5QrCodeRef.current.clear(); } catch (e) {}
+                }
+                document.getElementById("reader").innerHTML = ""; // Force clean DOM
+
+                const html5QrCode = new Html5Qrcode("reader");
+                html5QrCodeRef.current = html5QrCode;
+                await html5QrCode.start(cameraConfig, config, onScanSuccess);
+            };
+
+            try {
+                // Try back camera first
+                await tryCamera({ facingMode: "environment" });
+            } catch (err) {
+                console.warn("Environment camera failed, trying user camera...", err);
+                try {
+                    // Try front camera
+                    await tryCamera({ facingMode: "user" });
+                } catch (err2) {
+                    console.warn("User camera failed, trying fallback to device list...", err2);
+                    // Try getting raw device IDs directly from browser (no flash)
+                    const devices = await navigator.mediaDevices.enumerateDevices();
+                    const videoDevices = devices.filter(d => d.kind === 'videoinput');
+                    if (videoDevices.length > 0) {
+                        // Avoid virtual cameras
+                        const realCamera = videoDevices.find(c => !c.label.toLowerCase().includes('virtual') && !c.label.toLowerCase().includes('obs')) || videoDevices[0];
+                        await tryCamera(realCamera.deviceId);
+                    } else {
+                        throw new Error("No cameras found");
+                    }
+                }
+            }
 
         } catch (err) {
             console.error("Scanner start error:", err);
