@@ -49,10 +49,11 @@ export default function TestPointsPage() {
                 aspectRatio: 1.0
             };
 
-            const tryCamera = async (cameraConfig) => {
-                if (!document.getElementById("reader")) throw new Error("Reader not found");
+            const tryCamera = async (cameraConfig, attemptName) => {
+                const container = document.getElementById("reader-container");
+                if (!container) throw new Error(`Reader container not found on attempt: ${attemptName}`);
                 
-                // Safe cleanup of previous instance
+                // Safe cleanup of previous instance's active stream if any
                 if (html5QrCodeRef.current) {
                     try {
                         if (html5QrCodeRef.current.isScanning) {
@@ -61,7 +62,9 @@ export default function TestPointsPage() {
                     } catch (e) {}
                     try { html5QrCodeRef.current.clear(); } catch (e) {}
                 }
-                document.getElementById("reader").innerHTML = ""; // Force clean DOM
+                
+                // Completely replace the reader element to ensure a pristine DOM state for each attempt
+                container.innerHTML = '<div id="reader" style="width: 100%; height: 100%;"></div>';
 
                 const html5QrCode = new Html5Qrcode("reader");
                 html5QrCodeRef.current = html5QrCode;
@@ -70,12 +73,12 @@ export default function TestPointsPage() {
 
             try {
                 // Try back camera first
-                await tryCamera({ facingMode: "environment" });
+                await tryCamera({ facingMode: "environment" }, "environment");
             } catch (err) {
                 console.warn("Environment camera failed, trying user camera...", err);
                 try {
                     // Try front camera
-                    await tryCamera({ facingMode: "user" });
+                    await tryCamera({ facingMode: "user" }, "user");
                 } catch (err2) {
                     console.warn("User camera failed, trying fallback to device list...", err2);
                     // Try getting raw device IDs directly from browser (no flash)
@@ -84,9 +87,9 @@ export default function TestPointsPage() {
                     if (videoDevices.length > 0) {
                         // Avoid virtual cameras
                         const realCamera = videoDevices.find(c => !c.label.toLowerCase().includes('virtual') && !c.label.toLowerCase().includes('obs')) || videoDevices[0];
-                        await tryCamera(realCamera.deviceId);
+                        await tryCamera(realCamera.deviceId, "deviceId_fallback");
                     } else {
-                        throw new Error("No cameras found");
+                        throw new Error("No cameras found in browser devices");
                     }
                 }
             }
@@ -295,7 +298,7 @@ export default function TestPointsPage() {
                             </button>
                         )}
                         <div className={`premium-glass rounded-[3rem] border-4 ${mode === 'deduct' ? 'border-rose-500' : 'border-emerald-500'} relative overflow-hidden bg-black ${isScanning ? 'min-h-[400px]' : 'p-8'}`}>
-                            <div id="reader" className="w-full min-h-[300px]"></div>
+                            <div id="reader-container" className="w-full min-h-[300px]"></div>
                             {!isScanning && (
                                 <div className="text-center py-20 opacity-40">
                                     <div className="text-6xl mb-4">📷</div>
