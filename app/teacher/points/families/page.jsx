@@ -3,10 +3,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
-import Navbar from '../../../../components/Navbar';
-import BackButton from '../../../../components/BackButton';
-import { useTheme } from '../../../../components/ThemeProvider';
-import LoadingScreen from '../../../../components/LoadingScreen';
+import Navbar from '../../../components/Navbar';
+import BackButton from '../../../components/BackButton';
+import { useTheme } from '../../../components/ThemeProvider';
+import LoadingScreen from '../../../components/LoadingScreen';
 
 export default function FamiliesPage() {
     const router = useRouter();
