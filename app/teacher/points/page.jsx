@@ -95,13 +95,24 @@ export default function TeacherPointsPage() {
 
     const startScanner = async () => {
         try {
+            // 1. Wait for the DOM element #reader to be fully mounted by React
+            let retries = 0;
+            while (!document.getElementById("reader") && retries < 30) {
+                await new Promise(resolve => setTimeout(resolve, 50));
+                retries++;
+            }
+
+            if (!document.getElementById("reader")) {
+                throw new Error("لم يتم العثور على عنصر قارئ الباركود (id=reader) في الصفحة.");
+            }
+
             const config = { 
                 fps: 10, 
                 qrbox: { width: 280, height: 280 },
                 aspectRatio: 1.0
             };
 
-            // 1. Get all available cameras
+            // 2. Get all available cameras
             const devices = await Html5Qrcode.getCameras();
             if (!devices || devices.length === 0) {
                 throw new Error("لم يتم العثور على أي كاميرا في الجهاز.");

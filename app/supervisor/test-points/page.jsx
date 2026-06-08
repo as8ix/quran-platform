@@ -39,16 +39,26 @@ export default function TestPointsPage() {
             stopScanner();
         };
     }, [isScanning]);
-
     const startScanner = async () => {
         try {
+            // 1. Wait for the DOM element #reader to be fully mounted by React
+            let retries = 0;
+            while (!document.getElementById("reader") && retries < 30) {
+                await new Promise(resolve => setTimeout(resolve, 50));
+                retries++;
+            }
+
+            if (!document.getElementById("reader")) {
+                throw new Error("لم يتم العثور على عنصر قارئ الباركود (id=reader) في الصفحة.");
+            }
+
             const config = { 
                 fps: 20, 
                 qrbox: { width: 300, height: 300 },
                 aspectRatio: 1.0
             };
 
-            // 1. Get all available cameras
+            // 2. Get all available cameras
             const devices = await Html5Qrcode.getCameras();
             if (!devices || devices.length === 0) {
                 throw new Error("لم يتم العثور على أي كاميرا في الجهاز.");
@@ -59,7 +69,7 @@ export default function TestPointsPage() {
             // Wait briefly to let the hardware release the camera from the getCameras check
             await new Promise(resolve => setTimeout(resolve, 250));
 
-            // 2. Select the best camera
+            // 3. Select the best camera
             let selectedCamera = null;
 
             // Prioritize back camera if on mobile/devices
@@ -83,7 +93,7 @@ export default function TestPointsPage() {
 
             console.log("Selected camera:", selectedCamera);
 
-            // 3. Start scanning with the selected camera
+            // 4. Start scanning with the selected camera
             if (html5QrCodeRef.current) {
                 try {
                     if (html5QrCodeRef.current.isScanning) {
@@ -110,6 +120,7 @@ export default function TestPointsPage() {
             setIsScanning(false);
         }
     };
+
 
     const stopScanner = async () => {
         if (html5QrCodeRef.current && html5QrCodeRef.current.isScanning) {
