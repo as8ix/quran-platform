@@ -93,7 +93,7 @@ export default function TestPointsPage() {
 
         } catch (err) {
             console.error("Scanner start error:", err);
-            toast.error('فشل في تشغيل الكاميرا، تأكد من إعطاء الصلاحيات.');
+            toast.error(`فشل: ${err?.message || err?.name || String(err)}`);
             setIsScanning(false);
         }
     };
